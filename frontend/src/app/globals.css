@@ -1,0 +1,182 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'IBM Plex Sans Arabic', 'Readex Pro', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-display: 'Readex Pro', 'IBM Plex Sans Arabic', system-ui, sans-serif;
+  --font-mono: 'Plus Jakarta Sans', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+:root {
+  /* ثيم شركة المخازن الاقتصادية الفاخر الموحد - Royal Gold B2B */
+  --brand-primary: #b47820;
+  --brand-dark: #8f5a13;
+  --brand-light: rgba(180, 120, 32, 0.08);
+  --brand-ring: rgba(180, 120, 32, 0.25);
+  --brand-gradient: linear-gradient(135deg, #8f5a13 0%, #b47820 50%, #d4973b 100%);
+  --brand-gold-gradient: linear-gradient(135deg, #dfb76c 0%, #c28b38 50%, #996515 100%);
+  --brand-mesh: radial-gradient(at 0% 0%, rgba(180, 120, 32, 0.14) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(212, 151, 59, 0.1) 0px, transparent 50%);
+
+  /* ألوان فاخرة مكملة */
+  --gold-accent: #b47820;
+  --gold-gradient: linear-gradient(135deg, #fef3c7 0%, #d4973b 50%, #996515 100%);
+  --emerald-accent: #059669;
+  --emerald-gradient: linear-gradient(135deg, #d1fae5 0%, #10b981 50%, #059669 100%);
+
+  /* الخلفيات والأسطح */
+  --bg-app: #faf8f5;
+  --bg-surface: #ffffff;
+  --text-main: #1c1917;
+  --text-secondary: #44403c;
+  --text-muted: #78716c;
+  --border-subtle: #eddcc8;
+  --border-glass: rgba(180, 120, 32, 0.22);
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body {
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  letter-spacing: 0 !important;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  letter-spacing: 0 !important;
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+button, a, input, select, textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* إخفاء أشرطة التمرير مع الحفاظ على السلاسة في الجوال */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* دعم الحافة الآمنة في أجهزة الآيفون والأندرويد الحديثة */
+.safe-pb {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+}
+
+/* فخامة التصميم والعناصر الزجاجية */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(237, 220, 200, 0.85);
+}
+
+.glass-header {
+  background: var(--brand-gradient);
+  box-shadow: 0 10px 30px -10px rgba(180, 120, 32, 0.25);
+}
+
+.glass-card {
+  background: #ffffff;
+  border: 1px solid rgba(237, 220, 200, 0.85);
+  box-shadow: 0 4px 20px -4px rgba(180, 120, 32, 0.07), 0 2px 6px -1px rgba(28, 25, 23, 0.03);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 32px -6px rgba(180, 120, 32, 0.14), 0 4px 12px -2px rgba(28, 25, 23, 0.04);
+  border-color: rgba(180, 120, 32, 0.45);
+}
+
+/* شريط تمرير عصري فائق النعومة */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d6c5ad;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #b47820;
+}
+
+/* كلاسات الثيم الموحد لسهولة الاستخدام */
+.bg-brand {
+  background-color: var(--brand-primary) !important;
+}
+
+.bg-brand-dark {
+  background-color: var(--brand-dark) !important;
+}
+
+.bg-brand-light {
+  background-color: var(--brand-light) !important;
+}
+
+.bg-brand-gradient {
+  background: var(--brand-gradient) !important;
+}
+
+.text-brand {
+  color: var(--brand-primary) !important;
+}
+
+.text-brand-dark {
+  color: var(--brand-dark) !important;
+}
+
+.border-brand {
+  border-color: var(--brand-primary) !important;
+}
+
+.border-brand-light {
+  border-color: var(--brand-light) !important;
+}
+
+/* تأثير لمعان فاخر للأزرار المهمة */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+.btn-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+  animation: shimmer 2.8s infinite;
+}

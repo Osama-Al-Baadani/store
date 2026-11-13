@@ -1,0 +1,7 @@
+# Root environment & OS files
+.env
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/

@@ -1,0 +1,230 @@
+import { apiClient } from '@/shared/lib/axios';
+import { ApiResponse } from '@/types';
+
+export interface AdminStats {
+  merchants: {
+    total: number;
+    pending: number;
+    active: number;
+    suspended: number;
+  };
+  orders: {
+    total: number;
+    revenue: number;
+  };
+  catalog: {
+    products: number;
+    branches: number;
+  };
+}
+
+export interface MerchantItem {
+  id: number;
+  user_id: number;
+  company_name: string;
+  cr_number: string;
+  vat_number: string;
+  owner_name: string;
+  city: string;
+  address: string;
+  status: 'pending' | 'active' | 'suspended' | 'rejected';
+  customer_code: string;
+  admin_note?: string;
+  approved_at?: string;
+  created_at: string;
+  user?: {
+    id: number;
+    name: string;
+    phone: string;
+    email: string;
+  };
+}
+
+export interface AdminOrder {
+  id: number;
+  order_number: string;
+  total: number;
+  status: string;
+  created_at: string;
+  branch?: {
+    id: number;
+    name: string;
+  };
+  user?: {
+    id: number;
+    name: string;
+    phone: string;
+    merchant_profile?: {
+      company_name: string;
+      customer_code: string;
+    };
+  };
+  items?: any[];
+}
+
+export interface AdvertisementItem {
+  id: number;
+  title?: string | null;
+  subtitle?: string | null;
+  badge_text?: string | null;
+  image_path: string;
+  image_url: string;
+  placement: 'all' | 'home' | 'catalog';
+  link_url?: string | null;
+  sort: number;
+  is_active: boolean;
+  created_at: string;
+}
+
+export const getPublicAdvertisements = async (placement?: 'home' | 'catalog'): Promise<ApiResponse<AdvertisementItem[]>> => {
+  const { data } = await apiClient.get<ApiResponse<AdvertisementItem[]>>('/advertisements', {
+    params: placement ? { placement } : undefined,
+  });
+  return data;
+};
+
+export const adminApi = {
+  getStats: async (): Promise<ApiResponse<AdminStats>> => {
+    const { data } = await apiClient.get<ApiResponse<AdminStats>>('/admin/stats');
+    return data;
+  },
+
+  getMerchants: async (params?: { status?: string; search?: string }): Promise<ApiResponse<MerchantItem[]>> => {
+    const { data } = await apiClient.get<ApiResponse<MerchantItem[]>>('/admin/merchants', { params });
+    return data;
+  },
+
+  approveMerchant: async (id: number): Promise<ApiResponse<MerchantItem>> => {
+    const { data } = await apiClient.post<ApiResponse<MerchantItem>>(`/admin/merchants/${id}/approve`);
+    return data;
+  },
+
+  rejectMerchant: async (id: number, payload?: { action: 'suspended' | 'rejected'; note?: string }): Promise<ApiResponse<MerchantItem>> => {
+    const { data } = await apiClient.post<ApiResponse<MerchantItem>>(`/admin/merchants/${id}/reject`, payload);
+    return data;
+  },
+
+  getOrders: async (params?: { status?: string }): Promise<ApiResponse<AdminOrder[]>> => {
+    const { data } = await apiClient.get<ApiResponse<AdminOrder[]>>('/admin/orders', { params });
+    return data;
+  },
+
+  updateOrderStatus: async (id: number, status: string): Promise<ApiResponse<AdminOrder>> => {
+    const { data } = await apiClient.patch<ApiResponse<AdminOrder>>(`/admin/orders/${id}/status`, { status });
+    return data;
+  },
+
+  getProducts: async (params?: { search?: string; category_id?: number; branch_id?: number }): Promise<ApiResponse<any[]>> => {
+    const { data } = await apiClient.get<ApiResponse<any[]>>('/admin/products', { params });
+    return data;
+  },
+
+  createProduct: async (payload: any): Promise<ApiResponse<any>> => {
+    const isForm = typeof FormData !== 'undefined' && payload instanceof FormData;
+    const { data } = await apiClient.post<ApiResponse<any>>(
+      '/admin/products',
+      payload,
+      isForm ? { headers: { 'Content-Type': 'multipart/form-data' } } : undefined
+    );
+    return data;
+  },
+
+  updateProduct: async (id: number, payload: any): Promise<ApiResponse<any>> => {
+    const isForm = typeof FormData !== 'undefined' && payload instanceof FormData;
+    if (isForm) {
+      const { data } = await apiClient.post<ApiResponse<any>>(`/admin/products/${id}`, payload, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return data;
+    }
+    const { data } = await apiClient.patch<ApiResponse<any>>(`/admin/products/${id}`, payload);
+    return data;
+  },
+
+  deleteProduct: async (id: number): Promise<ApiResponse<any>> => {
+    const { data } = await apiClient.delete<ApiResponse<any>>(`/admin/products/${id}`);
+    return data;
+  },
+
+  getCategories: async (): Promise<ApiResponse<any[]>> => {
+    const { data } = await apiClient.get<ApiResponse<any[]>>('/admin/categories');
+    return data;
+  },
+
+  createCategory: async (payload: any): Promise<ApiResponse<any>> => {
+    const { data } = await apiClient.post<ApiResponse<any>>('/admin/categories', payload);
+    return data;
+  },
+
+  updateCategory: async (id: number, payload: any): Promise<ApiResponse<any>> => {
+    const { data } = await apiClient.patch<ApiResponse<any>>(`/admin/categories/${id}`, payload);
+    return data;
+  },
+
+  deleteCategory: async (id: number): Promise<ApiResponse<any>> => {
+    const { data } = await apiClient.delete<ApiResponse<any>>(`/admin/categories/${id}`);
+    return data;
+  },
+
+  getBranches: async (): Promise<ApiResponse<any[]>> => {
+    const { data } = await apiClient.get<ApiResponse<any[]>>('/admin/branches');
+    return data;
+  },
+
+  createBranch: async (payload: any): Promise<ApiResponse<any>> => {
+    const { data } = await apiClient.post<ApiResponse<any>>('/admin/branches', payload);
+    return data;
+  },
+
+  updateBranch: async (id: number, payload: any): Promise<ApiResponse<any>> => {
+    const { data } = await apiClient.patch<ApiResponse<any>>(`/admin/branches/${id}`, payload);
+    return data;
+  },
+
+  deleteBranch: async (id: number): Promise<ApiResponse<any>> => {
+    const { data } = await apiClient.delete<ApiResponse<any>>(`/admin/branches/${id}`);
+    return data;
+  },
+
+  getUsers: async (): Promise<ApiResponse<any[]>> => {
+    const { data } = await apiClient.get<ApiResponse<any[]>>('/admin/users');
+    return data;
+  },
+
+  resetUserPassword: async (id: number, password: string): Promise<ApiResponse<any>> => {
+    const { data } = await apiClient.post<ApiResponse<any>>(`/admin/users/${id}/password`, { password });
+    return data;
+  },
+
+  getAdvertisements: async (): Promise<ApiResponse<AdvertisementItem[]>> => {
+    const { data } = await apiClient.get<ApiResponse<AdvertisementItem[]>>('/admin/advertisements');
+    return data;
+  },
+
+  createAdvertisement: async (formData: FormData): Promise<ApiResponse<AdvertisementItem>> => {
+    const { data } = await apiClient.post<ApiResponse<AdvertisementItem>>('/admin/advertisements', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return data;
+  },
+
+  updateAdvertisement: async (
+    id: number,
+    payload: FormData | { is_active?: boolean; sort?: number; placement?: string; title?: string; subtitle?: string }
+  ): Promise<ApiResponse<AdvertisementItem>> => {
+    if (payload instanceof FormData) {
+      const { data } = await apiClient.post<ApiResponse<AdvertisementItem>>(`/admin/advertisements/${id}`, payload, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return data;
+    }
+    const { data } = await apiClient.patch<ApiResponse<AdvertisementItem>>(`/admin/advertisements/${id}`, payload);
+    return data;
+  },
+
+  deleteAdvertisement: async (id: number): Promise<ApiResponse<any>> => {
+    const { data } = await apiClient.delete<ApiResponse<any>>(`/admin/advertisements/${id}`);
+    return data;
+  },
+};
+

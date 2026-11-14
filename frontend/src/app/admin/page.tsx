@@ -4,7 +4,14 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { adminApi, AdminStats, MerchantItem, AdminOrder, AdvertisementItem } from '@/features/admin/api/admin.api';
+import {
+  adminApi,
+  AdminStats,
+  MerchantItem,
+  AdminOrder,
+  AdminActiveCart,
+  AdvertisementItem,
+} from '@/features/admin/api/admin.api';
 import {
   Building2,
   Users,
@@ -21,7 +28,6 @@ import {
   Phone,
   RefreshCw,
   LogOut,
-  TrendingUp,
   Boxes,
   Lock,
   LogIn,
@@ -49,16 +55,17 @@ import {
   LayoutDashboard,
   Sparkles,
   Link2,
+  ShoppingCart,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 
 type TabType = 'merchants' | 'products' | 'categories' | 'branches' | 'advertisements' | 'orders' | 'users';
 
 const ORDER_STATUS_LABELS: Record<string, { label: string; style: string }> = {
-  pending: { label: 'قيد المراجعة', style: 'bg-amber-50 text-amber-800 border-amber-200' },
-  confirmed: { label: 'مؤكد للتجهيز', style: 'bg-blue-50 text-blue-800 border-blue-200' },
+  new: { label: 'طلب جديد', style: 'bg-amber-50 text-amber-800 border-amber-200' },
   processing: { label: 'جاري التجهيز', style: 'bg-indigo-50 text-indigo-800 border-indigo-200' },
-  shipped: { label: 'تم الشحن', style: 'bg-purple-50 text-purple-800 border-purple-200' },
-  completed: { label: 'مكتمل', style: 'bg-emerald-50 text-emerald-800 border-emerald-200' },
+  ready: { label: 'جاهز للاستلام / الشحن', style: 'bg-blue-50 text-blue-800 border-blue-200' },
   delivered: { label: 'تم التسليم', style: 'bg-emerald-50 text-emerald-800 border-emerald-200' },
   cancelled: { label: 'ملغي', style: 'bg-rose-50 text-rose-800 border-rose-200' },
 };
@@ -71,6 +78,7 @@ export default function AdminDashboardPage() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [merchants, setMerchants] = useState<MerchantItem[]>([]);
   const [orders, setOrders] = useState<AdminOrder[]>([]);
+  const [activeCarts, setActiveCarts] = useState<AdminActiveCart[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [branches, setBranches] = useState<any[]>([]);
@@ -78,6 +86,9 @@ export default function AdminDashboardPage() {
   const [usersList, setUsersList] = useState<any[]>([]);
 
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [orderStatusFilter, setOrderStatusFilter] = useState<string>('all');
+  const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
+  const [convertingCartId, setConvertingCartId] = useState<number | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [branchFilter, setBranchFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -164,14 +175,16 @@ export default function AdminDashboardPage() {
     setHasError(null);
 
     try {
-      const [statsRes, catRes, brRes, adsRes] = await Promise.all([
+      const [statsRes, cartsRes, catRes, brRes, adsRes] = await Promise.all([
         adminApi.getStats().catch(() => null),
+        adminApi.getActiveCarts().catch(() => null),
         adminApi.getCategories().catch(() => null),
         adminApi.getBranches().catch(() => null),
         adminApi.getAdvertisements().catch(() => null),
       ]);
 
       if (statsRes?.success) setStats(statsRes.data);
+      if (cartsRes?.success) setActiveCarts(cartsRes.data);
       if (catRes?.success) setCategories(catRes.data);
       if (brRes?.success) setBranches(brRes.data);
       if (adsRes?.success) setAdsList(adsRes.data);
@@ -193,7 +206,10 @@ export default function AdminDashboardPage() {
       } else if (activeTab === 'advertisements') {
         if (adsRes?.success) setAdsList(adsRes.data);
       } else if (activeTab === 'orders') {
-        const res = await adminApi.getOrders();
+        const res = await adminApi.getOrders({
+          status: orderStatusFilter !== 'all' ? orderStatusFilter : undefined,
+          search: searchQuery || undefined,
+        });
         if (res.success) setOrders(res.data);
       } else if (activeTab === 'users') {
         const res = await adminApi.getUsers();
@@ -211,7 +227,37 @@ export default function AdminDashboardPage() {
     if (isAdmin) {
       loadData();
     }
-  }, [isAdmin, activeTab, statusFilter, categoryFilter, branchFilter]);
+  }, [isAdmin, activeTab, statusFilter, categoryFilter, branchFilter, orderStatusFilter]);
+
+  // تحديث تلقائي صامت للسلات النشطة والطلبات كل 10 ثوانٍ حتى تعلم الإدارة فور إضافة أي صنف للسلة
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    const timer = setInterval(async () => {
+      try {
+        const [statsRes, cartsRes] = await Promise.all([
+          adminApi.getStats().catch(() => null),
+          adminApi.getActiveCarts().catch(() => null),
+        ]);
+        if (statsRes?.success) setStats(statsRes.data);
+        if (cartsRes?.success) setActiveCarts(cartsRes.data);
+
+        if (activeTab === 'orders') {
+          const ordersRes = await adminApi
+            .getOrders({
+              status: orderStatusFilter !== 'all' ? orderStatusFilter : undefined,
+              search: searchQuery || undefined,
+            })
+            .catch(() => null);
+          if (ordersRes?.success) setOrders(ordersRes.data);
+        }
+      } catch {
+        // تجاهل أخطاء التحديث الخلفي الصامت
+      }
+    }, 10000);
+
+    return () => clearInterval(timer);
+  }, [isAdmin, activeTab, orderStatusFilter, searchQuery]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -275,10 +321,37 @@ export default function AdminDashboardPage() {
       const res = await adminApi.updateOrderStatus(orderId, status);
       if (res.success) {
         setActionMessage({ text: 'تم تحديث حالة الطلب بنجاح', type: 'success' });
-        setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status } : o)));
+        setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, ...res.data, status } : o)));
+        adminApi.getStats().then((s) => s.success && setStats(s.data)).catch(() => {});
       }
-    } catch (err: any) {
-      setActionMessage({ text: err.response?.data?.message || 'تعذر تحديث حالة الطلب', type: 'error' });
+    } catch (err: unknown) {
+      const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      setActionMessage({ text: message || 'تعذر تحديث حالة الطلب', type: 'error' });
+    }
+  };
+
+  // تحويل سلة نشطة مباشرة إلى طلب وفاتورة
+  const handleConvertCartToOrder = async (cart: AdminActiveCart) => {
+    setConvertingCartId(cart.id);
+    try {
+      const res = await adminApi.convertCartToOrder(cart.id);
+      if (res.success) {
+        setActionMessage({
+          text: `تم اعتماد سلة "${cart.user?.merchant_profile?.company_name || cart.user?.name}" كطلب رقم #${res.data.order_number} وإصدار الفاتورة بنجاح`,
+          type: 'success',
+        });
+        setActiveCarts((prev) => prev.filter((c) => c.id !== cart.id));
+        setOrders((prev) => [res.data, ...prev]);
+        adminApi.getStats().then((s) => s.success && setStats(s.data)).catch(() => {});
+      }
+    } catch (err: unknown) {
+      const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      setActionMessage({
+        text: message || 'تعذر تحويل السلة إلى طلب وفاتورة',
+        type: 'error',
+      });
+    } finally {
+      setConvertingCartId(null);
     }
   };
 
@@ -834,9 +907,10 @@ export default function AdminDashboardPage() {
       group: 'sales',
       label: 'طلبات الجملة والفواتير',
       shortLabel: 'الطلبات',
-      subtitle: 'متابعة طلبات التوريد وتحديث حالات التجهيز والفواتير',
+      subtitle: 'متابعة السلات النشطة وطلبات التوريد وتحديث الحالات والفواتير',
       icon: FileCheck2,
-      count: orders.length || stats?.orders.total || 0,
+      count: (stats?.orders.total ?? orders.length) + activeCarts.length,
+      badgeAlert: activeCarts.length > 0 || (stats?.orders.active_carts ?? 0) > 0 || (stats?.orders.new ?? 0) > 0,
     },
     {
       id: 'products' as TabType,
@@ -1191,22 +1265,57 @@ export default function AdminDashboardPage() {
             <button
               type="button"
               onClick={() => setActiveTab('orders')}
-              className="text-right bg-white rounded-2xl border border-[#eddcc8] hover:border-stone-400 p-3.5 sm:p-4 shadow-2xs transition-all flex items-center justify-between gap-2 cursor-pointer"
+              className={`text-right bg-white rounded-2xl border p-3.5 sm:p-4 shadow-2xs transition-all flex items-center justify-between gap-2 cursor-pointer ${
+                activeCarts.length > 0 || (stats?.orders.active_carts ?? 0) > 0
+                  ? 'border-amber-400 hover:border-amber-500 ring-1 ring-amber-200/70'
+                  : 'border-[#eddcc8] hover:border-stone-400'
+              }`}
             >
               <div className="min-w-0">
-                <span className="text-[11px] text-stone-500 font-semibold block truncate">طلبات الجملة</span>
-                <span className="text-xl sm:text-2xl font-black text-stone-900 font-mono">
-                  {stats?.orders.total ?? 0}
-                </span>
-                <span className="text-[10px] text-stone-500 block font-mono truncate">
-                  {stats?.orders.revenue ?? 0} ر.س
+                <span className="text-[11px] text-stone-500 font-semibold block truncate">الطلبات والسلات النشطة</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xl sm:text-2xl font-black text-stone-900 font-mono">
+                    {stats?.orders.total ?? 0}
+                  </span>
+                  {(activeCarts.length > 0 || (stats?.orders.active_carts ?? 0) > 0 || (stats?.orders.new ?? 0) > 0) && (
+                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                  )}
+                </div>
+                <span className="text-[10px] text-amber-700 block font-semibold truncate">
+                  {activeCarts.length > 0 || (stats?.orders.active_carts ?? 0) > 0
+                    ? `${activeCarts.length || stats?.orders.active_carts || 0} سلة قيد التجهيز الآن`
+                    : (stats?.orders.new ?? 0) > 0
+                    ? `${stats?.orders.new} طلب جديد بانتظار التجهيز`
+                    : `${stats?.orders.revenue ?? 0} ر.س`}
                 </span>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-stone-100 border border-stone-200 text-stone-700 flex items-center justify-center shrink-0">
-                <TrendingUp className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-xl bg-[#fbf3e6] border border-[#ebd2b0] text-[#b47820] flex items-center justify-center shrink-0">
+                <ShoppingCart className="w-5 h-5" />
               </div>
             </button>
           </div>
+
+          {activeCarts.length > 0 && activeTab !== 'orders' && (
+            <div className="rounded-2xl border border-amber-300 bg-gradient-to-r from-amber-50 to-[#fbf3e6] px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs">
+              <div className="flex items-center gap-2.5 text-xs font-bold text-amber-950">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping shrink-0" />
+                <ShoppingCart className="w-4 h-4 text-[#b47820] shrink-0" />
+                <span>
+                  يوجد حالياً {activeCarts.length} {activeCarts.length === 1 ? 'تاجر يضيف منتجات إلى السلة' : 'تجار يضيفون منتجات إلى السلة'} الآن
+                  {' '}
+                  ({activeCarts.reduce((sum, c) => sum + (c.summary?.total_quantity ?? 0), 0)} قطعة بإجمالي{' '}
+                  {activeCarts.reduce((sum, c) => sum + (c.summary?.total ?? 0), 0).toFixed(2)} ر.س)
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveTab('orders')}
+                className="self-start sm:self-auto px-3.5 py-1.5 rounded-xl bg-[#b47820] hover:bg-[#8f5a13] text-white text-xs font-bold transition-colors cursor-pointer shrink-0"
+              >
+                عرض السلات والطلبات
+              </button>
+            </div>
+          )}
 
           {/* شريط الإضافة السريعة المدمج */}
           <div className="bg-white rounded-2xl border border-[#eddcc8] px-3.5 py-2.5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
@@ -2266,141 +2375,414 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
-        {/* ================= تبويب 5: طلبات الجملة والفواتير ================= */}
+        {/* ================= تبويب 5: طلبات الجملة والسلات النشطة والفواتير ================= */}
         {activeTab === 'orders' && (
-          <div className="bg-white rounded-3xl border border-[#eddcc8] shadow-sm overflow-hidden">
-            <div className="p-4 sm:p-5 border-b border-stone-100">
-              <h3 className="text-sm sm:text-base font-bold text-stone-900 flex items-center gap-2">
-                <FileCheck2 className="w-5 h-5 text-[#b47820]" />
-                طلبات الجملة والفواتير الضريبية
-              </h3>
-            </div>
+          <div className="space-y-4">
+            {/* القسم الأول: مراقبة السلات النشطة الآن */}
+            <div className="bg-white rounded-3xl border border-[#eddcc8] shadow-xs overflow-hidden">
+              <div className="px-4 py-3.5 sm:px-5 sm:py-4 border-b border-[#eddcc8]/60 flex items-center justify-between gap-2 bg-gradient-to-l from-[#fdfbf7] to-white">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#fbf3e6] to-amber-100/70 border border-[#ebd2b0] text-[#b47820] flex items-center justify-center shrink-0">
+                    <ShoppingCart className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-xs sm:text-sm font-extrabold text-stone-900 truncate">
+                        السلات النشطة الآن
+                      </h3>
+                      <span
+                        className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-mono font-bold border ${
+                          activeCarts.length > 0
+                            ? 'bg-amber-100 text-amber-900 border-amber-300'
+                            : 'bg-stone-100 text-stone-600 border-stone-200'
+                        }`}
+                      >
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${
+                            activeCarts.length > 0 ? 'bg-amber-500 animate-ping' : 'bg-emerald-500'
+                          }`}
+                        />
+                        {activeCarts.length}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-stone-400 truncate hidden sm:block">
+                      متابعة فورية لإضافات التجار (تحديث تلقائي كل 10 ثوانٍ)
+                    </p>
+                  </div>
+                </div>
 
-            {orders.length === 0 ? (
-              <div className="text-center py-16 text-stone-500 text-sm font-bold">
-                لا توجد طلبات جملة مسجلة بعد
+                <button
+                  type="button"
+                  onClick={loadData}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#fbf3e6] hover:bg-[#f5e7cf] border border-[#ebd2b0]/80 text-[#8f5a13] text-[11px] font-bold transition-colors cursor-pointer shrink-0"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>تحديث</span>
+                </button>
               </div>
-            ) : (
-              <>
-                {/* عرض الجوال */}
-                <div className="md:hidden divide-y divide-stone-100">
-                  {orders.map((order) => {
-                    const statusInfo = ORDER_STATUS_LABELS[order.status] || {
-                      label: order.status,
-                      style: 'bg-stone-100 text-stone-700 border-stone-200',
-                    };
+
+              {activeCarts.length === 0 ? (
+                <div className="px-4 py-3.5 bg-[#fdfbf7]/60 flex items-center justify-center gap-2 text-[11px] text-stone-500 font-medium text-center">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500/80 shrink-0" />
+                  <span>لا توجد سلات مفتوحة حالياً — ستظهر إضافات التجار هنا تلقائياً</span>
+                </div>
+              ) : (
+                <div className="p-3.5 sm:p-5 grid grid-cols-1 lg:grid-cols-2 gap-3.5">
+                  {activeCarts.map((cart) => {
+                    const companyName = cart.user?.merchant_profile?.company_name || cart.user?.name || 'عميل';
+                    const isConverting = convertingCartId === cart.id;
 
                     return (
-                      <div key={order.id} className="p-4 space-y-3">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="font-mono font-bold text-stone-900 text-sm">#{order.order_number}</span>
-                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${statusInfo.style}`}>
-                            {statusInfo.label}
-                          </span>
+                      <div
+                        key={cart.id}
+                        className="rounded-2xl border border-[#ebd2b0] bg-gradient-to-b from-[#fdfbf7] to-white p-3.5 sm:p-4 flex flex-col justify-between gap-3 shadow-2xs"
+                      >
+                        <div className="space-y-2.5">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
+                                <h4 className="font-extrabold text-stone-900 text-xs sm:text-sm truncate">{companyName}</h4>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] text-stone-500 mt-1">
+                                <span>{cart.branch?.name || 'مستودع رئيسي'}</span>
+                                {cart.user?.phone && (
+                                  <a
+                                    href={`tel:${cart.user.phone}`}
+                                    className="font-mono text-[#8f5a13] hover:underline"
+                                  >
+                                    {cart.user.phone}
+                                  </a>
+                                )}
+                                <span className="font-mono text-stone-400">
+                                  {new Date(cart.updated_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
+                            </div>
+                            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#fbf3e6] text-[#8f5a13] border border-[#ebd2b0] shrink-0 font-mono">
+                              {cart.summary.items_count} صنف · {cart.summary.total_quantity} قطعة
+                            </span>
+                          </div>
+
+                          <div className="bg-white rounded-xl border border-[#eddcc8]/80 divide-y divide-stone-100 max-h-40 overflow-y-auto">
+                            {cart.items.map((item) => (
+                              <div key={item.id} className="px-3 py-2 flex items-center justify-between gap-2 text-xs">
+                                <div className="min-w-0">
+                                  <div className="font-bold text-stone-800 truncate">{item.product_name}</div>
+                                  <div className="text-[10px] text-stone-400">
+                                    {item.quantity} × {item.unit_price} ر.س {item.unit_name ? `(${item.unit_name})` : ''}
+                                  </div>
+                                </div>
+                                <span className="font-mono font-bold text-stone-900 shrink-0">
+                                  {Number(item.total_price).toFixed(2)} ر.س
+                                </span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
 
-                        <div className="bg-stone-50/80 rounded-2xl p-3 border border-stone-100 space-y-1.5 text-xs">
-                          <div className="font-bold text-stone-900">
-                            {order.user?.merchant_profile?.company_name || order.user?.name}
+                        <div className="pt-2.5 border-t border-[#eddcc8]/70 flex items-center justify-between gap-2.5">
+                          <div>
+                            <span className="text-[10px] text-stone-400 block">الإجمالي شامل الضريبة</span>
+                            <span className="font-mono font-black text-sm sm:text-base text-[#8f5a13]">
+                              {Number(cart.summary.total).toFixed(2)} <span className="text-[11px] font-bold">ر.س</span>
+                            </span>
                           </div>
-                          <div className="flex items-center justify-between text-[11px] text-stone-500">
-                            <span>{order.branch?.name || 'مستودع رئيسي'}</span>
-                            <span className="font-mono">{new Date(order.created_at).toLocaleDateString('ar-SA')}</span>
-                          </div>
-                          <div className="flex items-center justify-between pt-1.5 border-t border-stone-200/70">
-                            <span className="text-stone-500">الإجمالي شامل الضريبة</span>
-                            <span className="font-mono font-bold text-stone-900 text-sm">{order.total} ر.س</span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <select
-                            value={order.status}
-                            onChange={(e) => handleUpdateOrderStatus(order.id, e.target.value)}
-                            className="flex-1 bg-stone-50 border border-stone-200 rounded-xl py-2 px-3 text-xs font-bold text-stone-800 focus:outline-hidden focus:border-[#b47820]"
-                          >
-                            <option value="pending">قيد المراجعة</option>
-                            <option value="confirmed">مؤكد للتجهيز</option>
-                            <option value="processing">جاري التجهيز</option>
-                            <option value="shipped">تم الشحن</option>
-                            <option value="completed">مكتمل</option>
-                            <option value="cancelled">ملغي</option>
-                          </select>
-
-                          <a
-                            href={`http://127.0.0.1:8000/api/v1/orders/${order.id}/invoice`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#8f5a13] bg-[#fbf3e6] border border-[#ebd2b0] px-3.5 py-2 rounded-xl"
+                          <button
+                            type="button"
+                            onClick={() => handleConvertCartToOrder(cart)}
+                            disabled={isConverting}
+                            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#8f5a13] to-[#b47820] hover:opacity-95 text-white text-xs font-bold transition-all cursor-pointer disabled:opacity-60 shadow-xs shrink-0"
                           >
                             <FileCheck2 className="w-3.5 h-3.5" />
-                            <span>PDF</span>
-                          </a>
+                            <span>{isConverting ? 'جاري الإصدار...' : 'اعتماد كطلب وفاتورة'}</span>
+                          </button>
                         </div>
                       </div>
                     );
                   })}
                 </div>
+              )}
+            </div>
 
-                {/* عرض الديسكتوب */}
-                <div className="hidden md:block overflow-x-auto">
-                  <table className="w-full text-right text-xs">
-                    <thead className="bg-[#fcfbfa] border-b border-[#eddcc8] text-stone-600 font-bold">
-                      <tr>
-                        <th className="py-4 px-5">رقم الطلب</th>
-                        <th className="py-4 px-5">المؤسسة / العميل</th>
-                        <th className="py-4 px-5">المستودع</th>
-                        <th className="py-4 px-5">الإجمالي شامل الضريبة</th>
-                        <th className="py-4 px-5">تاريخ الطلب</th>
-                        <th className="py-4 px-5 text-center">تحديث الحالة</th>
-                        <th className="py-4 px-5 text-center">الفاتورة الضريبية</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-stone-100 font-medium text-stone-800">
-                      {orders.map((order) => (
-                        <tr key={order.id} className="hover:bg-stone-50/70 transition-colors">
-                          <td className="py-4 px-5 font-mono font-bold text-stone-900">#{order.order_number}</td>
-                          <td className="py-4 px-5">
-                            <div className="font-bold text-stone-900">{order.user?.merchant_profile?.company_name || order.user?.name}</div>
-                            <div className="text-[10px] text-stone-500 font-mono">{order.user?.phone}</div>
-                          </td>
-                          <td className="py-4 px-5 font-bold text-stone-700">{order.branch?.name || 'مستودع رئيسي'}</td>
-                          <td className="py-4 px-5 font-mono font-bold text-stone-900">{order.total} ر.س</td>
-                          <td className="py-4 px-5 text-stone-500 font-mono text-[11px]">
-                            {new Date(order.created_at).toLocaleDateString('ar-SA')}
-                          </td>
-                          <td className="py-4 px-5 text-center">
+            {/* القسم الثاني: طلبات الجملة والفواتير الضريبية */}
+            <div className="bg-white rounded-3xl border border-[#eddcc8] shadow-xs overflow-hidden">
+              <div className="p-4 sm:p-5 border-b border-[#eddcc8]/60 space-y-3.5">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-9 h-9 rounded-xl bg-[#fbf3e6] border border-[#ebd2b0] text-[#b47820] flex items-center justify-center shrink-0">
+                      <FileCheck2 className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-xs sm:text-sm font-extrabold text-stone-900 truncate">
+                          الطلبات والفواتير
+                        </h3>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-mono font-bold bg-stone-100 text-stone-700 border border-stone-200">
+                          {orders.length}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-stone-400 truncate hidden sm:block">
+                        تحديث حالة التجهيز وإصدار الفواتير الضريبية
+                      </p>
+                    </div>
+                  </div>
+
+                  <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#fbf3e6] text-[#8f5a13] border border-[#ebd2b0]/80 shrink-0">
+                    فوترة مباشرة
+                  </span>
+                </div>
+
+                {/* شريط فلاتر الحالة الأنيق */}
+                <div className="bg-[#faf7f2] p-1 rounded-2xl border border-[#eddcc8]/80 flex items-center gap-1 overflow-x-auto no-scrollbar">
+                  {[
+                    { key: 'all', label: 'الكل' },
+                    { key: 'new', label: 'جديد' },
+                    { key: 'processing', label: 'قيد التجهيز' },
+                    { key: 'ready', label: 'جاهز' },
+                    { key: 'delivered', label: 'تم التسليم' },
+                    { key: 'cancelled', label: 'ملغي' },
+                  ].map((tab) => (
+                    <button
+                      key={tab.key}
+                      type="button"
+                      onClick={() => setOrderStatusFilter(tab.key)}
+                      className={`px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
+                        orderStatusFilter === tab.key
+                          ? 'bg-gradient-to-r from-[#8f5a13] to-[#b47820] text-white shadow-xs'
+                          : 'text-stone-600 hover:text-stone-900 hover:bg-white/80'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {orders.length === 0 ? (
+                <div className="py-12 px-4 text-center flex flex-col items-center justify-center gap-2.5">
+                  <div className="w-12 h-12 rounded-2xl bg-[#fbf3e6] border border-[#ebd2b0]/70 text-[#b47820] flex items-center justify-center">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs sm:text-sm font-bold text-stone-800">
+                      لا توجد طلبات في هذا التصنيف حالياً
+                    </p>
+                    <p className="text-[11px] text-stone-400">
+                      ستظهر الطلبات والفواتير هنا بمجرد إتمام أي طلب من السلة
+                    </p>
+                  </div>
+                  {orderStatusFilter !== 'all' && (
+                    <button
+                      type="button"
+                      onClick={() => setOrderStatusFilter('all')}
+                      className="mt-1 px-3.5 py-1.5 rounded-xl bg-[#fbf3e6] hover:bg-[#f5e7cf] border border-[#ebd2b0] text-[#8f5a13] text-xs font-bold transition-colors cursor-pointer"
+                    >
+                      عرض جميع الطلبات
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <>
+                  {/* عرض الجوال */}
+                  <div className="md:hidden divide-y divide-[#eddcc8]/50">
+                    {orders.map((order) => {
+                      const statusInfo = ORDER_STATUS_LABELS[order.status] || {
+                        label: order.status_label || order.status,
+                        style: 'bg-stone-100 text-stone-700 border-stone-200',
+                      };
+                      const isExpanded = expandedOrderId === order.id;
+
+                      return (
+                        <div key={order.id} className="p-4 space-y-3 hover:bg-[#fdfbf7]/60 transition-colors">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono font-extrabold text-stone-900 text-sm">#{order.order_number}</span>
+                              <span className="text-[10px] text-stone-400 font-mono">
+                                {new Date(order.created_at).toLocaleDateString('ar-SA')}
+                              </span>
+                            </div>
+                            <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${statusInfo.style}`}>
+                              {statusInfo.label}
+                            </span>
+                          </div>
+
+                          <div className="bg-[#fdfbf7] rounded-2xl p-3 border border-[#eddcc8]/70 space-y-2 text-xs">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="font-extrabold text-stone-900 truncate">
+                                {order.user?.merchant_profile?.company_name || order.user?.name}
+                              </span>
+                              <span className="text-[10px] text-stone-500 bg-white px-2 py-0.5 rounded-lg border border-stone-200/70 shrink-0">
+                                {order.branch?.name || 'مستودع رئيسي'}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between pt-2 border-t border-[#eddcc8]/60">
+                              <span className="text-[11px] text-stone-500">الإجمالي شامل الضريبة</span>
+                              <span className="font-mono font-black text-[#8f5a13] text-sm">{order.total} ر.س</span>
+                            </div>
+                          </div>
+
+                          {order.items && order.items.length > 0 && (
+                            <div>
+                              <button
+                                type="button"
+                                onClick={() => setExpandedOrderId(isExpanded ? null : order.id)}
+                                className="inline-flex items-center gap-1 text-[11px] font-bold text-[#8f5a13] hover:underline cursor-pointer"
+                              >
+                                {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                                <span>تفاصيل الأصناف ({order.items.length})</span>
+                              </button>
+
+                              {isExpanded && (
+                                <div className="mt-2 bg-[#fdfbf7] rounded-xl border border-[#eddcc8] divide-y divide-stone-100">
+                                  {order.items.map((item) => (
+                                    <div key={item.id} className="px-3 py-2 flex items-center justify-between text-[11px]">
+                                      <span className="font-semibold text-stone-800">
+                                        {item.product_name} ({item.quantity} {item.unit_name || 'وحدة'})
+                                      </span>
+                                      <span className="font-mono font-bold text-stone-900">{item.total_price} ر.س</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          <div className="flex items-center gap-2">
                             <select
                               value={order.status}
                               onChange={(e) => handleUpdateOrderStatus(order.id, e.target.value)}
-                              className="bg-stone-50 border border-stone-200 rounded-xl py-1.5 px-2.5 text-xs font-bold text-stone-800 focus:outline-hidden focus:border-[#b47820] cursor-pointer"
+                              className="flex-1 bg-white border border-[#eddcc8] rounded-xl py-2 px-3 text-xs font-bold text-stone-800 focus:outline-hidden focus:border-[#b47820]"
                             >
-                              <option value="pending">قيد المراجعة</option>
-                              <option value="confirmed">مؤكد للتجهيز</option>
+                              <option value="new">طلب جديد</option>
                               <option value="processing">جاري التجهيز</option>
-                              <option value="shipped">تم الشحن</option>
-                              <option value="completed">مكتمل</option>
+                              <option value="ready">جاهز للاستلام / الشحن</option>
+                              <option value="delivered">تم التسليم</option>
                               <option value="cancelled">ملغي</option>
                             </select>
-                          </td>
-                          <td className="py-4 px-5 text-center">
-                            <a
-                              href={`http://127.0.0.1:8000/api/v1/orders/${order.id}/invoice`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#8f5a13] bg-[#fbf3e6] hover:bg-[#faebd7] border border-[#ebd2b0] px-3 py-1.5 rounded-xl transition-colors shadow-2xs"
-                            >
-                              <FileCheck2 className="w-3.5 h-3.5" />
-                              <span>PDF الفاتورة</span>
-                            </a>
-                          </td>
+
+                            {order.invoice_pdf_url && (
+                              <a
+                                href={order.invoice_pdf_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-gradient-to-r from-[#8f5a13] to-[#b47820] px-3.5 py-2 rounded-xl shadow-2xs shrink-0"
+                              >
+                                <FileCheck2 className="w-3.5 h-3.5" />
+                                <span>الفاتورة</span>
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* عرض الديسكتوب */}
+                  <div className="hidden md:block overflow-x-auto">
+                    <table className="w-full text-right text-xs">
+                      <thead className="bg-[#faf7f2] border-b border-[#eddcc8] text-stone-600 font-bold">
+                        <tr>
+                          <th className="py-3.5 px-5">رقم الطلب</th>
+                          <th className="py-3.5 px-5">المؤسسة / العميل</th>
+                          <th className="py-3.5 px-5">المستودع والأصناف</th>
+                          <th className="py-3.5 px-5">الإجمالي شامل الضريبة</th>
+                          <th className="py-3.5 px-5">تاريخ الطلب</th>
+                          <th className="py-3.5 px-5 text-center">تحديث الحالة</th>
+                          <th className="py-3.5 px-5 text-center">الفاتورة الضريبية</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </>
-            )}
+                      </thead>
+                      <tbody className="divide-y divide-stone-100 font-medium text-stone-800">
+                        {orders.map((order) => {
+                          const isExpanded = expandedOrderId === order.id;
+
+                          return (
+                            <React.Fragment key={order.id}>
+                              <tr className="hover:bg-[#fdfbf7]/80 transition-colors">
+                                <td className="py-3.5 px-5 font-mono font-extrabold text-stone-900">#{order.order_number}</td>
+                                <td className="py-3.5 px-5">
+                                  <div className="font-bold text-stone-900">{order.user?.merchant_profile?.company_name || order.user?.name}</div>
+                                  <div className="text-[10px] text-stone-500 font-mono">{order.user?.phone}</div>
+                                </td>
+                                <td className="py-3.5 px-5">
+                                  <div className="font-bold text-stone-700">{order.branch?.name || 'مستودع رئيسي'}</div>
+                                  {order.items && order.items.length > 0 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setExpandedOrderId(isExpanded ? null : order.id)}
+                                      className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold text-[#8f5a13] hover:underline cursor-pointer"
+                                    >
+                                      {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                      <span>{order.items.length} أصناف</span>
+                                    </button>
+                                  )}
+                                </td>
+                                <td className="py-3.5 px-5 font-mono font-black text-[#8f5a13]">{order.total} ر.س</td>
+                                <td className="py-3.5 px-5 text-stone-500 font-mono text-[11px]">
+                                  {new Date(order.created_at).toLocaleDateString('ar-SA')}
+                                </td>
+                                <td className="py-3.5 px-5 text-center">
+                                  <select
+                                    value={order.status}
+                                    onChange={(e) => handleUpdateOrderStatus(order.id, e.target.value)}
+                                    className="bg-white border border-[#eddcc8] rounded-xl py-1.5 px-2.5 text-xs font-bold text-stone-800 focus:outline-hidden focus:border-[#b47820] cursor-pointer"
+                                  >
+                                    <option value="new">طلب جديد</option>
+                                    <option value="processing">جاري التجهيز</option>
+                                    <option value="ready">جاهز للاستلام / الشحن</option>
+                                    <option value="delivered">تم التسليم</option>
+                                    <option value="cancelled">ملغي</option>
+                                  </select>
+                                </td>
+                                <td className="py-3.5 px-5 text-center">
+                                  {order.invoice_pdf_url ? (
+                                    <a
+                                      href={order.invoice_pdf_url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-1.5 text-xs font-bold text-[#8f5a13] bg-[#fbf3e6] hover:bg-[#f5e7cf] border border-[#ebd2b0] px-3 py-1.5 rounded-xl transition-colors shadow-2xs"
+                                    >
+                                      <FileCheck2 className="w-3.5 h-3.5" />
+                                      <span>PDF الفاتورة</span>
+                                    </a>
+                                  ) : (
+                                    <span className="text-[11px] text-stone-400">غير متاح</span>
+                                  )}
+                                </td>
+                              </tr>
+                              {isExpanded && order.items && order.items.length > 0 && (
+                                <tr className="bg-[#fdfbf7]">
+                                  <td colSpan={7} className="px-6 py-3">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                                      {order.items.map((item) => (
+                                        <div
+                                          key={item.id}
+                                          className="bg-white rounded-xl border border-[#eddcc8] px-3 py-2 flex items-center justify-between gap-2 text-xs"
+                                        >
+                                          <div className="min-w-0">
+                                            <div className="font-bold text-stone-800 truncate">{item.product_name}</div>
+                                            <div className="text-[10px] text-stone-400">
+                                              {item.quantity} × {item.unit_price} ر.س {item.unit_name ? `(${item.unit_name})` : ''}
+                                            </div>
+                                          </div>
+                                          <span className="font-mono font-bold text-stone-900 shrink-0">
+                                            {item.total_price} ر.س
+                                          </span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         )}
 

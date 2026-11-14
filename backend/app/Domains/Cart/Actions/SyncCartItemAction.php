@@ -48,6 +48,8 @@ class SyncCartItemAction
             );
         }
 
+        $cart->touch();
+
         return $cart->load(['items.package.product']);
     }
 }

@@ -28,12 +28,18 @@ export const CartModal: React.FC<CartModalProps> = ({
   if (!isOpen) return null;
 
   const items = cart?.items || [];
+  const showSuccess = Boolean(successOrder && items.length === 0);
   const summary = cart?.summary || {
     items_count: 0,
     total_quantity: 0,
     subtotal: 0,
     vat_amount: 0,
     total: 0,
+  };
+
+  const handleClose = () => {
+    setSuccessOrder(null);
+    onClose();
   };
 
   const handleCheckout = async () => {
@@ -59,7 +65,7 @@ export const CartModal: React.FC<CartModalProps> = ({
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors"
             >
               <X className="w-4 h-4" />
@@ -89,7 +95,7 @@ export const CartModal: React.FC<CartModalProps> = ({
 
         {/* جسم السلة */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/50">
-          {successOrder ? (
+          {showSuccess ? (
             <div className="py-12 px-6 text-center flex flex-col items-center">
               <CheckCircle2 className="w-16 h-16 text-amber-600 mb-3" />
               <h3 className="text-lg font-bold text-slate-800">
@@ -195,7 +201,7 @@ export const CartModal: React.FC<CartModalProps> = ({
         </div>
 
         {/* شريط الإجمالي وزر الاعتماد */}
-        {items.length > 0 && !successOrder && (
+        {items.length > 0 && !showSuccess && (
           <div className="p-4 bg-white border-t border-slate-100 shadow-md">
             <div className="flex items-center justify-between mb-3 text-xs text-slate-500">
               <span>المجموع قبل الضريبة:</span>

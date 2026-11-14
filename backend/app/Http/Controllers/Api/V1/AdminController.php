@@ -2,17 +2,25 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Domains\Cart\Services\CartCalculationService;
 use App\Domains\Catalog\Services\ProductUrlExtractorService;
+use App\Domains\Order\Actions\CheckoutCartAction;
+use App\Domains\Order\DTOs\CheckoutDTO;
+use App\Domains\Order\Resources\OrderResource;
+use App\Domains\Order\Services\InvoicePdfService;
 use App\Enums\CustomerStatus;
+use App\Enums\OrderStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Advertisement;
 use App\Models\Branch;
+use App\Models\Cart;
 use App\Models\MerchantProfile;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class AdminController extends Controller
 {
@@ -27,7 +35,9 @@ class AdminController extends Controller
         $suspendedMerchants = MerchantProfile::whereIn('status', [CustomerStatus::SUSPENDED, CustomerStatus::REJECTED])->count();
 
         $totalOrders = Order::count();
-        $totalRevenue = (float) Order::where('status', '!=', 'cancelled')->sum('total');
+        $newOrders = Order::where('status', OrderStatus::NEW)->count();
+        $activeCarts = Cart::whereHas('items')->count();
+        $totalRevenue = (float) Order::where('status', '!=', OrderStatus::CANCELLED)->sum('total');
         $totalProducts = Product::where('is_active', true)->count();
         $totalBranches = Branch::where('is_active', true)->count();
 
@@ -42,6 +52,8 @@ class AdminController extends Controller
                 ],
                 'orders' => [
                     'total' => $totalOrders,
+                    'new' => $newOrders,
+                    'active_carts' => $activeCarts,
                     'revenue' => round($totalRevenue, 2),
                 ],
                 'catalog' => [
@@ -139,12 +151,13 @@ class AdminController extends Controller
     /**
      * قائمة طلبات الجملة والفواتير
      */
-    public function orders(Request $request): JsonResponse
+    public function orders(Request $request, InvoicePdfService $pdfService): JsonResponse
     {
         $status = $request->query('status');
         $branchId = $request->query('branch_id');
+        $search = trim((string) $request->query('search', ''));
 
-        $query = Order::with(['user.merchantProfile', 'branch', 'items.product'])
+        $query = Order::with(['user.merchantProfile', 'branch', 'items'])
             ->orderBy('created_at', 'desc');
 
         if ($status && $status !== 'all') {
@@ -155,11 +168,35 @@ class AdminController extends Controller
             $query->where('branch_id', $branchId);
         }
 
-        $orders = $query->paginate($request->query('per_page', 20));
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('order_number', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($uq) use ($search) {
+                        $uq->where('name', 'like', "%{$search}%")
+                            ->orWhere('phone', 'like', "%{$search}%")
+                            ->orWhereHas('merchantProfile', function ($mq) use ($search) {
+                                $mq->where('company_name', 'like', "%{$search}%")
+                                    ->orWhere('customer_code', 'like', "%{$search}%");
+                            });
+                    });
+            });
+        }
+
+        $orders = $query->paginate($request->query('per_page', 30));
+
+        $items = collect($orders->items())->map(function (Order $order) use ($pdfService) {
+            $data = $order->toArray();
+            $data['status'] = $order->status->value;
+            $data['status_label'] = $order->status->label();
+            $data['invoice_pdf_url'] = $pdfService->publicUrl($order);
+            $data['invoice_download_url'] = $pdfService->publicUrl($order, true);
+
+            return $data;
+        })->values();
 
         return response()->json([
             'success' => true,
-            'data' => $orders->items(),
+            'data' => $items,
             'meta' => [
                 'current_page' => $orders->currentPage(),
                 'last_page' => $orders->lastPage(),
@@ -171,22 +208,116 @@ class AdminController extends Controller
     /**
      * تحديث حالة طلب جملة
      */
-    public function updateOrderStatus(Request $request, int $id): JsonResponse
+    public function updateOrderStatus(Request $request, int $id, InvoicePdfService $pdfService): JsonResponse
     {
-        $request->validate([
-            'status' => 'required|string',
+        $validated = $request->validate([
+            'status' => ['required', 'string', Rule::enum(OrderStatus::class)],
         ]);
 
         $order = Order::findOrFail($id);
         $order->update([
-            'status' => $request->input('status'),
+            'status' => OrderStatus::from($validated['status']),
         ]);
+
+        $freshOrder = $order->fresh(['user.merchantProfile', 'branch', 'items']);
+        $data = $freshOrder->toArray();
+        $data['status'] = $freshOrder->status->value;
+        $data['status_label'] = $freshOrder->status->label();
+        $data['invoice_pdf_url'] = $pdfService->publicUrl($freshOrder);
+        $data['invoice_download_url'] = $pdfService->publicUrl($freshOrder, true);
 
         return response()->json([
             'success' => true,
-            'message' => 'تم تحديث حالة الطلب بنجاح.',
-            'data' => $order->fresh(['user.merchantProfile', 'branch', 'items']),
+            'message' => 'تم تحديث حالة الطلب إلى: ' . $freshOrder->status->label(),
+            'data' => $data,
         ]);
+    }
+
+    /**
+     * قائمة السلات النشطة حالياً (لمراقبة إضافات التجار للسلة لحظياً)
+     */
+    public function carts(CartCalculationService $calculationService): JsonResponse
+    {
+        $carts = Cart::with(['user.merchantProfile', 'branch', 'items.package.product'])
+            ->whereHas('items')
+            ->orderByDesc('updated_at')
+            ->get();
+
+        $data = $carts->map(function (Cart $cart) use ($calculationService) {
+            $summary = $calculationService->calculate($cart);
+            $items = $cart->items->map(function ($item) {
+                $package = $item->package;
+                $product = $package?->product;
+                $unitPrice = (float) ($package?->unit_price ?? 0);
+
+                return [
+                    'id' => $item->id,
+                    'package_id' => $item->product_package_id,
+                    'product_id' => $product?->id,
+                    'product_name' => $product?->name ?? 'صنف محذوف',
+                    'product_code' => $product?->code ?? '—',
+                    'image_url' => $product?->image_url,
+                    'package_name' => $package?->name ?? 'حبة',
+                    'unit' => $package?->unit ?? 'حبة',
+                    'unit_price' => $unitPrice,
+                    'quantity' => (int) $item->quantity,
+                    'line_total' => round($unitPrice * (int) $item->quantity, 2),
+                ];
+            })->values();
+
+            return [
+                'id' => $cart->id,
+                'branch_id' => $cart->branch_id,
+                'branch' => $cart->branch ? [
+                    'id' => $cart->branch->id,
+                    'name' => $cart->branch->name,
+                    'code' => $cart->branch->code,
+                ] : null,
+                'user' => $cart->user ? [
+                    'id' => $cart->user->id,
+                    'name' => $cart->user->name,
+                    'phone' => $cart->user->phone,
+                    'merchant_profile' => $cart->user->merchantProfile ? [
+                        'company_name' => $cart->user->merchantProfile->company_name,
+                        'customer_code' => $cart->user->merchantProfile->customer_code,
+                        'city' => $cart->user->merchantProfile->city,
+                    ] : null,
+                ] : null,
+                'summary' => $summary,
+                'items' => $items,
+                'updated_at' => $cart->updated_at?->toISOString(),
+                'created_at' => $cart->created_at?->toISOString(),
+            ];
+        })->values();
+
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+        ]);
+    }
+
+    /**
+     * تحويل سلة نشطة مباشرة إلى طلب وفاتورة ضريبية (بدون بوابة دفع إلكتروني)
+     */
+    public function convertCartToOrder(int $id, CheckoutCartAction $checkoutAction): JsonResponse
+    {
+        $cart = Cart::with('user')
+            ->whereHas('items')
+            ->findOrFail($id);
+
+        $order = $checkoutAction->execute(
+            $cart->user,
+            new CheckoutDTO(
+                branchId: (int) $cart->branch_id,
+                notes: 'تم اعتماد الطلب وإصدار الفاتورة من لوحة الإدارة'
+            )
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم تحويل السلة إلى طلب معتمد وإصدار الفاتورة بنجاح.',
+            'data' => new OrderResource($order),
+        ], 201);
     }
 
     /**

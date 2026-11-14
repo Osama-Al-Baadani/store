@@ -68,6 +68,8 @@ use App\Http\Controllers\Api\V1\BranchController;
             Route::post('/merchants/{id}/reject', [AdminController::class, 'rejectMerchant']);
             Route::get('/orders', [AdminController::class, 'orders']);
             Route::patch('/orders/{id}/status', [AdminController::class, 'updateOrderStatus']);
+            Route::get('/carts', [AdminController::class, 'carts']);
+            Route::post('/carts/{id}/convert-to-order', [AdminController::class, 'convertCartToOrder']);
             Route::get('/products', [AdminController::class, 'products']);
             Route::post('/products/extract-from-url', [AdminController::class, 'extractProductFromUrl']);
             Route::post('/products', [AdminController::class, 'storeProduct']);

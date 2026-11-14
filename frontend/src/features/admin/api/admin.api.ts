@@ -10,6 +10,8 @@ export interface AdminStats {
   };
   orders: {
     total: number;
+    new?: number;
+    active_carts?: number;
     revenue: number;
   };
   catalog: {
@@ -43,8 +45,16 @@ export interface MerchantItem {
 export interface AdminOrder {
   id: number;
   order_number: string;
+  subtotal?: number;
+  vat_amount?: number;
   total: number;
   status: string;
+  status_label?: string;
+  items_count?: number;
+  total_quantity?: number;
+  notes?: string | null;
+  invoice_pdf_url?: string;
+  invoice_download_url?: string;
   created_at: string;
   branch?: {
     id: number;
@@ -59,7 +69,55 @@ export interface AdminOrder {
       customer_code: string;
     };
   };
-  items?: any[];
+  items?: Array<{
+    id: number;
+    product_name: string;
+    sku?: string;
+    unit_name?: string;
+    quantity: number;
+    unit_price: number;
+    total_price: number;
+  }>;
+}
+
+export interface AdminActiveCartItem {
+  id: number;
+  package_id: number;
+  product_name: string;
+  sku?: string;
+  unit_name?: string;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+}
+
+export interface AdminActiveCart {
+  id: number;
+  branch_id: number;
+  branch?: {
+    id: number;
+    name: string;
+  } | null;
+  user?: {
+    id: number;
+    name: string;
+    phone: string;
+    merchant_profile?: {
+      company_name: string;
+      customer_code?: string;
+    } | null;
+  } | null;
+  summary: {
+    items_count: number;
+    total_quantity: number;
+    subtotal: number;
+    vat_rate: number;
+    vat_amount: number;
+    total: number;
+  };
+  items: AdminActiveCartItem[];
+  updated_at: string;
+  created_at: string;
 }
 
 export interface ExtractedProductPayload {
@@ -116,13 +174,23 @@ export const adminApi = {
     return data;
   },
 
-  getOrders: async (params?: { status?: string }): Promise<ApiResponse<AdminOrder[]>> => {
+  getOrders: async (params?: { status?: string; search?: string }): Promise<ApiResponse<AdminOrder[]>> => {
     const { data } = await apiClient.get<ApiResponse<AdminOrder[]>>('/admin/orders', { params });
     return data;
   },
 
   updateOrderStatus: async (id: number, status: string): Promise<ApiResponse<AdminOrder>> => {
     const { data } = await apiClient.patch<ApiResponse<AdminOrder>>(`/admin/orders/${id}/status`, { status });
+    return data;
+  },
+
+  getActiveCarts: async (): Promise<ApiResponse<AdminActiveCart[]>> => {
+    const { data } = await apiClient.get<ApiResponse<AdminActiveCart[]>>('/admin/carts');
+    return data;
+  },
+
+  convertCartToOrder: async (cartId: number): Promise<ApiResponse<AdminOrder>> => {
+    const { data } = await apiClient.post<ApiResponse<AdminOrder>>(`/admin/carts/${cartId}/convert-to-order`);
     return data;
   },
 

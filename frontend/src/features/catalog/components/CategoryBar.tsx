@@ -15,11 +15,21 @@ export const CategoryBar: React.FC<CategoryBarProps> = ({
   selectedCategory,
   onSelect,
 }) => {
-  const [hoveredCategoryId, setHoveredCategoryId] = useState<number | null>(null);
+  const [openCategoryId, setOpenCategoryId] = useState<number | null>(null);
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const lastPointerTypeRef = useRef<string>('mouse');
 
   useEffect(() => {
+    const handleOutsidePointerDown = (event: PointerEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setOpenCategoryId(null);
+      }
+    };
+
+    document.addEventListener('pointerdown', handleOutsidePointerDown);
     return () => {
+      document.removeEventListener('pointerdown', handleOutsidePointerDown);
       if (closeTimeoutRef.current) {
         clearTimeout(closeTimeoutRef.current);
       }
@@ -33,35 +43,40 @@ export const CategoryBar: React.FC<CategoryBarProps> = ({
     }
   };
 
-  const handleOpenHover = (catId: number) => {
+  const handleOpen = (catId: number) => {
     clearCloseTimeout();
-    setHoveredCategoryId(catId);
+    setOpenCategoryId(catId);
   };
 
   const handleScheduleClose = () => {
     clearCloseTimeout();
     closeTimeoutRef.current = setTimeout(() => {
-      setHoveredCategoryId(null);
+      setOpenCategoryId(null);
     }, 120);
   };
 
   const handleCloseImmediate = () => {
     clearCloseTimeout();
-    setHoveredCategoryId(null);
+    setOpenCategoryId(null);
   };
 
-  const hoveredParent = categories.find(
-    (cat) => cat.id === hoveredCategoryId && Boolean(cat.children && cat.children.length > 0)
+  const openParent = categories.find(
+    (cat) => cat.id === openCategoryId && Boolean(cat.children && cat.children.length > 0)
   );
 
   return (
-    <div className="w-full bg-white/95 backdrop-blur-md border-b border-amber-200/80 sticky top-0 z-20 shadow-2xs">
+    <div
+      ref={containerRef}
+      className="w-full bg-white/95 backdrop-blur-md border-b border-amber-200/80 sticky top-0 z-20 shadow-2xs"
+    >
       {/* شريط الأقسام الرئيسية */}
       <div className="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto py-3 px-4 no-scrollbar scroll-smooth">
         {/* زر الكل */}
         <button
           type="button"
-          onMouseEnter={handleCloseImmediate}
+          onPointerEnter={(e) => {
+            if (e.pointerType === 'mouse') handleCloseImmediate();
+          }}
           onClick={() => {
             onSelect(null);
             handleCloseImmediate();
@@ -82,21 +97,41 @@ export const CategoryBar: React.FC<CategoryBarProps> = ({
           const activeChild = cat.children?.find((sub) => sub.id === selectedCategory);
           const isActive = isParentSelected || Boolean(activeChild);
           const subCount = cat.children?.length ?? 0;
-          const isHovered = hoveredParent?.id === cat.id;
+          const isOpen = openParent?.id === cat.id;
 
           return (
             <button
               key={cat.id}
               type="button"
-              onMouseEnter={() => {
+              onPointerDown={(e) => {
+                lastPointerTypeRef.current = e.pointerType || 'mouse';
+              }}
+              onPointerEnter={(e) => {
+                if (e.pointerType !== 'mouse') return;
                 if (subCount > 0) {
-                  handleOpenHover(cat.id);
+                  handleOpen(cat.id);
                 } else {
                   handleCloseImmediate();
                 }
               }}
-              onMouseLeave={subCount > 0 ? handleScheduleClose : undefined}
+              onPointerLeave={(e) => {
+                if (e.pointerType !== 'mouse') return;
+                if (subCount > 0) {
+                  handleScheduleClose();
+                }
+              }}
               onClick={() => {
+                const isTouch = lastPointerTypeRef.current !== 'mouse';
+                if (isTouch && subCount > 0) {
+                  onSelect(cat.id);
+                  if (openCategoryId === cat.id) {
+                    handleCloseImmediate();
+                  } else {
+                    handleOpen(cat.id);
+                  }
+                  return;
+                }
+
                 onSelect(cat.id);
                 handleCloseImmediate();
               }}
@@ -110,7 +145,7 @@ export const CategoryBar: React.FC<CategoryBarProps> = ({
               {subCount > 0 && (
                 <ChevronDown
                   className={`w-3.5 h-3.5 transition-transform ${
-                    isHovered
+                    isOpen
                       ? isActive
                         ? 'text-amber-100 rotate-180'
                         : 'text-amber-700 rotate-180'
@@ -125,34 +160,38 @@ export const CategoryBar: React.FC<CategoryBarProps> = ({
         })}
       </div>
 
-      {/* قائمة الأقسام الفرعية المنسدلة عند تمرير الماوس (Hover Only) */}
-      {hoveredParent && hoveredParent.children && hoveredParent.children.length > 0 && (
+      {/* قائمة الأقسام الفرعية: تفتح بالهفر على الكمبيوتر وبالضغط على الجوال وتُغلق تلقائياً عند الابتعاد أو الضغط خارجها */}
+      {openParent && openParent.children && openParent.children.length > 0 && (
         <div
-          onMouseEnter={() => handleOpenHover(hoveredParent.id)}
-          onMouseLeave={handleScheduleClose}
+          onPointerEnter={(e) => {
+            if (e.pointerType === 'mouse') handleOpen(openParent.id);
+          }}
+          onPointerLeave={(e) => {
+            if (e.pointerType === 'mouse') handleScheduleClose();
+          }}
           className="absolute top-full inset-x-0 z-30 border-t border-amber-100/90 border-b border-amber-200/80 bg-[#fdfbf7]/98 backdrop-blur-md px-4 py-2.5 shadow-lg animate-in fade-in duration-150"
         >
           <div className="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto no-scrollbar">
             <span className="shrink-0 text-xs font-black text-slate-900 pl-2 border-l border-amber-200">
-              {hoveredParent.name}:
+              {openParent.name}:
             </span>
 
             <button
               type="button"
               onClick={() => {
-                onSelect(hoveredParent.id);
+                onSelect(openParent.id);
                 handleCloseImmediate();
               }}
               className={`shrink-0 px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all cursor-pointer ${
-                selectedCategory === hoveredParent.id
+                selectedCategory === openParent.id
                   ? 'bg-stone-900 text-white shadow-xs'
                   : 'bg-white text-stone-600 hover:text-stone-900 border border-stone-200'
               }`}
             >
-              كل {hoveredParent.name}
+              كل {openParent.name}
             </button>
 
-            {hoveredParent.children.map((sub) => {
+            {openParent.children.map((sub) => {
               const isSubActive = selectedCategory === sub.id;
               return (
                 <button

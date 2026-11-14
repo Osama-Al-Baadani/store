@@ -22,15 +22,14 @@ return [
     'allowed_origins' => array_filter([
         env('FRONTEND_URL', 'http://127.0.0.1:8000'),
         'https://storeseco.vercel.app',
+        'https://*.vercel.app',
         'http://127.0.0.1:8000',
         'http://localhost:8000',
         'http://127.0.0.1:3000',
         'http://localhost:3000',
     ]),
 
-    'allowed_origins_patterns' => [
-        '^https://.*\.vercel\.app$',
-    ],
+    'allowed_origins_patterns' => [],
 
     'allowed_headers' => ['*'],
 

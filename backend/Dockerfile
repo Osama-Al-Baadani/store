@@ -33,5 +33,5 @@ EXPOSE 10000
 CMD php artisan config:clear && \
     (php artisan storage:link --force || true) && \
     php artisan migrate --force && \
-    php -r 'require "vendor/autoload.php"; $app = require "bootstrap/app.php"; $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap(); if (\App\Models\User::count() === 0) { passthru("php artisan db:seed --force"); }' && \
+    php -r 'require "vendor/autoload.php"; $app = require "bootstrap/app.php"; $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap(); if (\App\Models\User::count() === 0) { passthru("php artisan db:seed --force"); } if (! \App\Models\User::where("phone", "0500000000")->exists()) { \App\Models\User::create(["name" => "مدير النظام - المخازن الاقتصادية", "phone" => "0500000000", "email" => "admin@makhazen.com", "password" => \Illuminate\Support\Facades\Hash::make("admin123456"), "role" => \App\Enums\UserRole::ADMIN]); }' && \
     php artisan serve --host=0.0.0.0 --port=${PORT:-10000}

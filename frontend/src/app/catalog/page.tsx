@@ -6,6 +6,7 @@ import { CatalogHeader } from '@/features/catalog/components/CatalogHeader';
 import { CategoryBar } from '@/features/catalog/components/CategoryBar';
 import { PromoBannerSlider } from '@/features/catalog/components/PromoBannerSlider';
 import { ProductCard } from '@/features/catalog/components/ProductCard';
+import { CatalogFilterModal } from '@/features/catalog/components/CatalogFilterModal';
 import { CartModal } from '@/features/cart/components/CartModal';
 import { BottomNav } from '@/shared/components/layout/BottomNav';
 import { useBranches } from '@/features/branches/hooks/useBranches';
@@ -20,6 +21,8 @@ import {
   TrendingUp,
   AlertCircle,
   Loader2,
+  SlidersHorizontal,
+  X,
 } from 'lucide-react';
 
 export default function CatalogPage() {
@@ -57,6 +60,11 @@ export default function CatalogPage() {
     setSelectedCategory,
     searchQuery,
     setSearchQuery,
+    advancedFilters,
+    setAdvancedFilters,
+    activeFiltersCount,
+    hasActiveFilters,
+    resetAdvancedFilters,
     isLoading: isCatalogLoading,
     error: catalogError,
   } = useCatalog(currentBranchId);
@@ -71,6 +79,7 @@ export default function CatalogPage() {
   const { checkout } = useOrders();
 
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'home' | 'categories' | 'filter' | 'search' | 'cart'>('home');
 
   // ربط كمية المنتج من السلة لعرضها على بطاقة المنتج
@@ -106,6 +115,22 @@ export default function CatalogPage() {
       notes: 'طلب عبر الكتالوج الرقمي',
     });
   };
+
+  const SORT_LABELS: Record<string, string> = {
+    price_asc: 'الأقل سعراً',
+    price_desc: 'الأعلى سعراً',
+    discount_desc: 'أعلى خصم',
+    newest: 'الأحدث أولاً',
+  };
+
+  const QUICK_FILTER_LABELS: Record<string, string> = {
+    new: 'الأصناف الجديدة',
+    discounted: 'عروض وتخفيضات',
+    featured: 'الأصناف المميزة',
+    available: 'متوفر للتوريد الفوري',
+  };
+
+  const isFilteredView = selectedCategory !== null || Boolean(searchQuery) || hasActiveFilters;
 
   // فلترة المنتجات حسب الأقسام المميزة
   const newProducts = products.filter((p) => p.is_new && !p.is_coming_soon);
@@ -148,12 +173,73 @@ export default function CatalogPage() {
       {/* محتوى الكتالوج الرئيسي */}
       <main className="max-w-7xl mx-auto px-3.5 sm:px-4 py-4 sm:py-6 space-y-6 sm:space-y-8">
         {/* بانر الإعلانات المتحرك التفاعلي في بداية الكتالوج */}
-        {!searchQuery && selectedCategory === null && (
+        {!isFilteredView && (
           <PromoBannerSlider
             branchName={activeBranch?.name || 'شركة المخازن الاقتصادية'}
             newProductsCount={newProducts.length}
             discountedCount={discountedProducts.length}
           />
+        )}
+
+        {/* شريط الفلاتر النشطة */}
+        {hasActiveFilters && (
+          <div className="bg-white rounded-2xl border border-[#eddcc8] px-3.5 py-2.5 flex flex-wrap items-center justify-between gap-2 shadow-2xs">
+            <div className="flex flex-wrap items-center gap-1.5 text-xs">
+              <span className="font-bold text-stone-600 inline-flex items-center gap-1 ml-1">
+                <SlidersHorizontal className="w-3.5 h-3.5 text-[#b47820]" />
+                الفرز النشط:
+              </span>
+
+              {advancedFilters.sort !== 'default' && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setAdvancedFilters((prev) => ({ ...prev, sort: 'default' }))
+                  }
+                  className="inline-flex items-center gap-1 bg-[#fbf3e6] text-[#8f5a13] border border-[#ebd2b0] px-2.5 py-1 rounded-full text-[11px] font-bold cursor-pointer hover:bg-[#faebd7]"
+                >
+                  <span>{SORT_LABELS[advancedFilters.sort]}</span>
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+
+              {advancedFilters.quickFilter !== 'all' && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setAdvancedFilters((prev) => ({ ...prev, quickFilter: 'all' }))
+                  }
+                  className="inline-flex items-center gap-1 bg-[#fbf3e6] text-[#8f5a13] border border-[#ebd2b0] px-2.5 py-1 rounded-full text-[11px] font-bold cursor-pointer hover:bg-[#faebd7]"
+                >
+                  <span>{QUICK_FILTER_LABELS[advancedFilters.quickFilter]}</span>
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+
+              {(advancedFilters.minPrice !== '' || advancedFilters.maxPrice !== '') && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setAdvancedFilters((prev) => ({ ...prev, minPrice: '', maxPrice: '' }))
+                  }
+                  className="inline-flex items-center gap-1 bg-[#fbf3e6] text-[#8f5a13] border border-[#ebd2b0] px-2.5 py-1 rounded-full text-[11px] font-bold cursor-pointer hover:bg-[#faebd7]"
+                >
+                  <span>
+                    السعر: {advancedFilters.minPrice || '0'} - {advancedFilters.maxPrice || '∞'} ر.س
+                  </span>
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={resetAdvancedFilters}
+              className="text-[11px] font-extrabold text-rose-600 hover:text-rose-700 px-2.5 py-1 rounded-xl hover:bg-rose-50 transition-colors cursor-pointer"
+            >
+              إعادة ضبط الكل
+            </button>
+          </div>
         )}
 
         {isCatalogLoading && products.length === 0 ? (
@@ -169,19 +255,28 @@ export default function CatalogPage() {
             <span>{catalogError}</span>
           </div>
         ) : products.length === 0 ? (
-          <div className="py-20 text-center text-slate-400 bg-white rounded-3xl border border-slate-200/60 p-8">
-            <span className="text-5xl block mb-3">📦</span>
+          <div className="py-20 text-center text-slate-400 bg-white rounded-3xl border border-slate-200/60 p-8 space-y-3">
+            <span className="text-5xl block">📦</span>
             <p className="font-extrabold text-base text-slate-800">
-              لا توجد أصناف تطابق معايير البحث
+              لا توجد أصناف تطابق معايير البحث أو الفرز
             </p>
-            <p className="text-xs text-slate-500 mt-1">
-              جرب تغيير كلمات البحث أو اختيار تصنيف آخر من الشريط أعلاه
+            <p className="text-xs text-slate-500">
+              جرب تغيير كلمات البحث أو تعديل خيارات الفرز والتصفية
             </p>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={resetAdvancedFilters}
+                className="inline-flex items-center gap-1.5 bg-[#b47820] hover:bg-[#8f5a13] text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors cursor-pointer"
+              >
+                <span>إعادة ضبط الفرز والتصفية</span>
+              </button>
+            )}
           </div>
         ) : (
           <>
             {/* قسم الأصناف الجديدة */}
-            {newProducts.length > 0 && selectedCategory === null && !searchQuery && (
+            {newProducts.length > 0 && !isFilteredView && (
               <section id="new-products-section" className="space-y-4 scroll-mt-20">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
@@ -217,7 +312,7 @@ export default function CatalogPage() {
             )}
 
             {/* قسم العروض المختارة */}
-            {discountedProducts.length > 0 && selectedCategory === null && !searchQuery && (
+            {discountedProducts.length > 0 && !isFilteredView && (
               <section id="discounted-section" className="space-y-4 scroll-mt-20">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
@@ -254,7 +349,7 @@ export default function CatalogPage() {
 
             {/* جميع أصناف الكتالوج */}
             <section className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-amber-100 to-amber-200 text-amber-900 flex items-center justify-center shadow-xs border border-amber-300/60">
                     <TrendingUp className="w-5 h-5 text-amber-700" />
@@ -270,10 +365,31 @@ export default function CatalogPage() {
                     </span>
                   </div>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('filter');
+                    setIsFilterOpen(true);
+                  }}
+                  className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                    hasActiveFilters
+                      ? 'bg-[#fbf3e6] text-[#8f5a13] border-[#b47820]'
+                      : 'bg-white text-stone-700 border-stone-200 hover:border-amber-300'
+                  }`}
+                >
+                  <SlidersHorizontal className="w-3.5 h-3.5 text-[#b47820]" />
+                  <span>الفرز والتصفية</span>
+                  {activeFiltersCount > 0 && (
+                    <span className="bg-[#b47820] text-white text-[10px] font-black px-1.5 py-0.5 rounded-full leading-none">
+                      {activeFiltersCount}
+                    </span>
+                  )}
+                </button>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 sm:gap-5">
-                {(selectedCategory !== null || searchQuery ? products : otherProducts).map(
+                {(isFilteredView ? products : otherProducts).map(
                   (p) => (
                     <ProductCard
                       key={p.id}
@@ -293,6 +409,7 @@ export default function CatalogPage() {
       <BottomNav
         activeTab={activeTab}
         cartCount={itemsCount}
+        filterCount={activeFiltersCount}
         onCartClick={() => setIsCartOpen(true)}
         onCategoriesClick={() => {
           setActiveTab('categories');
@@ -300,7 +417,20 @@ export default function CatalogPage() {
         }}
         onFilterClick={() => {
           setActiveTab('filter');
+          setIsFilterOpen(true);
         }}
+      />
+
+      {/* نافذة الفرز والتصفية */}
+      <CatalogFilterModal
+        isOpen={isFilterOpen}
+        onClose={() => {
+          setIsFilterOpen(false);
+          setActiveTab(hasActiveFilters ? 'filter' : 'home');
+        }}
+        filters={advancedFilters}
+        onApply={setAdvancedFilters}
+        onReset={resetAdvancedFilters}
       />
 
       {/* نافذة السلة المنبثقة */}

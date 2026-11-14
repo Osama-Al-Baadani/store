@@ -147,14 +147,9 @@ export default function MainPage() {
             <img src="/logo.png" alt="شركة المخازن الاقتصادية" className="w-full h-full object-contain" />
           </div>
           <div className="min-w-0">
-            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-              <h1 className="text-sm sm:text-lg font-bold text-stone-900 leading-tight truncate">
-                شركة المخازن الاقتصادية
-              </h1>
-              <span className="text-[10px] bg-[#fbf3e6] text-[#8f5a13] border border-[#ebd2b0] px-2 py-0.5 rounded-full font-bold shrink-0">
-                بوابة B2B
-              </span>
-            </div>
+            <h1 className="text-sm sm:text-lg font-bold text-stone-900 leading-tight truncate">
+              شركة المخازن الاقتصادية
+            </h1>
             <p className="hidden sm:block text-[11px] text-stone-500 font-medium mt-0.5 truncate">
               منصة الجملة الرسمية للشركات والمؤسسات التجارية المعتمدة
             </p>

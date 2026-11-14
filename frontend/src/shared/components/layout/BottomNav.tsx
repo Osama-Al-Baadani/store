@@ -7,6 +7,7 @@ import { Home, Layers, SlidersHorizontal, Search, ShoppingBag } from 'lucide-rea
 interface BottomNavProps {
   activeTab?: 'home' | 'categories' | 'filter' | 'search' | 'cart';
   cartCount?: number;
+  filterCount?: number;
   onCartClick?: () => void;
   onFilterClick?: () => void;
   onCategoriesClick?: () => void;
@@ -15,6 +16,7 @@ interface BottomNavProps {
 export const BottomNav: React.FC<BottomNavProps> = ({
   activeTab = 'home',
   cartCount = 0,
+  filterCount = 0,
   onCartClick,
   onFilterClick,
   onCategoriesClick,
@@ -53,13 +55,20 @@ export const BottomNav: React.FC<BottomNavProps> = ({
         <button
           type="button"
           onClick={onFilterClick}
-          className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all ${
-            activeTab === 'filter'
+          className={`relative flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all cursor-pointer ${
+            activeTab === 'filter' || filterCount > 0
               ? 'text-brand font-bold'
               : 'hover:text-slate-800'
           }`}
         >
-          <SlidersHorizontal className="w-5 h-5 stroke-[2.2]" />
+          <div className="relative">
+            <SlidersHorizontal className="w-5 h-5 stroke-[2.2]" />
+            {filterCount > 0 && (
+              <span className="absolute -top-1.5 -right-2 bg-brand text-white text-[10px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
+                {filterCount}
+              </span>
+            )}
+          </div>
           <span className="text-[11px]">الفرز</span>
         </button>
 

@@ -270,7 +270,11 @@ class AdminController extends Controller
 
         $imagePath = $validated['image'] ?? null;
         if ($uploaded = $this->saveUploadedImage($request, 'image_file', 'uploads/products', 'prd')) {
-            $imagePath = rtrim($request->getSchemeAndHttpHost(), '/') . '/' . $uploaded;
+            $baseHost = rtrim($request->getSchemeAndHttpHost(), '/');
+            if (str_starts_with($baseHost, 'http://') && ! preg_match('/^http:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/i', $baseHost)) {
+                $baseHost = 'https://' . substr($baseHost, 7);
+            }
+            $imagePath = $baseHost . '/' . $uploaded;
         }
 
         $product = Product::create([
@@ -374,7 +378,11 @@ class AdminController extends Controller
             $updates['is_active'] = $request->boolean('is_active');
         }
         if ($uploaded = $this->saveUploadedImage($request, 'image_file', 'uploads/products', 'prd')) {
-            $updates['image'] = rtrim($request->getSchemeAndHttpHost(), '/') . '/' . $uploaded;
+            $baseHost = rtrim($request->getSchemeAndHttpHost(), '/');
+            if (str_starts_with($baseHost, 'http://') && ! preg_match('/^http:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/i', $baseHost)) {
+                $baseHost = 'https://' . substr($baseHost, 7);
+            }
+            $updates['image'] = $baseHost . '/' . $uploaded;
         }
 
         $product->update($updates);

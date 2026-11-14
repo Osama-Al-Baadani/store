@@ -23,6 +23,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const isComingSoon = product.is_coming_soon;
   const inCart = quantity > 0;
 
+  const resolvedImageUrl = React.useMemo(() => {
+    const raw = (product.image_url || (product as any).image || '').trim();
+    if (!raw) return null;
+    // Strip accidental "/storage/http..." prefix if returned by an older backend build
+    const embeddedMatch = raw.match(/https?:\/\/(?!localhost\/storage\/https?:\/\/).+$/i);
+    let url = embeddedMatch ? embeddedMatch[0] : raw;
+    if (url.startsWith('http://') && !/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/i.test(url)) {
+      url = 'https://' + url.slice(7);
+    }
+    return url;
+  }, [product]);
+
   return (
     <article
       className={`group relative flex flex-col bg-white rounded-3xl border transition-all duration-300 overflow-hidden ${
@@ -41,9 +53,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
       {/* منطقة الصورة والشارات الفاخرة */}
       <div className="relative w-full aspect-square bg-gradient-to-b from-stone-50/70 to-white flex items-center justify-center p-4 overflow-hidden border-b border-stone-100">
-        {product.image_url ? (
+        {resolvedImageUrl ? (
           <img
-            src={product.image_url}
+            src={resolvedImageUrl}
             alt={product.name}
             className="w-full h-full object-contain group-hover:scale-108 transition-transform duration-500 ease-out"
             loading="lazy"

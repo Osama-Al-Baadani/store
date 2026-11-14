@@ -28,6 +28,43 @@ class Product extends Model
         'sort',
     ];
 
+    protected $appends = ['image_url'];
+
+    public function getImageUrlAttribute(): ?string
+    {
+        $raw = trim((string) ($this->image ?? ''));
+        if ($raw === '') {
+            return null;
+        }
+
+        // Strip accidental "/storage/http..." prefix if ever stored
+        if (preg_match('/\/storage\/(https?:\/\/.+)$/i', $raw, $m)) {
+            return $this->upgradeHttpsIfRemote($m[1]);
+        }
+
+        if (preg_match('/^https?:\/\/.+$/i', $raw)) {
+            return $this->upgradeHttpsIfRemote($raw);
+        }
+
+        $baseUrl = request() ? request()->getSchemeAndHttpHost() : rtrim((string) config('app.url'), '/');
+        $baseUrl = $this->upgradeHttpsIfRemote($baseUrl);
+
+        if (str_starts_with(ltrim($raw, '/'), 'uploads/')) {
+            return rtrim($baseUrl, '/') . '/' . ltrim($raw, '/');
+        }
+
+        return rtrim($baseUrl, '/') . '/storage/' . ltrim($raw, '/');
+    }
+
+    private function upgradeHttpsIfRemote(string $url): string
+    {
+        if (str_starts_with($url, 'http://') && ! preg_match('/^http:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?(?:\/|$)/i', $url)) {
+            return 'https://' . substr($url, 7);
+        }
+
+        return $url;
+    }
+
     protected function casts(): array
     {
         return [

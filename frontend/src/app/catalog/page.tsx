@@ -20,11 +20,6 @@ import {
   TrendingUp,
   AlertCircle,
   Loader2,
-  Truck,
-  ShieldCheck,
-  FileCheck2,
-  ShoppingBag,
-  Share2
 } from 'lucide-react';
 
 export default function CatalogPage() {
@@ -295,45 +290,6 @@ export default function CatalogPage() {
           </>
         )}
       </main>
-
-      {/* الشريط العائم لإتمام الطلب (Floating Checkout Bar) عند وجود أصناف بالسلة */}
-      {itemsCount > 0 && (
-        <aside
-          aria-label="إتمام الطلب"
-          className="fixed bottom-20 left-4 right-4 max-w-xl mx-auto z-40 bg-stone-900/95 backdrop-blur-xl text-white rounded-3xl p-3 sm:p-4 shadow-2xl border border-amber-400/40 animate-in slide-in-from-bottom-6 duration-300"
-        >
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-[#dfb76c] via-[#c28b38] to-[#996515] flex items-center justify-center text-white shadow-md relative">
-                <ShoppingBag className="w-5 h-5" />
-                <span className="absolute -top-1 -right-1 bg-amber-500 text-stone-950 text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
-                  {itemsCount}
-                </span>
-              </div>
-              <div>
-                <div className="text-[11px] text-stone-300 font-medium">
-                  {itemsCount} صنف ({cart?.summary?.total_quantity || 0} حبة)
-                </div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-lg font-black text-white">
-                    {cart?.summary?.total.toFixed(2)}
-                  </span>
-                  <span className="text-xs font-bold text-amber-300">ر.س شامل الضريبة</span>
-                </div>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setIsCartOpen(true)}
-              className="btn-shimmer bg-gradient-to-r from-[#996515] via-[#c28b38] to-[#dfb76c] hover:opacity-95 active:scale-95 text-white font-black text-xs sm:text-sm px-4 py-3 rounded-2xl flex items-center gap-2 shadow-lg shadow-amber-950/40 transition-all cursor-pointer"
-            >
-              <Share2 className="w-4 h-4" />
-              <span>مراجعة وإرسال للمستودع</span>
-            </button>
-          </div>
-        </aside>
-      )}
 
       {/* الشريط السفلي المتنقل */}
       <BottomNav

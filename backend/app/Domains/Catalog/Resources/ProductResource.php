@@ -19,7 +19,7 @@ class ProductResource extends JsonResource
             'barcode' => $this->barcode,
             'name' => $this->name,
             'description' => $this->description,
-            'image_url' => $this->image ? Storage::disk('public')->url($this->image) : null,
+            'image_url' => $this->image_url,
             'is_new' => $this->is_new,
             'is_featured' => $this->is_featured,
             'is_coming_soon' => $this->is_coming_soon,

@@ -29,17 +29,24 @@ class Advertisement extends Model
 
     public function getImageUrlAttribute(): string
     {
-        $path = $this->image_path ?? '';
-        if (!$path) {
+        $path = trim((string) ($this->image_path ?? ''));
+        if ($path === '') {
             return '';
         }
 
         if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            if (str_starts_with($path, 'http://') && ! preg_match('/^http:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?(?:\/|$)/i', $path)) {
+                return 'https://' . substr($path, 7);
+            }
             return $path;
         }
 
-        $baseUrl = request() ? request()->getSchemeAndHttpHost() : rtrim(config('app.url'), '/');
-        return $baseUrl . '/' . ltrim($path, '/');
+        $baseUrl = request() ? request()->getSchemeAndHttpHost() : rtrim((string) config('app.url'), '/');
+        if (str_starts_with($baseUrl, 'http://') && ! preg_match('/^http:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?(?:\/|$)/i', $baseUrl)) {
+            $baseUrl = 'https://' . substr($baseUrl, 7);
+        }
+
+        return rtrim($baseUrl, '/') . '/' . ltrim($path, '/');
     }
 }
 

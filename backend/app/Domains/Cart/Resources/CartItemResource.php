@@ -23,7 +23,7 @@ class CartItemResource extends JsonResource
             'product_name' => $product?->name,
             'product_code' => $product?->code,
             'barcode' => $product?->barcode,
-            'image_url' => $product?->image ? Storage::disk('public')->url($product->image) : null,
+            'image_url' => $product?->image_url,
             'package_name' => $package?->name,
             'unit' => $package?->unit,
             'pack_quantity' => $package?->pack_quantity,

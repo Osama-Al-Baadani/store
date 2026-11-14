@@ -62,6 +62,17 @@ export interface AdminOrder {
   items?: any[];
 }
 
+export interface ExtractedProductPayload {
+  name: string;
+  description: string;
+  unit_price: string;
+  code: string;
+  code_source: 'extracted' | 'generated';
+  image: string;
+  source_url: string;
+  ai_enhanced: boolean;
+}
+
 export interface AdvertisementItem {
   id: number;
   title?: string | null;
@@ -126,6 +137,13 @@ export const adminApi = {
       payload,
       isForm ? { headers: { 'Content-Type': 'multipart/form-data' } } : undefined
     );
+    return data;
+  },
+
+  extractProductFromUrl: async (url: string): Promise<ApiResponse<ExtractedProductPayload>> => {
+    const { data } = await apiClient.post<ApiResponse<ExtractedProductPayload>>('/admin/products/extract-from-url', {
+      url,
+    });
     return data;
   },
 

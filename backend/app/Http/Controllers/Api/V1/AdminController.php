@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Domains\Catalog\Services\ProductUrlExtractorService;
 use App\Enums\CustomerStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Advertisement;
@@ -301,6 +302,36 @@ class AdminController extends Controller
             'message' => 'تمت إضافة المنتج الجديد وتسعير الحبة بنجاح.',
             'data' => $product->load(['category', 'branch', 'defaultPackage']),
         ], 201);
+    }
+
+    /**
+     * استخراج بيانات منتج تلقائياً من رابط خارجي (الاسم، السعر، الوصف، الصورة، الكود)
+     */
+    public function extractProductFromUrl(Request $request, ProductUrlExtractorService $extractor): JsonResponse
+    {
+        $validated = $request->validate([
+            'url' => 'required|url|max:2048',
+        ], [
+            'url.required' => 'يرجى إدخال رابط صفحة المنتج.',
+            'url.url' => 'صيغة الرابط غير صالحة.',
+        ]);
+
+        try {
+            $extracted = $extractor->extract($validated['url']);
+
+            return response()->json([
+                'success' => true,
+                'message' => $extracted['code_source'] === 'extracted'
+                    ? 'تم استخراج بيانات المنتج مع الكود من الرابط بنجاح.'
+                    : 'تم استخراج بيانات المنتج وتوليد كود فريد تلقائياً.',
+                'data' => $extracted,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage() ?: 'تعذر استخراج بيانات المنتج من هذا الرابط.',
+            ], 422);
+        }
     }
 
     /**

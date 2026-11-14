@@ -69,6 +69,7 @@ use App\Http\Controllers\Api\V1\BranchController;
             Route::get('/orders', [AdminController::class, 'orders']);
             Route::patch('/orders/{id}/status', [AdminController::class, 'updateOrderStatus']);
             Route::get('/products', [AdminController::class, 'products']);
+            Route::post('/products/extract-from-url', [AdminController::class, 'extractProductFromUrl']);
             Route::post('/products', [AdminController::class, 'storeProduct']);
             Route::match(['patch', 'post'], '/products/{id}', [AdminController::class, 'updateProduct']);
             Route::delete('/products/{id}', [AdminController::class, 'deleteProduct']);

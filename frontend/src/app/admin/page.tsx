@@ -47,6 +47,8 @@ import {
   EyeOff,
   MoreHorizontal,
   LayoutDashboard,
+  Sparkles,
+  Link2,
 } from 'lucide-react';
 
 type TabType = 'merchants' | 'products' | 'categories' | 'branches' | 'advertisements' | 'orders' | 'users';
@@ -94,6 +96,9 @@ export default function AdminDashboardPage() {
   const [productImageFile, setProductImageFile] = useState<File | null>(null);
   const [productImagePreview, setProductImagePreview] = useState<string | null>(null);
   const [isSavingProduct, setIsSavingProduct] = useState(false);
+  const [productExtractUrl, setProductExtractUrl] = useState('');
+  const [isExtractingProduct, setIsExtractingProduct] = useState(false);
+  const [extractFeedback, setExtractFeedback] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
   const [editingBranchId, setEditingBranchId] = useState<number | null>(null);
   const [editingAdId, setEditingAdId] = useState<number | null>(null);
@@ -282,6 +287,8 @@ export default function AdminDashboardPage() {
     setEditingProductDataId(null);
     setProductImageFile(null);
     setProductImagePreview(null);
+    setProductExtractUrl('');
+    setExtractFeedback(null);
     setNewProduct({
       name: '',
       code: '',
@@ -298,6 +305,8 @@ export default function AdminDashboardPage() {
     setEditingProductDataId(product.id);
     setProductImageFile(null);
     setProductImagePreview(product.image || null);
+    setProductExtractUrl('');
+    setExtractFeedback(null);
     setNewProduct({
       name: product.name || '',
       code: product.code || '',
@@ -308,6 +317,66 @@ export default function AdminDashboardPage() {
       image: product.image || '',
     });
     setIsAddProductOpen(true);
+  };
+
+  const handleGenerateProductCode = () => {
+    const existingCodes = new Set(products.map((p) => String(p.code || '').toUpperCase()));
+    let generated = '';
+    for (let i = 0; i < 30; i++) {
+      const candidate = `PRD-${Math.floor(1000 + Math.random() * 9000)}`;
+      if (!existingCodes.has(candidate)) {
+        generated = candidate;
+        break;
+      }
+    }
+    if (!generated) {
+      generated = `PRD-${Date.now().toString().slice(-5)}`;
+    }
+    setNewProduct((prev) => ({ ...prev, code: generated }));
+  };
+
+  const handleExtractProductFromUrl = async () => {
+    const trimmedUrl = productExtractUrl.trim();
+    if (!trimmedUrl) {
+      setExtractFeedback({ text: 'يرجى لصق رابط صفحة المنتج أولاً.', type: 'error' });
+      return;
+    }
+
+    setIsExtractingProduct(true);
+    setExtractFeedback(null);
+    try {
+      const res = await adminApi.extractProductFromUrl(trimmedUrl);
+      if (res.success && res.data) {
+        const item = res.data;
+        setNewProduct((prev) => ({
+          ...prev,
+          name: item.name || prev.name,
+          code: item.code || prev.code,
+          unit_price: item.unit_price || prev.unit_price,
+          description: item.description || prev.description,
+          image: item.image || prev.image,
+        }));
+        if (item.image) {
+          setProductImageFile(null);
+          setProductImagePreview(item.image);
+        }
+        setExtractFeedback({
+          text:
+            res.message ||
+            (item.code_source === 'extracted'
+              ? 'تم استخراج الاسم والسعر والوصف والصورة مع الكود من الرابط.'
+              : 'تم استخراج بيانات المنتج وتوليد كود فريد تلقائياً.'),
+          type: 'success',
+        });
+      }
+    } catch (err: any) {
+      setExtractFeedback({
+        text: err.response?.data?.message || 'تعذر استخراج البيانات من هذا الرابط، تأكد من صلاحية الرابط أو أدخل الحقول يدوياً.',
+        type: 'error',
+      });
+    } finally {
+      setIsExtractingProduct(false);
+    }
   };
 
   const handleProductImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -2627,6 +2696,58 @@ export default function AdminDashboardPage() {
             </div>
 
             <form onSubmit={handleCreateProduct} className="space-y-3.5 text-xs">
+              {/* صندوق الاستخراج الذكي من رابط منتج */}
+              <div className="rounded-2xl bg-gradient-to-br from-[#fdfbf7] to-[#faf2e3] border border-[#ebd2b0] p-3.5 space-y-2.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-black text-[#8f5a13] flex items-center gap-1.5 text-xs">
+                    <Sparkles className="w-4 h-4 text-[#b47820]" />
+                    استخراج تلقائي من رابط المنتج (بالذكاء الاصطناعي)
+                  </span>
+                  <span className="text-[10px] font-bold bg-white/80 text-[#8f5a13] border border-[#ebd2b0] px-2 py-0.5 rounded-full">
+                    الاسم + السعر + الوصف + الكود + الصورة
+                  </span>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <div className="relative flex-1">
+                    <Link2 className="w-4 h-4 text-[#b47820] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="url"
+                      dir="ltr"
+                      placeholder="https://example.com/product/..."
+                      value={productExtractUrl}
+                      onChange={(e) => setProductExtractUrl(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleExtractProductFromUrl();
+                        }
+                      }}
+                      className="w-full bg-white border border-[#e3cba6] rounded-xl pr-9 pl-3 py-2.5 text-stone-900 placeholder:text-stone-400 focus:outline-hidden focus:border-[#b47820]"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleExtractProductFromUrl}
+                    disabled={isExtractingProduct}
+                    className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#b47820] hover:bg-[#8f5a13] text-white font-bold shadow-xs cursor-pointer disabled:opacity-60 shrink-0"
+                  >
+                    <Sparkles className={`w-4 h-4 ${isExtractingProduct ? 'animate-spin' : ''}`} />
+                    <span>{isExtractingProduct ? 'جاري الاستخراج...' : 'استخراج البيانات'}</span>
+                  </button>
+                </div>
+                {extractFeedback && (
+                  <p
+                    className={`text-[11px] font-bold px-2.5 py-1.5 rounded-xl border ${
+                      extractFeedback.type === 'success'
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                        : 'bg-rose-50 text-rose-800 border-rose-200'
+                    }`}
+                  >
+                    {extractFeedback.text}
+                  </p>
+                )}
+              </div>
+
               <div>
                 <label className="block font-bold text-stone-700 mb-1">اسم الصنف بالكامل *</label>
                 <input
@@ -2641,7 +2762,16 @@ export default function AdminDashboardPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-stone-700 mb-1">كود الصنف الفريد *</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block font-bold text-stone-700">كود الصنف الفريد *</label>
+                    <button
+                      type="button"
+                      onClick={handleGenerateProductCode}
+                      className="text-[10px] font-bold text-[#8f5a13] hover:text-[#b47820] underline cursor-pointer"
+                    >
+                      توليد كود تلقائي
+                    </button>
+                  </div>
                   <input
                     type="text"
                     placeholder="مثال: PRD-105"

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { Suspense, useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -34,7 +34,7 @@ import { useCart } from '@/features/cart/hooks/useCart';
 import { useOrders } from '@/features/orders/hooks/useOrders';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
-export default function ProductDetailsPage() {
+function ProductDetailsContent() {
   const params = useParams();
   const router = useRouter();
   const productId = Number(params?.id);
@@ -729,5 +729,22 @@ export default function ProductDetailsPage() {
         onCheckout={handleCheckout}
       />
     </div>
+  );
+}
+
+export default function ProductDetailsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#faf8f5] flex flex-col items-center justify-center text-stone-900 px-4">
+          <Loader2 className="w-10 h-10 animate-spin text-[#b47820] mb-3" />
+          <p className="text-sm font-extrabold text-stone-800">
+            جاري تحميل تفاصيل الصنف...
+          </p>
+        </div>
+      }
+    >
+      <ProductDetailsContent />
+    </Suspense>
   );
 }

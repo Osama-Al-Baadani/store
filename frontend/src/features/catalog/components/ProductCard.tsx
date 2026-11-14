@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Bell, Sparkles, Package, Check, Tag } from 'lucide-react';
+import Link from 'next/link';
+import { Bell, Sparkles, Package, Check, Tag, Eye } from 'lucide-react';
 import { Product } from '@/types';
 import { QuantityInput } from './QuantityInput';
 
@@ -52,7 +53,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       )}
 
       {/* منطقة الصورة والشارات الفاخرة */}
-      <div className="relative w-full aspect-square bg-gradient-to-b from-stone-50/70 to-white flex items-center justify-center p-4 overflow-hidden border-b border-stone-100">
+      <Link
+        href={`/catalog/${product.id}`}
+        className="relative w-full aspect-square bg-gradient-to-b from-stone-50/70 to-white flex items-center justify-center p-4 overflow-hidden border-b border-stone-100 cursor-pointer"
+      >
         {resolvedImageUrl ? (
           <img
             src={resolvedImageUrl}
@@ -88,22 +92,31 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             </span>
           )}
         </div>
-      </div>
+      </Link>
 
       {/* تفاصيل الصنف الفاخرة */}
       <div className="p-4 flex flex-col flex-1 justify-between gap-3">
         <div>
-          {/* كود الصنف */}
+          {/* كود الصنف وزر التفاصيل */}
           <div className="flex items-center justify-between gap-2 mb-1.5">
             <span className="text-[11px] font-mono font-bold text-stone-700 bg-stone-100 px-2 py-0.5 rounded-md">
               {product.code}
             </span>
+            <Link
+              href={`/catalog/${product.id}`}
+              className="inline-flex items-center gap-1 text-[10px] font-extrabold text-[#8f5a13] hover:text-[#b47820] bg-amber-50/80 hover:bg-amber-100/80 px-2 py-0.5 rounded-md border border-amber-200/80 transition-colors"
+            >
+              <Eye className="w-3 h-3" />
+              <span>التفاصيل</span>
+            </Link>
           </div>
 
           {/* اسم الصنف */}
-          <h3 className="font-extrabold text-stone-900 text-sm leading-snug line-clamp-2 group-hover:text-brand transition-colors">
-            {product.name}
-          </h3>
+          <Link href={`/catalog/${product.id}`} className="block">
+            <h3 className="font-extrabold text-stone-900 text-sm leading-snug line-clamp-2 group-hover:text-brand transition-colors">
+              {product.name}
+            </h3>
+          </Link>
         </div>
 
         {/* لوحة تسعيرة الجملة */}

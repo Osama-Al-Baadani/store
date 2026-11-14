@@ -2711,7 +2711,7 @@ export default function AdminDashboardPage() {
                   <div className="relative flex-1">
                     <Link2 className="w-4 h-4 text-[#b47820] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
-                      type="url"
+                      type="text"
                       dir="ltr"
                       placeholder="https://example.com/product/..."
                       value={productExtractUrl}

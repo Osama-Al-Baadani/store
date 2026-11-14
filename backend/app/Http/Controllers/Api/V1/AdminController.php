@@ -310,10 +310,9 @@ class AdminController extends Controller
     public function extractProductFromUrl(Request $request, ProductUrlExtractorService $extractor): JsonResponse
     {
         $validated = $request->validate([
-            'url' => 'required|url|max:2048',
+            'url' => 'required|string|max:2048',
         ], [
             'url.required' => 'يرجى إدخال رابط صفحة المنتج.',
-            'url.url' => 'صيغة الرابط غير صالحة.',
         ]);
 
         try {
@@ -321,9 +320,11 @@ class AdminController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => $extracted['code_source'] === 'extracted'
-                    ? 'تم استخراج بيانات المنتج مع الكود من الرابط بنجاح.'
-                    : 'تم استخراج بيانات المنتج وتوليد كود فريد تلقائياً.',
+                'message' => $extracted['ai_enhanced']
+                    ? 'تم استخراج وتجهيز بيانات المنتج عبر الذكاء الاصطناعي Gemini بنجاح.'
+                    : ($extracted['code_source'] === 'extracted'
+                        ? 'تم استخراج بيانات المنتج مع الكود من الرابط بنجاح.'
+                        : 'تم استخراج بيانات المنتج وتوليد كود فريد تلقائياً.'),
                 'data' => $extracted,
             ]);
         } catch (\Throwable $e) {

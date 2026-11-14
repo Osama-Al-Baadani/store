@@ -109,7 +109,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         {/* لوحة تسعيرة الجملة */}
         <div className="bg-stone-50/80 rounded-2xl p-2.5 border border-stone-200/70">
           {/* سعر الحبة */}
-          <div className="flex items-baseline justify-between">
+          <div className="flex items-end justify-between gap-2">
             <div>
               <span className="text-[10px] text-stone-500 block font-medium">
                 سعر الحبة
@@ -122,12 +122,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               </div>
             </div>
 
-          </div>
-
-          <div className="text-[10px] text-stone-500 font-medium mt-1 flex items-center justify-between border-t border-stone-200/60 pt-1">
-            <span>الأسعار قبل الضريبة (15%)</span>
             {oldPrice && oldPrice > unitPrice && (
-              <span className="line-through text-stone-400">
+              <span className="text-[11px] font-medium line-through text-stone-400">
                 {oldPrice.toFixed(2)} ر.س
               </span>
             )}

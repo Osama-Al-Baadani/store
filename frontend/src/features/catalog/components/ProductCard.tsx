@@ -95,16 +95,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       </Link>
 
       {/* تفاصيل الصنف الفاخرة */}
-      <div className="p-4 flex flex-col flex-1 justify-between gap-3">
+      <div className="p-3 sm:p-4 flex flex-col flex-1 justify-between gap-2.5 sm:gap-3">
         <div>
           {/* كود الصنف وزر التفاصيل */}
-          <div className="flex items-center justify-between gap-2 mb-1.5">
-            <span className="text-[11px] font-mono font-bold text-stone-700 bg-stone-100 px-2 py-0.5 rounded-md">
+          <div className="flex items-center justify-between gap-1.5 mb-1.5">
+            <span className="text-[10px] sm:text-[11px] font-mono font-bold text-stone-700 bg-stone-100 px-1.5 sm:px-2 py-0.5 rounded-md truncate">
               {product.code}
             </span>
             <Link
               href={`/catalog/${product.id}`}
-              className="inline-flex items-center gap-1 text-[10px] font-extrabold text-[#8f5a13] hover:text-[#b47820] bg-amber-50/80 hover:bg-amber-100/80 px-2 py-0.5 rounded-md border border-amber-200/80 transition-colors"
+              className="shrink-0 inline-flex items-center gap-1 text-[10px] font-extrabold text-[#8f5a13] hover:text-[#b47820] bg-amber-50/80 hover:bg-amber-100/80 px-1.5 sm:px-2 py-0.5 rounded-md border border-amber-200/80 transition-colors"
             >
               <Eye className="w-3 h-3" />
               <span>التفاصيل</span>
@@ -113,14 +113,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
           {/* اسم الصنف */}
           <Link href={`/catalog/${product.id}`} className="block">
-            <h3 className="font-extrabold text-stone-900 text-sm leading-snug line-clamp-2 group-hover:text-brand transition-colors">
+            <h3 className="font-extrabold text-stone-900 text-xs sm:text-sm leading-snug line-clamp-2 group-hover:text-brand transition-colors">
               {product.name}
             </h3>
           </Link>
         </div>
 
         {/* لوحة تسعيرة الجملة */}
-        <div className="bg-stone-50/80 rounded-2xl p-2.5 border border-stone-200/70">
+        <div className="bg-stone-50/80 rounded-2xl p-2 sm:p-2.5 border border-stone-200/70">
           {/* سعر الحبة */}
           <div className="flex items-end justify-between gap-2">
             <div>
@@ -128,10 +128,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 سعر الحبة
               </span>
               <div className="flex items-baseline gap-1">
-                <span className="text-xl font-black text-brand-dark tracking-tight">
+                <span className="text-lg sm:text-xl font-black text-brand-dark tracking-tight">
                   {unitPrice.toFixed(2)}
                 </span>
-                <span className="text-[11px] font-bold text-brand">ر.س.</span>
+                <span className="text-[10px] sm:text-[11px] font-bold text-brand">ر.س.</span>
               </div>
             </div>
 

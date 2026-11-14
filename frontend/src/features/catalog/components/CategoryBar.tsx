@@ -70,7 +70,7 @@ export const CategoryBar: React.FC<CategoryBarProps> = ({
       className="w-full bg-white/95 backdrop-blur-md border-b border-amber-200/80 sticky top-0 z-20 shadow-2xs"
     >
       {/* شريط الأقسام الرئيسية */}
-      <div className="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto py-3 px-4 no-scrollbar scroll-smooth">
+      <div className="max-w-7xl mx-auto flex items-center gap-1.5 sm:gap-2 overflow-x-auto py-2.5 sm:py-3 px-3 sm:px-4 no-scrollbar scroll-smooth">
         {/* زر الكل */}
         <button
           type="button"
@@ -81,9 +81,9 @@ export const CategoryBar: React.FC<CategoryBarProps> = ({
             onSelect(null);
             handleCloseImmediate();
           }}
-          className={`shrink-0 px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+          className={`shrink-0 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[11px] sm:text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
             selectedCategory === null
-              ? 'bg-gradient-to-r from-[#996515] via-[#c28b38] to-[#dfb76c] text-white shadow-md shadow-amber-950/20 scale-105 border border-amber-300/40'
+              ? 'bg-gradient-to-r from-[#996515] via-[#c28b38] to-[#dfb76c] text-white shadow-sm shadow-amber-950/20 border border-amber-300/40'
               : 'bg-white hover:bg-amber-50 hover:text-amber-900 hover:border-amber-300/80 text-stone-700 border border-stone-200 shadow-2xs'
           }`}
         >
@@ -135,9 +135,9 @@ export const CategoryBar: React.FC<CategoryBarProps> = ({
                 onSelect(cat.id);
                 handleCloseImmediate();
               }}
-              className={`shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`shrink-0 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                 isActive
-                  ? 'bg-gradient-to-r from-[#996515] via-[#c28b38] to-[#dfb76c] text-white shadow-md shadow-amber-950/20 scale-105 border border-amber-300/40'
+                  ? 'bg-gradient-to-r from-[#996515] via-[#c28b38] to-[#dfb76c] text-white shadow-sm shadow-amber-950/20 border border-amber-300/40'
                   : 'bg-white hover:bg-amber-50 hover:text-amber-900 hover:border-amber-300/80 text-stone-700 border border-stone-200 shadow-2xs'
               }`}
             >

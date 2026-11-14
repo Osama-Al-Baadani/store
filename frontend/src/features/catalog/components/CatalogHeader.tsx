@@ -7,8 +7,6 @@ import { Branch } from '@/types';
 
 interface CatalogHeaderProps {
   branch?: Branch | null;
-  customerName?: string;
-  customerPhone?: string;
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onChangeBranch?: () => void;

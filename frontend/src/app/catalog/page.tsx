@@ -133,8 +133,6 @@ export default function CatalogPage() {
       {/* رأس الكتالوج الفاخر */}
       <CatalogHeader
         branch={activeBranch}
-        customerName={user?.merchant_profile?.company_name || user?.name || 'لمسه للتجارة'}
-        customerPhone={user?.phone || '0579621870'}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onChangeBranch={() => router.push('/')}

@@ -132,6 +132,42 @@ export interface ExtractedProductPayload {
   gemini_configured?: boolean;
 }
 
+export interface ProductImportPreviewRow {
+  row_number: number;
+  status: 'create' | 'update' | 'skip' | 'error';
+  error: string | null;
+  name: string;
+  code: string;
+  unit_price: number | null;
+  category: string;
+  branch: string;
+  image_source: 'embedded' | 'zip' | 'url' | 'none';
+}
+
+export interface ProductImportPreviewResponse {
+  headers: string[];
+  mapping: Record<string, number | null>;
+  rows_count: number;
+  embedded_images_count: number;
+  zip_images_count: number;
+  summary: {
+    will_create: number;
+    will_update: number;
+    will_skip: number;
+    errors: number;
+  };
+  rows: ProductImportPreviewRow[];
+}
+
+export interface ProductImportExecuteResult {
+  created: number;
+  updated: number;
+  skipped: number;
+  failed: number;
+  images_saved: number;
+  errors: string[];
+}
+
 export interface AdvertisementItem {
   id: number;
   title?: string | null;
@@ -152,6 +188,18 @@ export const getPublicAdvertisements = async (placement?: 'home' | 'catalog'): P
   });
   return data;
 };
+
+async function downloadCsvFromEndpoint(endpoint: string, filename: string, params?: Record<string, unknown>): Promise<void> {
+  const response = await apiClient.get(endpoint, { params, responseType: 'blob' });
+  const url = window.URL.createObjectURL(new Blob([response.data], { type: 'text/csv;charset=utf-8;' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+}
 
 export const adminApi = {
   getStats: async (): Promise<ApiResponse<AdminStats>> => {
@@ -214,6 +262,36 @@ export const adminApi = {
       url,
     });
     return data;
+  },
+
+  previewProductsImport: async (formData: FormData): Promise<ApiResponse<ProductImportPreviewResponse>> => {
+    const { data } = await apiClient.post<ApiResponse<ProductImportPreviewResponse>>(
+      '/admin/products/import/preview',
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } }
+    );
+    return data;
+  },
+
+  importProducts: async (formData: FormData): Promise<ApiResponse<ProductImportExecuteResult>> => {
+    const { data } = await apiClient.post<ApiResponse<ProductImportExecuteResult>>(
+      '/admin/products/import',
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } }
+    );
+    return data;
+  },
+
+  exportProductsCsv: async (params?: { search?: string; category_id?: number; branch_id?: number }): Promise<void> => {
+    await downloadCsvFromEndpoint(
+      '/admin/products/export',
+      `products-export-${new Date().toISOString().slice(0, 10)}.csv`,
+      params
+    );
+  },
+
+  downloadImportTemplateCsv: async (): Promise<void> => {
+    await downloadCsvFromEndpoint('/admin/products/import-template', 'products-import-template.csv');
   },
 
   updateProduct: async (id: number, payload: any): Promise<ApiResponse<any>> => {

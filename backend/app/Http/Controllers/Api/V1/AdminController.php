@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Domains\Cart\Services\CartCalculationService;
+use App\Domains\Catalog\Services\ProductBulkImportService;
 use App\Domains\Catalog\Services\ProductUrlExtractorService;
 use App\Domains\Order\Actions\CheckoutCartAction;
 use App\Domains\Order\DTOs\CheckoutDTO;
@@ -470,6 +471,125 @@ class AdminController extends Controller
                 'message' => $e->getMessage() ?: 'تعذر استخراج بيانات المنتج من هذا الرابط.',
             ], 422);
         }
+    }
+
+    /**
+     * معاينة الاستيراد الجماعي للمنتجات (من Excel / CSV / Google Sheets / Drive)
+     */
+    public function previewProductsImport(Request $request, ProductBulkImportService $importer): JsonResponse
+    {
+        $options = $this->validateBulkImportOptions($request);
+
+        try {
+            $result = $importer->preview(
+                file: $request->file('file'),
+                sourceUrl: $request->input('source_url'),
+                imagesZip: $request->file('images_zip'),
+                options: $options
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'تم تحليل الملف بنجاح.',
+                'data' => $result,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage() ?: 'تعذر قراءة الملف أو الرابط.',
+            ], 422);
+        }
+    }
+
+    /**
+     * تنفيذ الاستيراد الجماعي للمنتجات وحفظ الصور محلياً
+     */
+    public function importProducts(Request $request, ProductBulkImportService $importer): JsonResponse
+    {
+        $options = $this->validateBulkImportOptions($request);
+
+        try {
+            $result = $importer->import(
+                file: $request->file('file'),
+                sourceUrl: $request->input('source_url'),
+                imagesZip: $request->file('images_zip'),
+                options: $options,
+                baseHost: rtrim($request->getSchemeAndHttpHost(), '/')
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => "تم الاستيراد: {$result['created']} جديد، {$result['updated']} محدّث، {$result['skipped']} متخطّى.",
+                'data' => $result,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage() ?: 'تعذر إتمام الاستيراد الجماعي.',
+            ], 422);
+        }
+    }
+
+    /**
+     * تصدير المنتجات الحالية كملف CSV (متوافق مع Excel و Google Sheets)
+     */
+    public function exportProducts(Request $request, ProductBulkImportService $importer)
+    {
+        $csv = $importer->buildCsvExport(
+            branchId: $request->filled('branch_id') ? (int) $request->input('branch_id') : null,
+            categoryId: $request->filled('category_id') ? (int) $request->input('category_id') : null,
+            search: $request->input('search'),
+            templateOnly: false
+        );
+
+        $filename = 'products-export-' . now()->format('Y-m-d') . '.csv';
+
+        return response($csv, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Cache-Control' => 'no-store, no-cache',
+        ]);
+    }
+
+    /**
+     * تحميل قالب استيراد CSV جاهز
+     */
+    public function downloadImportTemplate(ProductBulkImportService $importer)
+    {
+        $csv = $importer->buildCsvExport(templateOnly: true);
+
+        return response($csv, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="products-import-template.csv"',
+            'Cache-Control' => 'no-store, no-cache',
+        ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function validateBulkImportOptions(Request $request): array
+    {
+        $validated = $request->validate([
+            'file' => 'nullable|file|max:20480',
+            'source_url' => 'nullable|string|max:2048',
+            'images_zip' => 'nullable|file|mimes:zip|max:51200',
+            'default_branch_id' => 'nullable|exists:branches,id',
+            'default_category_id' => 'nullable|exists:categories,id',
+            'duplicate_mode' => 'nullable|in:update,skip',
+            'create_missing_categories' => 'nullable',
+            'download_remote_images' => 'nullable',
+            'column_mapping' => 'nullable',
+        ]);
+
+        return [
+            'default_branch_id' => $validated['default_branch_id'] ?? null,
+            'default_category_id' => $validated['default_category_id'] ?? null,
+            'duplicate_mode' => $validated['duplicate_mode'] ?? 'update',
+            'create_missing_categories' => $request->boolean('create_missing_categories', false),
+            'download_remote_images' => $request->boolean('download_remote_images', true),
+            'column_mapping' => $validated['column_mapping'] ?? null,
+        ];
     }
 
     /**

@@ -12,6 +12,7 @@ import {
   AdminActiveCart,
   AdvertisementItem,
 } from '@/features/admin/api/admin.api';
+import { ProductBulkImportModal } from '@/features/admin/components/ProductBulkImportModal';
 import {
   Building2,
   Users,
@@ -58,6 +59,8 @@ import {
   ShoppingCart,
   ChevronDown,
   ChevronUp,
+  FileSpreadsheet,
+  Download,
 } from 'lucide-react';
 
 type TabType = 'merchants' | 'products' | 'categories' | 'branches' | 'advertisements' | 'orders' | 'users';
@@ -98,6 +101,8 @@ export default function AdminDashboardPage() {
 
   // النوافذ المنبثقة للإضافة والتعديل (Modals)
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
+  const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
+  const [isExportingProducts, setIsExportingProducts] = useState(false);
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
   const [isAddBranchOpen, setIsAddBranchOpen] = useState(false);
   const [isAddAdOpen, setIsAddAdOpen] = useState(false);
@@ -1336,6 +1341,15 @@ export default function AdminDashboardPage() {
 
               <button
                 type="button"
+                onClick={() => setIsBulkImportOpen(true)}
+                className="flex items-center justify-center gap-1.5 bg-[#fbf3e6] hover:bg-[#f5e7cf] border border-[#ebd2b0] active:scale-95 text-[#8f5a13] font-bold text-[11px] py-2 px-3 rounded-xl transition-all cursor-pointer"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5 shrink-0" />
+                <span>استيراد Excel / Drive</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={openAddCategoryModal}
                 className="flex items-center justify-center gap-1.5 bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white font-bold text-[11px] py-2 px-3 rounded-xl transition-all cursor-pointer"
               >
@@ -1681,6 +1695,38 @@ export default function AdminDashboardPage() {
                       className="w-full sm:w-48 bg-stone-50 border border-stone-200 rounded-xl pr-8 pl-3 py-2 text-xs text-stone-900 placeholder-stone-400 focus:outline-hidden focus:border-[#b47820]"
                     />
                   </form>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsBulkImportOpen(true)}
+                    className="shrink-0 inline-flex items-center gap-1.5 bg-[#fbf3e6] hover:bg-[#f5e7cf] border border-[#ebd2b0] text-[#8f5a13] font-bold text-xs py-2 px-3 rounded-xl cursor-pointer transition-colors"
+                    title="استيراد جماعي من Excel / CSV / Google Drive"
+                  >
+                    <FileSpreadsheet className="w-4 h-4" />
+                    <span className="hidden sm:inline">استيراد</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={isExportingProducts}
+                    onClick={async () => {
+                      setIsExportingProducts(true);
+                      try {
+                        await adminApi.exportProductsCsv({
+                          search: searchQuery || undefined,
+                          category_id: categoryFilter !== 'all' ? parseInt(categoryFilter) : undefined,
+                          branch_id: branchFilter !== 'all' ? parseInt(branchFilter) : undefined,
+                        });
+                      } finally {
+                        setIsExportingProducts(false);
+                      }
+                    }}
+                    className="shrink-0 inline-flex items-center gap-1.5 bg-stone-100 hover:bg-stone-200 border border-stone-200 text-stone-700 font-bold text-xs py-2 px-3 rounded-xl cursor-pointer transition-colors disabled:opacity-50"
+                    title="تصدير المنتجات الحالية إلى ملف CSV"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span className="hidden sm:inline">{isExportingProducts ? 'جاري...' : 'تصدير'}</span>
+                  </button>
 
                   <button
                     type="button"
@@ -3287,6 +3333,18 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       )}
+
+      {/* نافذة الاستيراد الجماعي للمنتجات من Excel / CSV / Google Drive */}
+      <ProductBulkImportModal
+        isOpen={isBulkImportOpen}
+        onClose={() => setIsBulkImportOpen(false)}
+        branches={branches}
+        categories={categories}
+        onImported={async () => {
+          setActionMessage({ text: 'تم استيراد المنتجات وتحديث القائمة بنجاح', type: 'success' });
+          await loadData();
+        }}
+      />
 
       {/* نافذة إضافة / تعديل قسم */}
       {isAddCategoryOpen && (

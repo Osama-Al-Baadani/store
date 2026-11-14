@@ -325,10 +325,12 @@ class AdminController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => $extracted['ai_enhanced']
-                    ? 'تم استخراج وتجهيز بيانات المنتج عبر الذكاء الاصطناعي Gemini بنجاح.'
-                    : ($extracted['code_source'] === 'extracted'
-                        ? 'تم استخراج بيانات المنتج مع الكود من الرابط بنجاح.'
-                        : 'تم استخراج بيانات المنتج وتوليد كود فريد تلقائياً.'),
+                    ? 'تم استخراج وتجهيز اسم الصنف والوصف والسعر بالذكاء الاصطناعي Gemini بنجاح.'
+                    : (! ($extracted['gemini_configured'] ?? true)
+                        ? 'تم استخراج البيانات الأولية من الصفحة فقط؛ فعّل GEMINI_API_KEY على الخادم لتوليد اسم ووصف دقيق بالذكاء الاصطناعي.'
+                        : ($extracted['code_source'] === 'extracted'
+                            ? 'تم استخراج بيانات المنتج مع الكود من الصفحة بنجاح.'
+                            : 'تم استخراج بيانات المنتج الأولية وتوليد كود فريد تلقائياً.')),
                 'data' => $extracted,
             ]);
         } catch (\Throwable $e) {

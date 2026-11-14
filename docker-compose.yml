@@ -48,6 +48,7 @@ services:
       SESSION_DRIVER: database
       QUEUE_CONNECTION: database
       CACHE_STORE: database
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
     volumes:
       - backend_storage:/var/www/html/storage
       - backend_uploads:/var/www/html/public/uploads

@@ -71,6 +71,7 @@ export interface ExtractedProductPayload {
   image: string;
   source_url: string;
   ai_enhanced: boolean;
+  gemini_configured?: boolean;
 }
 
 export interface AdvertisementItem {

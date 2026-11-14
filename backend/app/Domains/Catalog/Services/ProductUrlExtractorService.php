@@ -4,6 +4,7 @@ namespace App\Domains\Catalog\Services;
 
 use App\Models\Product;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use RuntimeException;
 
@@ -11,7 +12,7 @@ class ProductUrlExtractorService
 {
     /**
      * Extract product name, description, unit price, code (SKU), and image from a product URL
-     * OR a direct product image URL (e.g. cdn.salla.sa/*.jpg) using Gemini Vision & HTML metadata.
+     * OR a direct product image URL (e.g. cdn.salla.sa/*.jpg) using HTML/DOM/JSON-LD + Gemini Vision.
      *
      * @return array{
      *   name: string,
@@ -21,7 +22,8 @@ class ProductUrlExtractorService
      *   code_source: 'extracted'|'generated',
      *   image: string,
      *   source_url: string,
-     *   ai_enhanced: bool
+     *   ai_enhanced: bool,
+     *   gemini_configured: bool
      * }
      */
     public function extract(string $rawInput): array
@@ -30,10 +32,15 @@ class ProductUrlExtractorService
         $this->assertSafePublicUrl($url);
 
         $slugHints = $this->extractHintsFromUrl($url);
+        $geminiConfigured = $this->getGeminiKey() !== '';
         $fetched = $this->fetchResource($url);
 
         // Case 1: The URL itself is a direct image (e.g. https://cdn.salla.sa/.../xxx.jpg)
         if ($fetched['is_image'] || $this->looksLikeImageUrl($url)) {
+            if ($fetched['body'] === '' && $slugHints['name'] === '' && ! $geminiConfigured) {
+                throw new RuntimeException('تعذر تحميل الصورة من الرابط، ومفتاح الذكاء الاصطناعي (GEMINI_API_KEY) غير مفعّل على الخادم.');
+            }
+
             $parsed = [
                 'name' => $slugHints['name'],
                 'description' => '',
@@ -42,12 +49,14 @@ class ProductUrlExtractorService
                 'image' => $url,
             ];
 
+            $preparedImage = $this->prepareImageForGemini($fetched['body'], $fetched['mime_type'] ?: 'image/jpeg');
+
             $aiResult = $this->analyzeWithGemini(
                 parsed: $parsed,
                 visibleText: '',
                 decodedUrl: $slugHints['decoded_url'],
-                imageBytes: $fetched['body'],
-                imageMime: $fetched['mime_type'] ?: 'image/jpeg'
+                imageBytes: $preparedImage['bytes'],
+                imageMime: $preparedImage['mime']
             );
 
             $aiEnhanced = $aiResult !== null;
@@ -58,9 +67,15 @@ class ProductUrlExtractorService
                         $parsed[$field] = $val;
                     }
                 }
+            } elseif ($parsed['name'] === '' || $this->isLikelyRandomFilename($parsed['name'])) {
+                throw new RuntimeException(
+                    $geminiConfigured
+                        ? 'تعذر تحليل صورة المنتج بالذكاء الاصطناعي من هذا الرابط، تأكد من أن الرابط مباشر لصورة صالحة أو أعد المحاولة.'
+                        : 'رابط الصورة لا يحتوي على اسم نصي، ومفتاح الذكاء الاصطناعي (GEMINI_API_KEY) غير مضاف في إعدادات الخادم لقراءة الصورة.'
+                );
             }
 
-            return $this->buildFinalPayload($parsed, $url, $slugHints['decoded_url'], $aiEnhanced);
+            return $this->buildFinalPayload($parsed, $url, $slugHints['decoded_url'], $aiEnhanced, $geminiConfigured);
         }
 
         // Case 2: Standard product webpage URL
@@ -73,6 +88,11 @@ class ProductUrlExtractorService
             'image' => '',
         ];
 
+        // Clean store name suffixes from title if present (e.g. "Product Name | Store Name")
+        if ($parsed['name'] !== '') {
+            $parsed['name'] = $this->cleanTitleFromStoreSuffix($parsed['name']);
+        }
+
         if ($parsed['name'] === '' && $slugHints['name'] !== '') {
             $parsed['name'] = $slugHints['name'];
         }
@@ -82,14 +102,23 @@ class ProductUrlExtractorService
 
         $visibleText = $html !== '' ? $this->extractVisibleText($html) : '';
 
-        // If page has a product image, optionally download it when text is sparse so Gemini Vision can inspect it
+        // Download product image for Gemini Vision whenever name, description, or page text is sparse/missing
         $imageBytes = '';
         $imageMime = 'image/jpeg';
-        if ($parsed['image'] !== '' && ($parsed['name'] === '' || $visibleText === '')) {
-            $imgFetch = $this->fetchResource($parsed['image']);
+        if (
+            $parsed['image'] !== ''
+            && (
+                $parsed['name'] === ''
+                || $parsed['description'] === ''
+                || mb_strlen($parsed['description']) < 30
+                || $visibleText === ''
+            )
+        ) {
+            $imgFetch = $this->fetchResource($parsed['image'], preferImage: true);
             if ($imgFetch['is_image'] && $imgFetch['body'] !== '') {
-                $imageBytes = $imgFetch['body'];
-                $imageMime = $imgFetch['mime_type'] ?: 'image/jpeg';
+                $prepared = $this->prepareImageForGemini($imgFetch['body'], $imgFetch['mime_type'] ?: 'image/jpeg');
+                $imageBytes = $prepared['bytes'];
+                $imageMime = $prepared['mime'];
             }
         }
 
@@ -109,23 +138,42 @@ class ProductUrlExtractorService
                     if ($field === 'image' && ! preg_match('/^https?:\/\//i', $val) && $parsed['image'] !== '') {
                         continue;
                     }
+                    if (($field === 'name' || $field === 'description') && $this->isCloudflareOrPlaceholder($val)) {
+                        continue;
+                    }
                     $parsed[$field] = $val;
                 }
             }
         }
 
-        return $this->buildFinalPayload($parsed, $url, $slugHints['decoded_url'], $aiEnhanced);
-    }
-
-    private function buildFinalPayload(array $parsed, string $url, string $decodedUrl, bool $aiEnhanced): array
-    {
-        $name = $this->cleanText((string) ($parsed['name'] ?? ''), 250);
-        if ($name === '' || $this->isLikelyRandomFilename($name)) {
-            $name = 'صنف جملة مستخرج';
+        if (trim($parsed['name']) === '' || $this->isLikelyRandomFilename($parsed['name']) || $this->isCloudflareOrPlaceholder($parsed['name'])) {
+            throw new RuntimeException(
+                $html === ''
+                    ? 'المتجر الخارجي حظر قراءة الصفحة تلقائياً، ولم يتوفر اسم واضح في الرابط.'
+                    : 'تعذر استخراج اسم الصنف من هذه الصفحة. جرب نسخ رابط الصورة المباشر للصنف أو رابط صفحة منتج واضحة.'
+            );
         }
 
-        $description = $this->cleanText((string) ($parsed['description'] ?? ''), 1000);
-        if ($description === '') {
+        return $this->buildFinalPayload($parsed, $url, $slugHints['decoded_url'], $aiEnhanced, $geminiConfigured);
+    }
+
+    private function buildFinalPayload(
+        array $parsed,
+        string $url,
+        string $decodedUrl,
+        bool $aiEnhanced,
+        bool $geminiConfigured
+    ): array {
+        $name = $this->cleanText((string) ($parsed['name'] ?? ''), 250);
+        if ($this->isLikelyRandomFilename($name) || $this->isCloudflareOrPlaceholder($name)) {
+            $name = '';
+        }
+
+        $description = $this->cleanText((string) ($parsed['description'] ?? ''), 1200);
+        if ($this->isCloudflareOrPlaceholder($description)) {
+            $description = '';
+        }
+        if ($description === '' && $name !== '') {
             $description = "صنف جملة معتمد بالحبة - {$name}";
         }
 
@@ -143,6 +191,7 @@ class ProductUrlExtractorService
             'image' => $image,
             'source_url' => $decodedUrl,
             'ai_enhanced' => $aiEnhanced,
+            'gemini_configured' => $geminiConfigured,
         ];
     }
 
@@ -161,6 +210,11 @@ class ProductUrlExtractorService
         }
 
         return $cleanPrefix . '-' . strtoupper(Str::random(6));
+    }
+
+    private function getGeminiKey(): string
+    {
+        return trim((string) (config('services.gemini.key') ?: env('GEMINI_API_KEY', '')));
     }
 
     private function normalizeInputUrl(string $rawInput): string
@@ -194,15 +248,68 @@ class ProductUrlExtractorService
     private function isLikelyRandomFilename(string $text): bool
     {
         $trimmed = trim($text);
+        if ($trimmed === '') {
+            return true;
+        }
         if (preg_match('/\.(?:jpe?g|png|webp|gif|avif|html?|php)$/i', $trimmed)) {
             return true;
         }
-        // Single token with mixed upper/lower/digits > 14 chars without spaces (like UqDwu1rjdJJhHJyeg...)
-        if (! str_contains($trimmed, ' ') && preg_match('/^[A-Za-z0-9_\-]{12,}$/', $trimmed)) {
+        // Single token >= 10 chars without spaces and mostly alphanumeric/random hash (e.g. UqDwu1rjdJJhHJyeg or img_123456)
+        if (! str_contains($trimmed, ' ') && preg_match('/^[A-Za-z0-9_\-]{10,}$/', $trimmed) && preg_match('/\d/', $trimmed)) {
+            return true;
+        }
+        // Storefront ID segments like p123456, c98765, dp, B08XYZ1234
+        if (preg_match('/^(?:p|c|cat|prd|sku|item|id)[-_]?\d+$/i', $trimmed)) {
             return true;
         }
 
         return false;
+    }
+
+    private function isCloudflareOrPlaceholder(string $text): bool
+    {
+        $lower = mb_strtolower(trim($text));
+        if ($lower === '') {
+            return true;
+        }
+
+        $blockedPhrases = [
+            'just a moment',
+            'attention required',
+            'checking your browser',
+            'enable javascript',
+            'access denied',
+            '403 forbidden',
+            '404 not found',
+            'cloudflare',
+            'captcha',
+            'verify you are human',
+            'صنف جملة مستخرج',
+        ];
+
+        foreach ($blockedPhrases as $phrase) {
+            if (str_contains($lower, $phrase)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function cleanTitleFromStoreSuffix(string $title): string
+    {
+        $cleaned = $this->cleanText($title, 250);
+        if ($this->isCloudflareOrPlaceholder($cleaned)) {
+            return '';
+        }
+
+        // Remove common trailing store separators like "Product Name | Store" or "Product Name - متجر كذا"
+        $parts = preg_split('/\s+(?:\||—|–|::)\s+/u', $cleaned);
+        if (is_array($parts) && count($parts) >= 2 && mb_strlen(trim($parts[0])) >= 4) {
+            return trim($parts[0]);
+        }
+
+        return $cleaned;
     }
 
     private function extractHintsFromUrl(string $encodedUrl): array
@@ -216,14 +323,15 @@ class ProductUrlExtractorService
         $codeCandidate = '';
 
         foreach (array_reverse($segments) as $seg) {
-            if ($this->isLikelyRandomFilename($seg)) {
-                continue;
-            }
-
+            // Capture product ID/code if present in URL (like p123456 or SKU)
             if ($codeCandidate === '' && preg_match('/^(?:p|sku|id|item)?[-_]?([A-Za-z0-9]{4,14})$/i', $seg, $cm)) {
-                if (preg_match('/\d/', $cm[1])) {
+                if (preg_match('/\d/', $cm[1]) && ! preg_match('/\.(?:jpe?g|png|webp|gif)$/i', $seg)) {
                     $codeCandidate = strtoupper($cm[1]);
                 }
+            }
+
+            if ($this->isLikelyRandomFilename($seg)) {
+                continue;
             }
 
             $cleaned = preg_replace('/\.(html?|php|aspx?|jpe?g|png|webp)$/i', '', $seg) ?? $seg;
@@ -234,7 +342,8 @@ class ProductUrlExtractorService
                 $nameCandidate === ''
                 && mb_strlen($cleaned) >= 4
                 && ! $this->isLikelyRandomFilename($cleaned)
-                && ! preg_match('/^(products?|items?|catalog|shop|p|dp|gp|ar|en|\d+)$/iu', $cleaned)
+                && ! preg_match('/^(products?|items?|catalog|shop|store|categories|category|p|dp|gp|ar|en|\d+)$/iu', $cleaned)
+                && ! preg_match('/^[a-z]{2}-[a-z]{2}$/i', $cleaned)
             ) {
                 $nameCandidate = $cleaned;
             }
@@ -270,46 +379,128 @@ class ProductUrlExtractorService
 
     /**
      * Fetch URL resource and detect whether it is an image or HTML document.
+     * Falls back to social link-preview crawler User-Agent if blocked by Cloudflare/anti-bot.
      *
      * @return array{body: string, mime_type: string, is_image: bool}
      */
-    private function fetchResource(string $url): array
+    private function fetchResource(string $url, bool $preferImage = false): array
     {
-        try {
-            $response = Http::withoutVerifying()
-                ->withHeaders([
-                    'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-                    'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
-                    'Accept-Language' => 'ar-SA,ar;q=0.9,en-US;q=0.8,en;q=0.7',
-                ])
-                ->timeout(15)
-                ->connectTimeout(6)
-                ->withOptions(['allow_redirects' => ['max' => 5]])
-                ->get($url);
+        // Note: intentionally omit image/avif so CDNs serve JPEG/PNG/WebP directly supported by Gemini Vision
+        $acceptHeader = $preferImage
+            ? 'image/jpeg,image/png,image/webp,image/*;q=0.8'
+            : 'text/html,application/xhtml+xml,application/xml;q=0.9,image/jpeg,image/png,image/webp,*/*;q=0.8';
 
-            if (! $response->successful()) {
-                return ['body' => '', 'mime_type' => '', 'is_image' => false];
-            }
-
-            $contentType = strtolower((string) $response->header('Content-Type'));
-            $mime = trim(explode(';', $contentType)[0] ?? '');
-            $body = (string) $response->body();
-
-            $isImage = str_starts_with($mime, 'image/')
-                || ($mime === '' && $this->looksLikeImageUrl($url));
-
-            if ($isImage && $mime === '') {
-                $mime = 'image/jpeg';
-            }
-
-            return [
-                'body' => $body,
-                'mime_type' => $mime,
-                'is_image' => $isImage,
+        $userAgents = $preferImage
+            ? [
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            ]
+            : [
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                'WhatsApp/2.23.20.0 A',
+                'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
             ];
-        } catch (\Throwable) {
-            return ['body' => '', 'mime_type' => '', 'is_image' => false];
+
+        foreach ($userAgents as $ua) {
+            try {
+                $response = Http::withoutVerifying()
+                    ->withHeaders([
+                        'User-Agent' => $ua,
+                        'Accept' => $acceptHeader,
+                        'Accept-Language' => 'ar-SA,ar;q=0.9,en-US;q=0.8,en;q=0.7',
+                    ])
+                    ->timeout(15)
+                    ->connectTimeout(6)
+                    ->withOptions(['allow_redirects' => ['max' => 5]])
+                    ->get($url);
+
+                if (! $response->successful()) {
+                    continue;
+                }
+
+                $contentType = strtolower((string) $response->header('Content-Type'));
+                $mime = trim(explode(';', $contentType)[0] ?? '');
+                $body = (string) $response->body();
+
+                $isImage = str_starts_with($mime, 'image/')
+                    || ($mime === '' && $this->looksLikeImageUrl($url));
+
+                if ($isImage && $mime === '') {
+                    $mime = 'image/jpeg';
+                }
+
+                // If HTML returned a Cloudflare/bot-protection page, try next crawler User-Agent
+                if (! $isImage && $this->looksLikeBotChallengeHtml($body)) {
+                    continue;
+                }
+
+                return [
+                    'body' => $body,
+                    'mime_type' => $mime,
+                    'is_image' => $isImage,
+                ];
+            } catch (\Throwable) {
+                continue;
+            }
         }
+
+        return ['body' => '', 'mime_type' => '', 'is_image' => false];
+    }
+
+    private function looksLikeBotChallengeHtml(string $html): bool
+    {
+        if ($html === '') {
+            return true;
+        }
+        $head = mb_strtolower(mb_substr($html, 0, 4000));
+
+        return str_contains($head, '<title>just a moment')
+            || str_contains($head, 'cf-browser-verification')
+            || str_contains($head, 'challenge-platform')
+            || str_contains($head, 'attention required! | cloudflare');
+    }
+
+    /**
+     * Convert unsupported image types (like AVIF/GIF/BMP) to JPEG via GD for Gemini Vision compatibility.
+     *
+     * @return array{bytes: string, mime: string}
+     */
+    private function prepareImageForGemini(string $bytes, string $mime): array
+    {
+        if ($bytes === '') {
+            return ['bytes' => '', 'mime' => 'image/jpeg'];
+        }
+
+        $supported = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
+        $cleanMime = strtolower(trim($mime));
+        if ($cleanMime === 'image/jpg') {
+            $cleanMime = 'image/jpeg';
+        }
+        if (in_array($cleanMime, $supported, true)) {
+            return ['bytes' => $bytes, 'mime' => $cleanMime];
+        }
+
+        try {
+            $gdImage = null;
+            if ($cleanMime === 'image/avif' && function_exists('imagecreatefromavif')) {
+                $gdImage = @imagecreatefromavif('data://image/avif;base64,' . base64_encode($bytes));
+            }
+            if (! $gdImage && function_exists('imagecreatefromstring')) {
+                $gdImage = @imagecreatefromstring($bytes);
+            }
+            if ($gdImage && function_exists('imagejpeg')) {
+                ob_start();
+                imagejpeg($gdImage, null, 88);
+                $jpegBytes = (string) ob_get_clean();
+                imagedestroy($gdImage);
+                if ($jpegBytes !== '') {
+                    return ['bytes' => $jpegBytes, 'mime' => 'image/jpeg'];
+                }
+            }
+        } catch (\Throwable) {
+            // Fall through and omit incompatible image bytes rather than failing the Gemini request
+        }
+
+        return ['bytes' => '', 'mime' => 'image/jpeg'];
     }
 
     private function parseHtmlMetadata(string $html, string $url): array
@@ -324,17 +515,21 @@ class ProductUrlExtractorService
             'image' => '',
         ];
 
-        // 1. JSON-LD (Schema.org Product)
+        // 1. JSON-LD (Schema.org Product) — decode raw JSON first before entity decoding!
         if (preg_match_all('/<script[^>]*type=["\']application\/ld\+json["\'][^>]*>(.*?)<\/script>/is', $html, $ldMatches)) {
             foreach ($ldMatches[1] as $rawJson) {
-                $decoded = json_decode(html_entity_decode(trim($rawJson), ENT_QUOTES, 'UTF-8'), true);
+                $trimmedJson = trim($rawJson);
+                $decoded = json_decode($trimmedJson, true);
+                if (! is_array($decoded)) {
+                    $decoded = json_decode(html_entity_decode($trimmedJson, ENT_QUOTES, 'UTF-8'), true);
+                }
                 if (! is_array($decoded)) {
                     continue;
                 }
                 $productNode = $this->findProductSchemaNode($decoded);
                 if ($productNode !== null) {
-                    $result['name'] = $result['name'] ?: (string) ($productNode['name'] ?? '');
-                    $result['description'] = $result['description'] ?: (string) ($productNode['description'] ?? '');
+                    $result['name'] = $result['name'] ?: $this->cleanText((string) ($productNode['name'] ?? ''), 250);
+                    $result['description'] = $result['description'] ?: $this->cleanText((string) ($productNode['description'] ?? ''), 1200);
                     $result['code'] = $result['code'] ?: $this->pickFirstString([
                         $productNode['sku'] ?? null,
                         $productNode['mpn'] ?? null,
@@ -348,11 +543,11 @@ class ProductUrlExtractorService
             }
         }
 
-        // 2. Meta tags & DOM elements
+        // 2. Meta tags (OpenGraph, Twitter, standard meta)
         $meta = $this->extractMetaTags($html);
         $result['name'] = $result['name'] ?: ($meta['og:title'] ?? $meta['twitter:title'] ?? $meta['title'] ?? '');
         $result['description'] = $result['description'] ?: ($meta['og:description'] ?? $meta['twitter:description'] ?? $meta['description'] ?? '');
-        $result['image'] = $result['image'] ?: ($meta['og:image'] ?? $meta['og:image:secure_url'] ?? $meta['twitter:image'] ?? '');
+        $result['image'] = $result['image'] ?: ($meta['og:image:secure_url'] ?? $meta['og:image'] ?? $meta['twitter:image'] ?? '');
         $result['unit_price'] = $result['unit_price'] ?: (
             $meta['product:price:amount']
             ?? $meta['og:price:amount']
@@ -361,15 +556,24 @@ class ProductUrlExtractorService
             ?? ''
         );
 
+        // 3. DOM extraction via DOMDocument / DOMXPath for product title & description blocks
+        $domParsed = $this->extractFromDom($html);
+        if ($result['name'] === '' && $domParsed['name'] !== '') {
+            $result['name'] = $domParsed['name'];
+        }
+        if ($domParsed['description'] !== '' && mb_strlen($domParsed['description']) > mb_strlen($result['description'])) {
+            $result['description'] = $domParsed['description'];
+        }
+
         if ($result['name'] === '' && preg_match('/<h1[^>]*>(.*?)<\/h1>/is', $html, $h1Match)) {
-            $result['name'] = html_entity_decode(strip_tags($h1Match[1]), ENT_QUOTES, 'UTF-8');
+            $result['name'] = $this->cleanText($h1Match[1], 250);
         }
 
         if ($result['name'] === '' && preg_match('/<title[^>]*>(.*?)<\/title>/is', $html, $titleMatch)) {
-            $result['name'] = html_entity_decode(strip_tags($titleMatch[1]), ENT_QUOTES, 'UTF-8');
+            $result['name'] = $this->cleanText($titleMatch[1], 250);
         }
 
-        // 3. Fallback itemprop / retail SKU & price hints from HTML
+        // 4. Fallback itemprop / retail SKU & price hints from HTML
         if ($result['unit_price'] === '' && preg_match('/itemprop=["\']price["\'][^>]*content=["\']([0-9.,]+)["\']/i', $html, $priceMeta)) {
             $result['unit_price'] = $priceMeta[1];
         }
@@ -388,6 +592,63 @@ class ProductUrlExtractorService
         $result['image'] = $this->resolveUrl($result['image'], $url);
 
         return $result;
+    }
+
+    /**
+     * Extract product heading and full description blocks directly from DOM.
+     *
+     * @return array{name: string, description: string}
+     */
+    private function extractFromDom(string $html): array
+    {
+        $out = ['name' => '', 'description' => ''];
+        if (! class_exists(\DOMDocument::class)) {
+            return $out;
+        }
+
+        try {
+            $dom = new \DOMDocument();
+            $prev = libxml_use_internal_errors(true);
+            $dom->loadHTML('<?xml encoding="utf-8" ?>' . $html, LIBXML_NOERROR | LIBXML_NOWARNING);
+            libxml_clear_errors();
+            libxml_use_internal_errors($prev);
+
+            $xpath = new \DOMXPath($dom);
+
+            foreach (['//h1', '//*[@itemprop="name"]'] as $query) {
+                $nodes = $xpath->query($query);
+                if ($nodes && $nodes->length > 0) {
+                    $candidate = $this->cleanText((string) $nodes->item(0)?->textContent, 250);
+                    if ($candidate !== '' && ! $this->isCloudflareOrPlaceholder($candidate)) {
+                        $out['name'] = $candidate;
+                        break;
+                    }
+                }
+            }
+
+            $descQueries = [
+                '//*[@itemprop="description"]',
+                '//*[contains(@class,"product-description")]',
+                '//*[contains(@class,"product__description")]',
+                '//*[contains(@class,"s-product-description")]',
+                '//*[@id="product-description" or @id="description" or @id="feature-bullets"]',
+                '//*[contains(@class,"woocommerce-product-details__short-description")]',
+            ];
+
+            foreach ($descQueries as $query) {
+                $nodes = $xpath->query($query);
+                if ($nodes && $nodes->length > 0) {
+                    $candidate = $this->cleanText((string) $nodes->item(0)?->textContent, 1200);
+                    if (mb_strlen($candidate) > mb_strlen($out['description'])) {
+                        $out['description'] = $candidate;
+                    }
+                }
+            }
+        } catch (\Throwable) {
+            return $out;
+        }
+
+        return $out;
     }
 
     private function findProductSchemaNode(array $data): ?array
@@ -493,11 +754,12 @@ class ProductUrlExtractorService
     private function extractVisibleText(string $html): string
     {
         $html = $this->sanitizeUtf8($html);
-        $stripped = preg_replace('/<(script|style|noscript|svg)[^>]*>.*?<\/\1>/is', ' ', $html) ?? $html;
+        // Remove non-product boilerplate (scripts, styles, headers, nav menus, footers) so product text stays in window
+        $stripped = preg_replace('/<(script|style|noscript|svg|header|nav|footer|aside)\b[^>]*>.*?<\/\1>/is', ' ', $html) ?? $html;
         $text = html_entity_decode(strip_tags($stripped), ENT_QUOTES, 'UTF-8');
         $text = preg_replace('/\s+/u', ' ', $text) ?? $text;
 
-        return mb_substr(trim($text), 0, 4500);
+        return mb_substr(trim($text), 0, 8000);
     }
 
     /**
@@ -510,7 +772,7 @@ class ProductUrlExtractorService
         string $imageBytes = '',
         string $imageMime = 'image/jpeg'
     ): ?array {
-        $geminiKey = trim((string) (config('services.gemini.key') ?: env('GEMINI_API_KEY', '')));
+        $geminiKey = $this->getGeminiKey();
         if ($geminiKey === '') {
             return null;
         }
@@ -518,17 +780,17 @@ class ProductUrlExtractorService
         $safeParsedJson = json_encode($parsed, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) ?: '{}';
         $safeVisibleText = $this->sanitizeUtf8($visibleText);
 
-        $prompt = "أنت خبير كتالوج منتجات جملة (B2B) في السعودية. قم بقراءة بيانات أو صورة المنتج المرفقة وأعد فقط كائن JSON صالح يحتوي على المفاتيح التالية:\n"
-            . "- name: اسم المنتج باللغة العربية بدقة (اذكر نوع المنتج والماركة والحجم/العدد إن ظهر في الصورة أو النص، ولا تضع اسم ملف عشوائي أبداً).\n"
-            . "- description: وصف واضح ومختصر للمنتج ومواصفاته واستخدامه باللغة العربية (جملة أو جملتين).\n"
-            . "- unit_price: سعر الحبة بالريال السعودي كرقم عشري فقط مثل \"18.50\" (إذا لم يظهر سعر صريح ضع سعراً تقديرياً مناسباً للجملة بالريال).\n"
-            . "- code: كود الصنف (SKU) إن وجد، أو كود مختصر مناسب بالأحرف الإنجليزية والأرقام مثل \"SHM-500\".\n"
+        $prompt = "أنت خبير كتالوج منتجات جملة (B2B) في السعودية. قم بتحليل بيانات أو صورة المنتج المرفقة وأعد كائن JSON فقط يحتوي على الحقول التالية:\n"
+            . "- name: اسم الصنف الكامل والدقيق باللغة العربية (اذكر نوع المنتج والماركة والحجم أو الوزن أو العدد إن وجد، واحذف اسم المتجر مثل | متجر كذا، ولا تضع اسم ملف عشوائي أبداً).\n"
+            . "- description: وصف احترافي واضح ومفيد للمنتج ومواصفاته ومكوناته أو استخدامه باللغة العربية (جملتان إلى ثلاث جمل منسقة بدون حشو أو عبارات تسويقية للمتجر).\n"
+            . "- unit_price: سعر الحبة بالريال السعودي كرقم عشري فقط مثل \"18.50\" (إذا لم يظهر سعر صريح في النص أو الصورة ضع تقديراً مناسباً للجملة بالريال).\n"
+            . "- code: كود الصنف (SKU) إن وجد في البيانات، أو أنشئ كوداً مختصراً مناسباً بالإنجليزية والأرقام مثل \"SHM-500\".\n"
             . "- image: رابط الصورة المباشر إن وجد في البيانات الأولية.\n\n"
             . "الرابط: {$decodedUrl}\n"
-            . "البيانات الأولية: {$safeParsedJson}\n";
+            . "البيانات الأولية المستخرجة: {$safeParsedJson}\n";
 
         if ($safeVisibleText !== '') {
-            $prompt .= "نص الصفحة:\n{$safeVisibleText}\n";
+            $prompt .= "نص محتوى صفحة المنتج:\n{$safeVisibleText}\n";
         }
 
         $parts = [['text' => $prompt]];
@@ -541,16 +803,27 @@ class ProductUrlExtractorService
             ];
         }
 
-        foreach (['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'] as $model) {
+        foreach (['gemini-2.5-flash', 'gemini-2.0-flash'] as $model) {
             try {
                 $res = Http::withoutVerifying()
-                    ->timeout(22)
+                    ->timeout(25)
                     ->post(
                         "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key=" . urlencode($geminiKey),
                         [
                             'contents' => [['parts' => $parts]],
                             'generationConfig' => [
                                 'responseMimeType' => 'application/json',
+                                'responseSchema' => [
+                                    'type' => 'OBJECT',
+                                    'properties' => [
+                                        'name' => ['type' => 'STRING'],
+                                        'description' => ['type' => 'STRING'],
+                                        'unit_price' => ['type' => 'STRING'],
+                                        'code' => ['type' => 'STRING'],
+                                        'image' => ['type' => 'STRING'],
+                                    ],
+                                    'required' => ['name', 'description'],
+                                ],
                                 'temperature' => 0.2,
                             ],
                         ]
@@ -562,8 +835,18 @@ class ProductUrlExtractorService
                     if ($decoded !== null) {
                         return $decoded;
                     }
+                } else {
+                    Log::warning('Gemini product extraction non-2xx response', [
+                        'model' => $model,
+                        'status' => $res->status(),
+                        'body' => mb_substr($res->body(), 0, 500),
+                    ]);
                 }
-            } catch (\Throwable) {
+            } catch (\Throwable $e) {
+                Log::warning('Gemini product extraction exception', [
+                    'model' => $model,
+                    'error' => $e->getMessage(),
+                ]);
                 continue;
             }
         }
@@ -591,6 +874,9 @@ class ProductUrlExtractorService
         $trimmed = preg_replace('/^```(?:json)?\s*|\s*```$/i', '', $trimmed) ?? $trimmed;
         $decoded = json_decode(trim($trimmed), true);
         if (is_array($decoded)) {
+            if (array_is_list($decoded) && isset($decoded[0]) && is_array($decoded[0])) {
+                return $decoded[0];
+            }
             return $decoded;
         }
 

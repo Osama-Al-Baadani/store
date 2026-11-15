@@ -78,7 +78,6 @@ export default function CatalogPage() {
     categories,
     brands,
     offersCount,
-    totalBranchCount,
     products,
     pagination,
     hasMore,
@@ -205,7 +204,6 @@ export default function CatalogPage() {
         categories={categories}
         selectedCategory={selectedCategory}
         onSelect={setSelectedCategory}
-        totalCount={totalBranchCount}
         offersCount={offersCount}
         isOffersActive={advancedFilters.quickFilter === 'discounted'}
         onToggleOffers={toggleOffersOnly}
@@ -385,7 +383,7 @@ export default function CatalogPage() {
                       onClick={toggleOffersOnly}
                       className="text-xs font-extrabold text-rose-700 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-full border border-rose-200 transition-colors cursor-pointer"
                     >
-                      عرض كل العروض ({offersCount})
+                      عرض كل العروض
                     </button>
                   )}
                 </div>
@@ -478,7 +476,7 @@ export default function CatalogPage() {
                       }`}
                     >
                       <Tag className="w-3.5 h-3.5" />
-                      <span>العروض ({offersCount})</span>
+                      <span>العروض</span>
                     </button>
                   )}
 

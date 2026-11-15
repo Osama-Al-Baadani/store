@@ -41,7 +41,7 @@ export const BrandFilterBar: React.FC<BrandFilterBarProps> = ({
               العلامات التجارية
             </h3>
             <p className="text-[10px] sm:text-[11px] text-stone-500 font-medium">
-              اختر علامة تجارية لعرض منتجاتها فقط ({brands.length} علامة)
+              اختر علامة تجارية لعرض منتجاتها فقط
             </p>
           </div>
         </div>
@@ -87,7 +87,7 @@ export const BrandFilterBar: React.FC<BrandFilterBarProps> = ({
               onClick={() => setExpanded((prev) => !prev)}
               className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-[#fbf3e6] hover:bg-[#f6e8cf] text-[#8f5a13] border border-[#ebd2b0] text-[11px] font-bold transition-colors cursor-pointer"
             >
-              <span>{expanded ? 'طي القائمة' : `عرض الكل (${brands.length})`}</span>
+              <span>{expanded ? 'طي القائمة' : 'عرض الكل'}</span>
               {expanded ? (
                 <ChevronUp className="w-3 h-3" />
               ) : (
@@ -131,15 +131,6 @@ export const BrandFilterBar: React.FC<BrandFilterBarProps> = ({
               }`}
             >
               <span>{item.brand}</span>
-              <span
-                className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full leading-none ${
-                  isSelected
-                    ? 'bg-white/25 text-white'
-                    : 'bg-[#fbf3e6] text-[#8f5a13]'
-                }`}
-              >
-                {item.count}
-              </span>
             </button>
           );
         })}

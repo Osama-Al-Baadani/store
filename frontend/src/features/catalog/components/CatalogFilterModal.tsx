@@ -251,13 +251,6 @@ const CatalogFilterModalContent: React.FC<Omit<CatalogFilterModalProps, 'isOpen'
                       }`}
                     >
                       <span>{b.brand}</span>
-                      <span
-                        className={`text-[10px] font-mono ${
-                          isSelected ? 'text-amber-100' : 'text-stone-400'
-                        }`}
-                      >
-                        ({b.count})
-                      </span>
                     </button>
                   );
                 })}

@@ -15,7 +15,6 @@ interface CategoryBarProps {
   categories: Category[];
   selectedCategory: number | null;
   onSelect: (id: number | null) => void;
-  totalCount?: number;
   offersCount?: number;
   isOffersActive?: boolean;
   onToggleOffers?: () => void;
@@ -40,7 +39,6 @@ export const CategoryBar: React.FC<CategoryBarProps> = ({
   categories,
   selectedCategory,
   onSelect,
-  totalCount,
   offersCount = 0,
   isOffersActive = false,
   onToggleOffers,
@@ -144,17 +142,6 @@ export const CategoryBar: React.FC<CategoryBarProps> = ({
         >
           <LayoutGrid className="w-3.5 h-3.5" />
           <span>كل الأصناف</span>
-          {typeof totalCount === 'number' && totalCount > 0 && (
-            <span
-              className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full leading-none ${
-                selectedCategory === null && !isOffersActive
-                  ? 'bg-white/25 text-white'
-                  : 'bg-stone-100 text-stone-600'
-              }`}
-            >
-              {totalCount}
-            </span>
-          )}
         </button>
 
         {/* زر العروض والتخفيضات السريع */}
@@ -176,13 +163,6 @@ export const CategoryBar: React.FC<CategoryBarProps> = ({
           >
             <Tag className="w-3.5 h-3.5" />
             <span>العروض</span>
-            <span
-              className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full leading-none ${
-                isOffersActive ? 'bg-white/25 text-white' : 'bg-white text-rose-700'
-              }`}
-            >
-              {offersCount}
-            </span>
           </button>
         )}
 
@@ -235,15 +215,6 @@ export const CategoryBar: React.FC<CategoryBarProps> = ({
               }`}
             >
               <span>{cat.name}</span>
-              {typeof cat.products_count === 'number' && cat.products_count > 0 && (
-                <span
-                  className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full leading-none ${
-                    isActive ? 'bg-white/25 text-white' : 'bg-[#fbf3e6] text-[#8f5a13]'
-                  }`}
-                >
-                  {cat.products_count}
-                </span>
-              )}
               {subCount > 0 && (
                 <ChevronDown
                   className={`w-3.5 h-3.5 transition-transform ${
@@ -291,11 +262,6 @@ export const CategoryBar: React.FC<CategoryBarProps> = ({
                       }`}
                     >
                       <span>{node.name}</span>
-                      {typeof node.products_count === 'number' && node.products_count > 0 && (
-                        <span className="text-[10px] font-mono opacity-75">
-                          ({node.products_count})
-                        </span>
-                      )}
                     </button>
                   </React.Fragment>
                 );
@@ -327,15 +293,6 @@ export const CategoryBar: React.FC<CategoryBarProps> = ({
                       }`}
                     >
                       <span>{item.name}</span>
-                      {typeof item.products_count === 'number' && item.products_count > 0 && (
-                        <span
-                          className={`text-[10px] font-mono ${
-                            isCurrent ? 'text-amber-300' : 'text-stone-400'
-                          }`}
-                        >
-                          {item.products_count}
-                        </span>
-                      )}
                     </button>
                   );
                 })}
@@ -376,9 +333,6 @@ export const CategoryBar: React.FC<CategoryBarProps> = ({
                   }`}
                 >
                   عرض كل {openParent.name}
-                  {typeof openParent.products_count === 'number' && openParent.products_count > 0
-                    ? ` (${openParent.products_count})`
-                    : ''}
                 </button>
               </div>
 
@@ -424,15 +378,6 @@ export const CategoryBar: React.FC<CategoryBarProps> = ({
                         }`}
                       >
                         <span>{sub.name}</span>
-                        {typeof sub.products_count === 'number' && sub.products_count > 0 && (
-                          <span
-                            className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full ${
-                              isSubActive ? 'bg-white/25 text-white' : 'bg-white text-[#8f5a13]'
-                            }`}
-                          >
-                            {sub.products_count}
-                          </span>
-                        )}
                       </button>
 
                       {grandChildren.length > 0 && (
@@ -454,16 +399,6 @@ export const CategoryBar: React.FC<CategoryBarProps> = ({
                                 }`}
                               >
                                 <span>{leaf.name}</span>
-                                {typeof leaf.products_count === 'number' &&
-                                  leaf.products_count > 0 && (
-                                    <span
-                                      className={`text-[10px] font-mono ${
-                                        isLeafActive ? 'text-amber-100' : 'text-stone-400'
-                                      }`}
-                                    >
-                                      {leaf.products_count}
-                                    </span>
-                                  )}
                               </button>
                             );
                           })}
@@ -492,15 +427,6 @@ export const CategoryBar: React.FC<CategoryBarProps> = ({
                       }`}
                     >
                       <span>{sub.name}</span>
-                      {typeof sub.products_count === 'number' && sub.products_count > 0 && (
-                        <span
-                          className={`text-[10px] font-mono ${
-                            isSubActive ? 'text-amber-100' : 'text-stone-400'
-                          }`}
-                        >
-                          {sub.products_count}
-                        </span>
-                      )}
                     </button>
                   );
                 })}

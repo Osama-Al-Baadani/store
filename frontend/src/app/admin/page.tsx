@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -166,6 +166,16 @@ export default function AdminDashboardPage() {
   const [newPassword, setNewPassword] = useState<string>('');
   const [isMobileMoreOpen, setIsMobileMoreOpen] = useState(false);
 
+  const hasLoadedMetaRef = useRef(false);
+  const metaPromiseRef = useRef<Promise<void> | null>(null);
+  const loadSeqRef = useRef(0);
+  const isPollInFlightRef = useRef(false);
+  const searchQueryRef = useRef(searchQuery);
+
+  useEffect(() => {
+    searchQueryRef.current = searchQuery;
+  }, [searchQuery]);
+
   const isAdmin = isAuthenticated && user?.role === 'admin';
 
   // توجيه غير المسجلين مباشرةً إلى بوابة تسجيل الدخول الموحد في البداية
@@ -175,13 +185,13 @@ export default function AdminDashboardPage() {
     }
   }, [isAuthLoading, isAuthenticated, router]);
 
-  // تحميل البيانات
-  const loadData = async () => {
-    if (!isAdmin) return;
-    setIsLoading(true);
-    setHasError(null);
+  const fetchSharedMeta = async (force = false) => {
+    if (!force && metaPromiseRef.current) {
+      await metaPromiseRef.current;
+      return;
+    }
 
-    try {
+    const job = (async () => {
       const [statsRes, cartsRes, catRes, brRes, adsRes] = await Promise.all([
         adminApi.getStats().catch(() => null),
         adminApi.getActiveCarts().catch(() => null),
@@ -195,52 +205,95 @@ export default function AdminDashboardPage() {
       if (catRes?.success) setCategories(catRes.data);
       if (brRes?.success) setBranches(brRes.data);
       if (adsRes?.success) setAdsList(adsRes.data);
+      hasLoadedMetaRef.current = true;
+    })().finally(() => {
+      metaPromiseRef.current = null;
+    });
 
-      if (activeTab === 'merchants') {
-        const res = await adminApi.getMerchants({ status: statusFilter, search: searchQuery });
-        if (res.success) setMerchants(res.data);
-      } else if (activeTab === 'products') {
-        const res = await adminApi.getProducts({
-          search: searchQuery,
-          category_id: categoryFilter !== 'all' ? parseInt(categoryFilter) : undefined,
-          branch_id: branchFilter !== 'all' ? parseInt(branchFilter) : undefined,
-        });
-        if (res.success) setProducts(res.data);
-      } else if (activeTab === 'categories') {
-        if (catRes?.success) setCategories(catRes.data);
-      } else if (activeTab === 'branches') {
-        if (brRes?.success) setBranches(brRes.data);
-      } else if (activeTab === 'advertisements') {
-        if (adsRes?.success) setAdsList(adsRes.data);
-      } else if (activeTab === 'orders') {
-        const res = await adminApi.getOrders({
-          status: orderStatusFilter !== 'all' ? orderStatusFilter : undefined,
-          search: searchQuery || undefined,
-        });
-        if (res.success) setOrders(res.data);
-      } else if (activeTab === 'users') {
-        const res = await adminApi.getUsers();
-        if (res.success) setUsersList(res.data);
-      }
-    } catch (err: any) {
-      console.error('Failed to load data:', err);
-      setHasError('تعذر تحميل البيانات من الخادم، تأكد من تشغيل backend (php artisan serve)');
-    } finally {
-      setIsLoading(false);
-    }
+    metaPromiseRef.current = job;
+    await job;
   };
 
-  useEffect(() => {
-    if (isAdmin) {
-      loadData();
+  // تحميل البيانات (مع منع تكرار الطلبات المتزامنة وتحديث بيانات التبويب النشط فقط عند الفلترة)
+  const loadData = useCallback(async (includeMeta: boolean | unknown = true) => {
+    if (!isAdmin) return;
+    const seq = ++loadSeqRef.current;
+    const shouldFetchMeta = includeMeta !== false || !hasLoadedMetaRef.current;
+
+    setIsLoading(true);
+    setHasError(null);
+
+    try {
+      const fetchActiveTab = async () => {
+        const activeSearch = searchQueryRef.current;
+        if (activeTab === 'merchants') {
+          const res = await adminApi.getMerchants({ status: statusFilter, search: activeSearch });
+          if (seq === loadSeqRef.current && res.success) setMerchants(res.data);
+        } else if (activeTab === 'products') {
+          const res = await adminApi.getProducts({
+            search: activeSearch,
+            category_id: categoryFilter !== 'all' ? parseInt(categoryFilter) : undefined,
+            branch_id: branchFilter !== 'all' ? parseInt(branchFilter) : undefined,
+          });
+          if (seq === loadSeqRef.current && res.success) setProducts(res.data);
+        } else if (activeTab === 'orders') {
+          const res = await adminApi.getOrders({
+            status: orderStatusFilter !== 'all' ? orderStatusFilter : undefined,
+            search: activeSearch || undefined,
+          });
+          if (seq === loadSeqRef.current && res.success) setOrders(res.data);
+        } else if (activeTab === 'users') {
+          const res = await adminApi.getUsers();
+          if (seq === loadSeqRef.current && res.success) setUsersList(res.data);
+        } else if (activeTab === 'categories' && !shouldFetchMeta) {
+          const res = await adminApi.getCategories();
+          if (seq === loadSeqRef.current && res.success) setCategories(res.data);
+        } else if (activeTab === 'branches' && !shouldFetchMeta) {
+          const res = await adminApi.getBranches();
+          if (seq === loadSeqRef.current && res.success) setBranches(res.data);
+        } else if (activeTab === 'advertisements' && !shouldFetchMeta) {
+          const res = await adminApi.getAdvertisements();
+          if (seq === loadSeqRef.current && res.success) setAdsList(res.data);
+        }
+      };
+
+      await Promise.all([
+        shouldFetchMeta ? fetchSharedMeta(includeMeta !== false) : Promise.resolve(),
+        fetchActiveTab(),
+      ]);
+    } catch (err: unknown) {
+      if (seq === loadSeqRef.current) {
+        console.error('Failed to load data:', err);
+        setHasError('تعذر تحميل البيانات من الخادم، تأكد من تشغيل backend (php artisan serve)');
+      }
+    } finally {
+      if (seq === loadSeqRef.current) {
+        setIsLoading(false);
+      }
     }
   }, [isAdmin, activeTab, statusFilter, categoryFilter, branchFilter, orderStatusFilter]);
 
-  // تحديث تلقائي صامت للسلات النشطة والطلبات كل 10 ثوانٍ حتى تعلم الإدارة فور إضافة أي صنف للسلة
+  useEffect(() => {
+    if (!isAdmin) return;
+    let cancelled = false;
+    void Promise.resolve().then(() => {
+      if (!cancelled) {
+        void loadData(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isAdmin, loadData]);
+
+  // تحديث تلقائي صامت للسلات النشطة والطلبات كل 25 ثانية عندما تكون الصفحة ظاهرة
   useEffect(() => {
     if (!isAdmin) return;
 
     const timer = setInterval(async () => {
+      if (typeof document !== 'undefined' && document.hidden) return;
+      if (isPollInFlightRef.current) return;
+      isPollInFlightRef.current = true;
       try {
         const [statsRes, cartsRes] = await Promise.all([
           adminApi.getStats().catch(() => null),
@@ -260,8 +313,10 @@ export default function AdminDashboardPage() {
         }
       } catch {
         // تجاهل أخطاء التحديث الخلفي الصامت
+      } finally {
+        isPollInFlightRef.current = false;
       }
-    }, 10000);
+    }, 25000);
 
     return () => clearInterval(timer);
   }, [isAdmin, activeTab, orderStatusFilter, searchQuery]);

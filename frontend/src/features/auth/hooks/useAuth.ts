@@ -1,12 +1,25 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useSyncExternalStore } from 'react';
 import Cookies from 'js-cookie';
-import { User } from '@/types';
+import { ApiResponse, User } from '@/types';
 import { authApi } from '../api/auth.api';
 import { LoginCredentials, RegisterCredentials } from '../types/auth.types';
 
 const USER_CACHE_KEY = 'merchant_user_cache';
+let inFlightMePromise: Promise<ApiResponse<User>> | null = null;
+const noopSubscribe = () => () => {};
+const getClientHydrated = () => true;
+const getServerHydrated = () => false;
+
+function requestCurrentUser(): Promise<ApiResponse<User>> {
+  if (!inFlightMePromise) {
+    inFlightMePromise = authApi.getMe().finally(() => {
+      inFlightMePromise = null;
+    });
+  }
+  return inFlightMePromise;
+}
 
 function getStoredToken(): string | null {
   if (typeof window === 'undefined') return null;
@@ -50,68 +63,66 @@ function persistAuthStorage(userData: User, token?: string): void {
 }
 
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(() => readCachedUser());
-  const [isLoading, setIsLoading] = useState<boolean>(() => {
-    const token = getStoredToken();
-    if (!token) return false;
-    return readCachedUser() === null;
-  });
+  // تهيئة متطابقة بين الخادم والعميل عبر useSyncExternalStore لمنع Hydration Mismatch
+  const isHydrated = useSyncExternalStore(noopSubscribe, getClientHydrated, getServerHydrated);
+  const [resolvedUser, setResolvedUser] = useState<User | null | undefined>(undefined);
+  const [isCheckingSession, setIsCheckingSession] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchUser = useCallback(async (background = false) => {
     const token = getStoredToken();
     if (!token) {
-      setUser(null);
-      setIsLoading(false);
+      setResolvedUser(null);
+      setIsCheckingSession(false);
       return;
     }
 
     if (!background) {
-      setIsLoading(true);
+      setIsCheckingSession(true);
     }
 
     try {
-      const res = await authApi.getMe();
+      const res = await requestCurrentUser();
       if (res.success && res.data) {
-        setUser(res.data);
         persistAuthStorage(res.data);
+        setResolvedUser(res.data);
       }
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } })?.response?.status;
       if (status === 401 || status === 403 || !background) {
-        setUser(null);
         clearAuthStorage();
+        setResolvedUser(null);
       }
     } finally {
-      setIsLoading(false);
+      setIsCheckingSession(false);
     }
   }, []);
 
   useEffect(() => {
     const token = getStoredToken();
     if (!token) return;
-    let cancelled = false;
-    const hasCache = readCachedUser() !== null;
 
-    authApi
-      .getMe()
+    let cancelled = false;
+    const cached = readCachedUser();
+
+    requestCurrentUser()
       .then((res) => {
         if (!cancelled && res.success && res.data) {
-          setUser(res.data);
           persistAuthStorage(res.data);
+          setResolvedUser(res.data);
         }
       })
       .catch((err: unknown) => {
         if (cancelled) return;
         const status = (err as { response?: { status?: number } })?.response?.status;
-        if (status === 401 || status === 403 || !hasCache) {
-          setUser(null);
+        if (status === 401 || status === 403 || !cached) {
           clearAuthStorage();
+          setResolvedUser(null);
         }
       })
       .finally(() => {
         if (!cancelled) {
-          setIsLoading(false);
+          setIsCheckingSession(false);
         }
       });
 
@@ -120,14 +131,19 @@ export function useAuth() {
     };
   }, []);
 
+  const hasToken = isHydrated ? Boolean(getStoredToken()) : false;
+  const cachedUser = isHydrated ? readCachedUser() : null;
+  const user = isHydrated ? (resolvedUser !== undefined ? resolvedUser : cachedUser) : null;
+  const isLoading = !isHydrated || isCheckingSession || (hasToken && user === null && resolvedUser === undefined);
+
   const login = async (credentials: LoginCredentials) => {
     setError(null);
-    setIsLoading(true);
+    setIsCheckingSession(true);
     try {
       const res = await authApi.login(credentials);
       if (res.success && res.data.token) {
         persistAuthStorage(res.data, res.data.token);
-        setUser(res.data);
+        setResolvedUser(res.data);
         return res.data;
       }
       throw new Error(res.message);
@@ -137,13 +153,13 @@ export function useAuth() {
       setError(msg);
       throw new Error(msg);
     } finally {
-      setIsLoading(false);
+      setIsCheckingSession(false);
     }
   };
 
   const register = async (credentials: RegisterCredentials) => {
     setError(null);
-    setIsLoading(true);
+    setIsCheckingSession(true);
     try {
       const res = await authApi.register(credentials);
       return res;
@@ -153,7 +169,7 @@ export function useAuth() {
       setError(msg);
       throw new Error(msg);
     } finally {
-      setIsLoading(false);
+      setIsCheckingSession(false);
     }
   };
 
@@ -164,7 +180,7 @@ export function useAuth() {
       // ignore
     } finally {
       clearAuthStorage();
-      setUser(null);
+      setResolvedUser(null);
     }
   };
 

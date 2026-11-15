@@ -215,6 +215,7 @@ export default function CatalogPage() {
         {/* بانر الإعلانات المتحرك التفاعلي في بداية الكتالوج */}
         {!isFilteredView && (
           <PromoBannerSlider
+            branchId={currentBranchId}
             branchName={activeBranch?.name || 'شركة المخازن الاقتصادية'}
             newProductsCount={newProducts.length}
             discountedCount={offersCount || discountedProducts.length}

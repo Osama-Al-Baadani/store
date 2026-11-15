@@ -15,15 +15,22 @@ class Advertisement extends Model
         'badge_text',
         'image_path',
         'placement',
+        'branch_id',
         'link_url',
         'sort',
         'is_active',
     ];
 
     protected $casts = [
+        'branch_id' => 'integer',
         'is_active' => 'boolean',
         'sort' => 'integer',
     ];
+
+    public function branch(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Branch::class);
+    }
 
     protected $appends = ['image_url'];
 

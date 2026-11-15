@@ -125,6 +125,8 @@ export default function AdminDashboardPage() {
   const [adSubtitle, setAdSubtitle] = useState('');
   const [adBadgeText, setAdBadgeText] = useState('');
   const [adPlacement, setAdPlacement] = useState<'all' | 'home' | 'catalog'>('all');
+  const [adBranchId, setAdBranchId] = useState('');
+  const [adBranchFilter, setAdBranchFilter] = useState('all');
   const [adSort, setAdSort] = useState('0');
   const [adImageFile, setAdImageFile] = useState<File | null>(null);
   const [adImagePreview, setAdImagePreview] = useState<string | null>(null);
@@ -829,6 +831,7 @@ export default function AdminDashboardPage() {
     setAdSubtitle('');
     setAdBadgeText('');
     setAdPlacement('all');
+    setAdBranchId(adBranchFilter !== 'all' && adBranchFilter !== 'global' ? adBranchFilter : '');
     setAdSort('0');
     setAdImageFile(null);
     setAdImagePreview(null);
@@ -842,6 +845,7 @@ export default function AdminDashboardPage() {
     setAdSubtitle(ad.subtitle || '');
     setAdBadgeText(ad.badge_text || '');
     setAdPlacement(ad.placement || 'all');
+    setAdBranchId(ad.branch_id ? ad.branch_id.toString() : '');
     setAdSort((ad.sort ?? 0).toString());
     setAdImageFile(null);
     setAdImagePreview(ad.image_url || null);
@@ -874,6 +878,7 @@ export default function AdminDashboardPage() {
       formData.append('subtitle', adSubtitle.trim());
       formData.append('badge_text', adBadgeText.trim());
       formData.append('placement', adPlacement);
+      formData.append('branch_id', adBranchId);
       formData.append('sort', adSort || '0');
       if (!editingAdId) {
         formData.append('is_active', '1');
@@ -894,6 +899,7 @@ export default function AdminDashboardPage() {
         setAdSubtitle('');
         setAdBadgeText('');
         setAdPlacement('all');
+        setAdBranchId('');
         setAdSort('0');
         setAdImageFile(null);
         setAdImagePreview(null);
@@ -2417,47 +2423,83 @@ export default function AdminDashboardPage() {
                     جدول الإعلانات والبنرات ({adsList.length} إعلان)
                   </h3>
                   <p className="text-[11px] sm:text-xs text-stone-500 mt-0.5">
-                    ارفع صور البنرات الدعائية لتظهر تلقائياً في بداية الصفحة الرئيسية والكتالوج
+                    ارفع صور البنرات الدعائية لكل مستودع على حدة أو كإعلان عام يظهر في جميع المستودعات
                   </p>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={openAddAdModal}
-                  className="self-start sm:self-auto inline-flex items-center gap-1.5 bg-[#b47820] hover:bg-[#8f5a13] text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-xs cursor-pointer transition-colors"
-                >
-                  <ImagePlus className="w-4 h-4" />
-                  <span>+ رفع صورة إعلان جديد</span>
-                </button>
+                <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
+                  <select
+                    value={adBranchFilter}
+                    onChange={(e) => setAdBranchFilter(e.target.value)}
+                    aria-label="تصفية الإعلانات حسب المستودع"
+                    className="bg-stone-50 border border-stone-200 rounded-xl py-2 px-3 text-xs font-bold text-stone-800 focus:outline-hidden focus:border-[#b47820] focus:bg-white cursor-pointer"
+                  >
+                    <option value="all">كل المستودعات ({adsList.length})</option>
+                    <option value="global">
+                      إعلانات عامة ({adsList.filter((item) => !item.branch_id).length})
+                    </option>
+                    {branches.map((branch) => (
+                      <option key={branch.id} value={branch.id.toString()}>
+                        {branch.name} ({adsList.filter((item) => item.branch_id === branch.id).length})
+                      </option>
+                    ))}
+                  </select>
+
+                  <button
+                    type="button"
+                    onClick={openAddAdModal}
+                    className="inline-flex items-center gap-1.5 bg-[#b47820] hover:bg-[#8f5a13] text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-xs cursor-pointer transition-colors"
+                  >
+                    <ImagePlus className="w-4 h-4" />
+                    <span>+ رفع صورة إعلان جديد</span>
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-                {adsList.map((ad) => {
-                  const placementLabel =
-                    ad.placement === 'home'
-                      ? 'الصفحة الرئيسية'
-                      : ad.placement === 'catalog'
-                        ? 'صفحة الكتالوج'
-                        : 'الرئيسية والكتالوج';
+                {adsList
+                  .filter((ad) => {
+                    if (adBranchFilter === 'all') return true;
+                    if (adBranchFilter === 'global') return !ad.branch_id;
+                    return String(ad.branch_id || '') === adBranchFilter;
+                  })
+                  .map((ad) => {
+                    const placementLabel =
+                      ad.placement === 'home'
+                        ? 'الصفحة الرئيسية'
+                        : ad.placement === 'catalog'
+                          ? 'صفحة الكتالوج'
+                          : 'الرئيسية والكتالوج';
+                    const branchLabel = ad.branch?.name
+                      ? `مستودع: ${ad.branch.name}`
+                      : 'كل المستودعات (عام)';
 
-                  return (
-                    <div
-                      key={ad.id}
-                      className={`rounded-3xl bg-white border overflow-hidden shadow-sm transition-all flex flex-col justify-between ${ad.is_active ? 'border-[#eddcc8]' : 'border-stone-200 opacity-75'
-                        }`}
-                    >
-                      <div>
-                        <div className="relative h-44 sm:h-48 bg-stone-100 border-b border-stone-100 overflow-hidden flex items-center justify-center">
-                          <img
-                            src={ad.image_url}
-                            alt={ad.title || `إعلان #${ad.id}`}
-                            className="w-full h-full object-cover"
-                          />
-                          <div className="absolute top-3 right-3 flex items-center gap-1.5">
-                            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-white/95 text-stone-800 border border-[#eddcc8] shadow-xs">
-                              {placementLabel}
-                            </span>
-                          </div>
+                    return (
+                      <div
+                        key={ad.id}
+                        className={`rounded-3xl bg-white border overflow-hidden shadow-sm transition-all flex flex-col justify-between ${ad.is_active ? 'border-[#eddcc8]' : 'border-stone-200 opacity-75'
+                          }`}
+                      >
+                        <div>
+                          <div className="relative h-44 sm:h-48 bg-stone-100 border-b border-stone-100 overflow-hidden flex items-center justify-center">
+                            <img
+                              src={ad.image_url}
+                              alt={ad.title || `إعلان #${ad.id}`}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute top-3 right-3 flex flex-wrap items-center gap-1.5 max-w-[70%]">
+                              <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-white/95 text-stone-800 border border-[#eddcc8] shadow-xs">
+                                {placementLabel}
+                              </span>
+                              <span
+                                className={`text-[10px] font-bold px-2.5 py-1 rounded-full shadow-xs border ${ad.branch_id
+                                  ? 'bg-[#fbf3e6]/95 text-[#8f5a13] border-[#ebd2b0]'
+                                  : 'bg-sky-50/95 text-sky-800 border-sky-200'
+                                  }`}
+                              >
+                                {branchLabel}
+                              </span>
+                            </div>
                           <div className="absolute top-3 left-3">
                             {ad.is_active ? (
                               <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-600 text-white shadow-xs">
@@ -3730,6 +3772,25 @@ export default function AdminDashboardPage() {
                   onChange={(e) => setAdImageUrl(e.target.value)}
                   className="w-full bg-stone-50 border border-stone-200 rounded-xl p-2.5 text-stone-900 focus:outline-hidden focus:border-[#b47820] focus:bg-white"
                 />
+              </div>
+
+              <div>
+                <label className="block font-bold text-stone-700 mb-1">المستودع المستهدف</label>
+                <select
+                  value={adBranchId}
+                  onChange={(e) => setAdBranchId(e.target.value)}
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl p-2.5 text-stone-900 focus:outline-hidden focus:border-[#b47820] focus:bg-white font-bold"
+                >
+                  <option value="">كل المستودعات (إعلان عام يظهر للجميع)</option>
+                  {branches.map((branch) => (
+                    <option key={branch.id} value={branch.id.toString()}>
+                      {branch.name} {branch.code ? `(${branch.code})` : ''}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-stone-500 mt-1">
+                  اختر مستودعاً محدداً لعرض هذا الإعلان عند تصفح ذلك المستودع فقط، أو اتركه عاماً.
+                </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

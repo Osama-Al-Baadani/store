@@ -15,12 +15,14 @@ import {
 import { AdvertisementItem, getPublicAdvertisements } from '@/features/admin/api/admin.api';
 
 interface PromoBannerSliderProps {
+  branchId?: number | null;
   branchName?: string;
   newProductsCount?: number;
   discountedCount?: number;
 }
 
 export const PromoBannerSlider: React.FC<PromoBannerSliderProps> = ({
+  branchId,
   branchName = 'شركة المخازن الاقتصادية',
   newProductsCount = 8,
   discountedCount = 6,
@@ -30,9 +32,13 @@ export const PromoBannerSlider: React.FC<PromoBannerSliderProps> = ({
   const [customAds, setCustomAds] = useState<AdvertisementItem[]>([]);
 
   useEffect(() => {
-    getPublicAdvertisements('catalog')
+    if (branchId === null) return;
+
+    let cancelled = false;
+    getPublicAdvertisements('catalog', branchId)
       .then((res) => {
-        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+        if (cancelled) return;
+        if (res.success && Array.isArray(res.data)) {
           setCustomAds(res.data);
           setActiveSlide(0);
         }
@@ -40,7 +46,11 @@ export const PromoBannerSlider: React.FC<PromoBannerSliderProps> = ({
       .catch(() => {
         // استخدام الشرائح الافتراضية تلقائياً عند عدم توفر إعلانات مخصصة
       });
-  }, []);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [branchId]);
 
   const hasCustomAds = customAds.length > 0;
   const totalSlides = hasCustomAds ? customAds.length : 3;

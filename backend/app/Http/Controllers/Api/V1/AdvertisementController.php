@@ -14,14 +14,27 @@ class AdvertisementController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $placement = $request->query('placement');
+        $request->validate([
+            'placement' => 'nullable|in:all,home,catalog',
+            'branch_id' => 'nullable|integer|exists:branches,id',
+        ]);
 
-        $query = Advertisement::where('is_active', true)
+        $placement = $request->query('placement');
+        $branchId = $request->filled('branch_id') ? (int) $request->query('branch_id') : null;
+
+        $query = Advertisement::with('branch:id,name,code')
+            ->where('is_active', true)
             ->orderBy('sort', 'asc')
             ->orderBy('id', 'desc');
 
         if ($placement && in_array($placement, ['home', 'catalog'], true)) {
             $query->whereIn('placement', ['all', $placement]);
+        }
+
+        if ($branchId !== null) {
+            $query->where(function ($q) use ($branchId) {
+                $q->whereNull('branch_id')->orWhere('branch_id', $branchId);
+            });
         }
 
         return response()->json([

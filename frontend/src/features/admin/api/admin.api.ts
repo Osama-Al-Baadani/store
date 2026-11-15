@@ -178,15 +178,24 @@ export interface AdvertisementItem {
   image_path: string;
   image_url: string;
   placement: 'all' | 'home' | 'catalog';
+  branch_id?: number | null;
+  branch?: { id: number; name: string; code?: string } | null;
   link_url?: string | null;
   sort: number;
   is_active: boolean;
   created_at: string;
 }
 
-export const getPublicAdvertisements = async (placement?: 'home' | 'catalog'): Promise<ApiResponse<AdvertisementItem[]>> => {
+export const getPublicAdvertisements = async (
+  placement?: 'home' | 'catalog',
+  branchId?: number | null
+): Promise<ApiResponse<AdvertisementItem[]>> => {
+  const params: Record<string, string | number> = {};
+  if (placement) params.placement = placement;
+  if (typeof branchId === 'number' && branchId > 0) params.branch_id = branchId;
+
   const { data } = await apiClient.get<ApiResponse<AdvertisementItem[]>>('/advertisements', {
-    params: placement ? { placement } : undefined,
+    params: Object.keys(params).length > 0 ? params : undefined,
   });
   return data;
 };
@@ -386,7 +395,7 @@ export const adminApi = {
 
   updateAdvertisement: async (
     id: number,
-    payload: FormData | { is_active?: boolean; sort?: number; placement?: string; title?: string; subtitle?: string }
+    payload: FormData | { is_active?: boolean; sort?: number; placement?: string; branch_id?: number | null; title?: string; subtitle?: string }
   ): Promise<ApiResponse<AdvertisementItem>> => {
     if (payload instanceof FormData) {
       const { data } = await apiClient.post<ApiResponse<AdvertisementItem>>(`/admin/advertisements/${id}`, payload, {

@@ -946,15 +946,23 @@ class AdminController extends Controller
     /**
      * جدول الإعلانات والبنرات بالكامل
      */
-    public function advertisements(): JsonResponse
+    public function advertisements(Request $request): JsonResponse
     {
-        $ads = Advertisement::orderBy('sort', 'asc')
-            ->orderBy('id', 'desc')
-            ->get();
+        $query = Advertisement::with('branch:id,name,code')
+            ->orderBy('sort', 'asc')
+            ->orderBy('id', 'desc');
+
+        if ($request->filled('branch_id')) {
+            if ($request->input('branch_id') === 'global') {
+                $query->whereNull('branch_id');
+            } else {
+                $query->where('branch_id', (int) $request->input('branch_id'));
+            }
+        }
 
         return response()->json([
             'success' => true,
-            'data' => $ads,
+            'data' => $query->get(),
         ]);
     }
 
@@ -968,6 +976,7 @@ class AdminController extends Controller
             'subtitle' => 'nullable|string|max:500',
             'badge_text' => 'nullable|string|max:100',
             'placement' => 'nullable|in:all,home,catalog',
+            'branch_id' => 'nullable|integer|exists:branches,id',
             'link_url' => 'nullable|string|max:500',
             'sort' => 'nullable|integer',
             'is_active' => 'nullable|boolean',
@@ -994,6 +1003,7 @@ class AdminController extends Controller
             'badge_text' => $request->input('badge_text'),
             'image_path' => $imagePath,
             'placement' => $request->input('placement', 'all'),
+            'branch_id' => $request->filled('branch_id') ? (int) $request->input('branch_id') : null,
             'link_url' => $request->input('link_url'),
             'sort' => (int) $request->input('sort', 0),
             'is_active' => $request->boolean('is_active', true),
@@ -1002,7 +1012,7 @@ class AdminController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'تم رفع الصورة وإضافة الإعلان بنجاح!',
-            'data' => $ad,
+            'data' => $ad->load('branch:id,name,code'),
         ], 201);
     }
 
@@ -1018,6 +1028,7 @@ class AdminController extends Controller
             'subtitle' => 'nullable|string|max:500',
             'badge_text' => 'nullable|string|max:100',
             'placement' => 'nullable|in:all,home,catalog',
+            'branch_id' => 'nullable|integer|exists:branches,id',
             'link_url' => 'nullable|string|max:500',
             'sort' => 'nullable|integer',
             'is_active' => 'nullable|boolean',
@@ -1043,6 +1054,9 @@ class AdminController extends Controller
                 $ad->{$field} = $request->input($field);
             }
         }
+        if ($request->has('branch_id')) {
+            $ad->branch_id = $request->filled('branch_id') ? (int) $request->input('branch_id') : null;
+        }
         if ($request->has('sort')) {
             $ad->sort = (int) $request->input('sort');
         }
@@ -1055,7 +1069,7 @@ class AdminController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'تم تحديث الإعلان بنجاح.',
-            'data' => $ad->fresh(),
+            'data' => $ad->fresh(['branch:id,name,code']),
         ]);
     }
 

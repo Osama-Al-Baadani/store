@@ -68,15 +68,25 @@ export default function MainPage() {
   }, [isAuthLoading, isAuthenticated, user?.role, router]);
 
   useEffect(() => {
-    getPublicAdvertisements('home')
+    if (isBranchesLoading && !selectedBranch?.id) return;
+
+    const targetBranchId = selectedBranch?.id ?? branches[0]?.id ?? null;
+    let cancelled = false;
+
+    getPublicAdvertisements('home', targetBranchId)
       .then((res) => {
-        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+        if (cancelled) return;
+        if (res.success && Array.isArray(res.data)) {
           setHomeAds(res.data);
           setHomeAdIndex(0);
         }
       })
       .catch(() => {});
-  }, []);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isBranchesLoading, selectedBranch?.id, branches]);
 
   useEffect(() => {
     if (homeAds.length <= 1) return;

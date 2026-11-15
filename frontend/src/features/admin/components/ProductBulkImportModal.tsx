@@ -80,10 +80,10 @@ export const ProductBulkImportModal: React.FC<ProductBulkImportModalProps> = ({
   const [sourceUrl, setSourceUrl] = useState('');
 
   const [defaultBranchId, setDefaultBranchId] = useState<string>(branches[0]?.id?.toString() || '');
-  const [defaultCategoryId, setDefaultCategoryId] = useState<string>(categories[0]?.id?.toString() || '');
+  const [defaultCategoryId, setDefaultCategoryId] = useState<string>('');
   const [duplicateMode, setDuplicateMode] = useState<'update' | 'skip'>('update');
   const [createMissingCategories, setCreateMissingCategories] = useState(true);
-  const [downloadRemoteImages, setDownloadRemoteImages] = useState(true);
+  const [downloadRemoteImages, setDownloadRemoteImages] = useState(false);
   const [columnMapping, setColumnMapping] = useState<Record<string, number | null> | null>(null);
 
   const [isPreviewing, setIsPreviewing] = useState(false);
@@ -109,7 +109,7 @@ export const ProductBulkImportModal: React.FC<ProductBulkImportModalProps> = ({
     if (defaultBranchId) {
       fd.append('default_branch_id', defaultBranchId);
     }
-    if (defaultCategoryId) {
+    if (defaultCategoryId && categories.some((c) => c.id.toString() === defaultCategoryId)) {
       fd.append('default_category_id', defaultCategoryId);
     }
     fd.append('duplicate_mode', duplicateMode);

@@ -270,7 +270,7 @@ export const adminApi = {
     const { data } = await apiClient.post<ApiResponse<ProductImportPreviewResponse>>(
       '/admin/products/import/preview',
       formData,
-      { headers: { 'Content-Type': 'multipart/form-data' } }
+      { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 0 }
     );
     return data;
   },
@@ -279,7 +279,7 @@ export const adminApi = {
     const { data } = await apiClient.post<ApiResponse<ProductImportExecuteResult>>(
       '/admin/products/import',
       formData,
-      { headers: { 'Content-Type': 'multipart/form-data' } }
+      { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 0 }
     );
     return data;
   },

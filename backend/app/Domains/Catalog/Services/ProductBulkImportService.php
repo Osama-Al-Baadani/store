@@ -1482,7 +1482,7 @@ class ProductBulkImportService
             if ($downloadRemote) {
                 try {
                     $this->assertSafePublicUrl($normalizedUrl);
-                    $res = Http::timeout(12)
+                    $res = Http::timeout(4)
                         ->withOptions(['allow_redirects' => ['max' => 4]])
                         ->withHeaders(['User-Agent' => 'Mozilla/5.0 (compatible; B2BStoreImporter/1.0)'])
                         ->get($normalizedUrl);

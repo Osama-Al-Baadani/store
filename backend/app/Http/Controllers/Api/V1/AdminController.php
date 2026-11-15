@@ -487,6 +487,7 @@ class AdminController extends Controller
      */
     public function previewProductsImport(Request $request, ProductBulkImportService $importer): JsonResponse
     {
+        $this->extendBulkImportLimits();
         $options = $this->validateBulkImportOptions($request);
 
         try {
@@ -515,6 +516,7 @@ class AdminController extends Controller
      */
     public function importProducts(Request $request, ProductBulkImportService $importer): JsonResponse
     {
+        $this->extendBulkImportLimits();
         $options = $this->validateBulkImportOptions($request);
 
         try {
@@ -572,6 +574,18 @@ class AdminController extends Controller
             'Content-Disposition' => 'attachment; filename="products-import-template.csv"',
             'Cache-Control' => 'no-store, no-cache',
         ]);
+    }
+
+    /**
+     * رفع مهلة التنفيذ والذاكرة عند استيراد الجداول الكبيرة والصور.
+     */
+    private function extendBulkImportLimits(): void
+    {
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(0);
+        }
+        @ini_set('max_execution_time', '0');
+        @ini_set('memory_limit', '512M');
     }
 
     /**

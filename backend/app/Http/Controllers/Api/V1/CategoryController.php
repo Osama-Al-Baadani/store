@@ -19,16 +19,34 @@ class CategoryController extends Controller
             'branch_id' => ['required', 'integer', 'exists:branches,id'],
         ]);
 
-        $categories = Category::active()
+        $all = Category::active()
             ->where('branch_id', $request->input('branch_id'))
-            ->whereNull('parent_id')
-            ->with(['children' => fn ($q) => $q->active()->orderBy('sort')->orderBy('id')])
+            ->withCount(['products' => fn ($q) => $q->active()])
             ->orderBy('sort')
             ->orderBy('id')
             ->get();
 
+        $byParent = $all->groupBy(fn ($cat) => $cat->parent_id ?? 0);
+
+        $attachTree = function ($node) use (&$attachTree, $byParent): int {
+            $children = ($byParent->get($node->id) ?? collect())->values();
+            $totalProducts = (int) ($node->products_count ?? 0);
+            foreach ($children as $child) {
+                $totalProducts += $attachTree($child);
+            }
+            $node->setRelation('children', $children);
+            $node->setAttribute('recursive_products_count', $totalProducts);
+
+            return $totalProducts;
+        };
+
+        $roots = ($byParent->get(0) ?? collect())->values();
+        foreach ($roots as $root) {
+            $attachTree($root);
+        }
+
         return $this->successResponse(
-            CategoryResource::collection($categories),
+            CategoryResource::collection($roots),
             'تصنيفات الفرع.'
         );
     }

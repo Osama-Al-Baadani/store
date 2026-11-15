@@ -54,6 +54,7 @@ export interface Category {
   name: string;
   icon_url: string | null;
   sort: number;
+  products_count?: number;
   children?: Category[];
 }
 

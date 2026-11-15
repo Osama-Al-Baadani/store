@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   X,
   SlidersHorizontal,
@@ -11,9 +11,12 @@ import {
   RotateCcw,
   Star,
   PackageCheck,
+  Award,
+  Search,
 } from 'lucide-react';
 import {
   CatalogAdvancedFilters,
+  CatalogBrandFacet,
   CatalogQuickFilter,
   CatalogSortOption,
   DEFAULT_CATALOG_FILTERS,
@@ -23,6 +26,7 @@ interface CatalogFilterModalProps {
   isOpen: boolean;
   onClose: () => void;
   filters: CatalogAdvancedFilters;
+  brands?: CatalogBrandFacet[];
   onApply: (filters: CatalogAdvancedFilters) => void;
   onReset: () => void;
 }
@@ -41,8 +45,8 @@ const QUICK_FILTER_OPTIONS: {
   icon: React.ComponentType<{ className?: string }>;
 }[] = [
   { value: 'all', label: 'جميع الأصناف', icon: SlidersHorizontal },
-  { value: 'new', label: 'الأصناف الجديدة', icon: Sparkles },
   { value: 'discounted', label: 'عروض وتخفيضات', icon: Tag },
+  { value: 'new', label: 'الأصناف الجديدة', icon: Sparkles },
   { value: 'featured', label: 'الأصناف المميزة', icon: Star },
   { value: 'available', label: 'متوفر للتوريد الفوري', icon: PackageCheck },
 ];
@@ -57,10 +61,12 @@ const PRICE_PRESETS: { label: string; min: string; max: string }[] = [
 const CatalogFilterModalContent: React.FC<Omit<CatalogFilterModalProps, 'isOpen'>> = ({
   onClose,
   filters,
+  brands = [],
   onApply,
   onReset,
 }) => {
   const [draft, setDraft] = useState<CatalogAdvancedFilters>(filters);
+  const [brandQuery, setBrandQuery] = useState('');
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -69,6 +75,12 @@ const CatalogFilterModalContent: React.FC<Omit<CatalogFilterModalProps, 'isOpen'
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
+
+  const filteredBrands = useMemo(() => {
+    const q = brandQuery.trim().toLowerCase();
+    if (!q) return brands;
+    return brands.filter((b) => b.brand.toLowerCase().includes(q));
+  }, [brands, brandQuery]);
 
   const handleApply = () => {
     onApply(draft);
@@ -100,10 +112,10 @@ const CatalogFilterModalContent: React.FC<Omit<CatalogFilterModalProps, 'isOpen'
             </div>
             <div>
               <h2 className="font-black text-base text-stone-900">
-                الفرز والتصفية
+                الفرز والتصفية المتقدمة
               </h2>
               <p className="text-[11px] text-stone-500 font-medium">
-                رتّب وصفّي أصناف المستودع حسب السعر أو الحالة
+                رتّب وصفّي الأصناف حسب العلامة، العروض، أو السعر
               </p>
             </div>
           </div>
@@ -152,7 +164,7 @@ const CatalogFilterModalContent: React.FC<Omit<CatalogFilterModalProps, 'isOpen'
             </div>
           </div>
 
-          {/* 2. تصفية سريعة حسب النوع */}
+          {/* 2. تصفية سريعة حسب النوع والعروض */}
           <div className="space-y-2.5">
             <h3 className="text-xs font-black text-stone-800 flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-[#b47820]" />
@@ -186,7 +198,74 @@ const CatalogFilterModalContent: React.FC<Omit<CatalogFilterModalProps, 'isOpen'
             </div>
           </div>
 
-          {/* 3. نطاق سعر الحبة */}
+          {/* 3. العلامة التجارية */}
+          {brands.length > 0 && (
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-xs font-black text-stone-800 flex items-center gap-1.5">
+                  <Award className="w-3.5 h-3.5 text-[#b47820]" />
+                  <span>العلامة التجارية</span>
+                </h3>
+                {brands.length > 6 && (
+                  <div className="relative flex items-center bg-white border border-stone-200 rounded-xl px-2 py-1">
+                    <Search className="w-3 h-3 text-stone-400 ml-1" />
+                    <input
+                      type="text"
+                      placeholder="ابحث عن علامة..."
+                      value={brandQuery}
+                      onChange={(e) => setBrandQuery(e.target.value)}
+                      className="w-28 bg-transparent text-[11px] font-semibold text-stone-800 focus:outline-hidden"
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto p-1">
+                <button
+                  type="button"
+                  onClick={() => setDraft((prev) => ({ ...prev, brand: null }))}
+                  className={`px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all cursor-pointer ${
+                    draft.brand === null
+                      ? 'bg-[#fbf3e6] border-[#b47820] text-[#8f5a13]'
+                      : 'bg-white border-stone-200 text-stone-600 hover:border-amber-300'
+                  }`}
+                >
+                  كل العلامات
+                </button>
+                {filteredBrands.map((b) => {
+                  const isSelected = draft.brand === b.brand;
+                  return (
+                    <button
+                      key={b.brand}
+                      type="button"
+                      onClick={() =>
+                        setDraft((prev) => ({
+                          ...prev,
+                          brand: isSelected ? null : b.brand,
+                        }))
+                      }
+                      className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-[11px] font-bold transition-all cursor-pointer ${
+                        isSelected
+                          ? 'bg-gradient-to-r from-[#8f5a13] to-[#b47820] text-white border-[#8f5a13]'
+                          : 'bg-white border-stone-200 text-stone-700 hover:border-amber-300'
+                      }`}
+                    >
+                      <span>{b.brand}</span>
+                      <span
+                        className={`text-[10px] font-mono ${
+                          isSelected ? 'text-amber-100' : 'text-stone-400'
+                        }`}
+                      >
+                        ({b.count})
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* 4. نطاق سعر الحبة */}
           <div className="space-y-3">
             <h3 className="text-xs font-black text-stone-800 flex items-center gap-1.5">
               <Tag className="w-3.5 h-3.5 text-[#b47820]" />

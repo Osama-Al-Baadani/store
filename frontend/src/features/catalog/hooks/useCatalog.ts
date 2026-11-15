@@ -1,140 +1,211 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Category, Product } from '@/types';
 import { catalogApi } from '../api/catalog.api';
 import {
   CatalogAdvancedFilters,
+  CatalogBrandFacet,
   CatalogFilter,
+  CatalogResponse,
   DEFAULT_CATALOG_FILTERS,
 } from '../types/catalog.types';
 
-function getProductUnitPrice(product: Product): number {
-  const pkg = product.packages?.[0];
-  return pkg ? Number(pkg.unit_price) || 0 : 0;
-}
-
-function getProductDiscount(product: Product): number {
-  return product.packages?.[0]?.discount_percent ?? 0;
-}
+const PAGE_SIZE = 24;
 
 export function useCatalog(branchId: number | null) {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [brands, setBrands] = useState<CatalogBrandFacet[]>([]);
+  const [offersCount, setOffersCount] = useState<number>(0);
+  const [totalBranchCount, setTotalBranchCount] = useState<number>(0);
+
   const [products, setProducts] = useState<Product[]>([]);
+  const [pagination, setPagination] = useState<CatalogResponse['pagination']>({
+    current_page: 1,
+    last_page: 1,
+    per_page: PAGE_SIZE,
+    total: 0,
+  });
+
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [advancedFilters, setAdvancedFilters] = useState<CatalogAdvancedFilters>(
     DEFAULT_CATALOG_FILTERS
   );
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const [refreshTick, setRefreshTick] = useState<number>(0);
 
-  const fetchCategories = useCallback(async () => {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const requestIdRef = useRef<number>(0);
+
+  useEffect(() => {
     if (!branchId) return;
-    try {
-      const res = await catalogApi.getCategories(branchId);
-      if (res.success) {
-        setCategories(res.data);
-      }
-    } catch {
-      // ignore
-    }
+    let cancelled = false;
+    catalogApi
+      .getCategories(branchId)
+      .then((res) => {
+        if (!cancelled && res.success) {
+          setCategories(res.data);
+        }
+      })
+      .catch(() => {
+        // ignore
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [branchId]);
 
-  const fetchProducts = useCallback(async () => {
+  useEffect(() => {
     if (!branchId) return;
-    setIsLoading(true);
-    setError(null);
-    try {
+    let cancelled = false;
+    catalogApi
+      .getBrands(branchId, selectedCategory)
+      .then((res) => {
+        if (!cancelled && res.success) {
+          setBrands(res.data.brands);
+          setOffersCount(res.data.offers_count);
+          setTotalBranchCount(res.data.total_count);
+        }
+      })
+      .catch(() => {
+        // ignore
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [branchId, selectedCategory]);
+
+  const buildFilterParams = useCallback(
+    (page: number): CatalogFilter | null => {
+      if (!branchId) return null;
       const filters: CatalogFilter = {
         branch_id: branchId,
-        category_id: selectedCategory,
-        search: searchQuery || undefined,
-        per_page: 100,
+        category_id: selectedCategory ?? undefined,
+        brand: advancedFilters.brand ?? undefined,
+        search: searchQuery.trim() || undefined,
+        sort: advancedFilters.sort !== 'default' ? advancedFilters.sort : undefined,
+        per_page: PAGE_SIZE,
+        page,
       };
 
       if (advancedFilters.quickFilter === 'new') {
         filters.is_new = 1;
+        filters.is_coming_soon = 0;
+      } else if (advancedFilters.quickFilter === 'discounted') {
+        filters.on_sale = 1;
       } else if (advancedFilters.quickFilter === 'featured') {
         filters.is_featured = 1;
       } else if (advancedFilters.quickFilter === 'available') {
         filters.is_coming_soon = 0;
       }
 
-      const res = await catalogApi.getProducts(filters);
-      if (res.success) {
-        setProducts(res.data.items);
+      const min = advancedFilters.minPrice !== '' ? parseFloat(advancedFilters.minPrice) : NaN;
+      const max = advancedFilters.maxPrice !== '' ? parseFloat(advancedFilters.maxPrice) : NaN;
+      if (!Number.isNaN(min) && min >= 0) {
+        filters.min_price = min;
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'تعذر تحميل الأصناف');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [branchId, selectedCategory, searchQuery, advancedFilters.quickFilter]);
+      if (!Number.isNaN(max) && max >= 0) {
+        filters.max_price = max;
+      }
+
+      return filters;
+    },
+    [branchId, selectedCategory, searchQuery, advancedFilters]
+  );
 
   useEffect(() => {
-    fetchCategories();
-  }, [fetchCategories]);
+    const filters = buildFilterParams(1);
+    if (!filters) return;
 
-  useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+    const reqId = ++requestIdRef.current;
+    let cancelled = false;
 
-  const filteredProducts = useMemo(() => {
-    const min = advancedFilters.minPrice !== '' ? parseFloat(advancedFilters.minPrice) : null;
-    const max = advancedFilters.maxPrice !== '' ? parseFloat(advancedFilters.maxPrice) : null;
-
-    const result = products.filter((product) => {
-      if (advancedFilters.quickFilter === 'new' && (!product.is_new || product.is_coming_soon)) {
-        return false;
+    Promise.resolve().then(() => {
+      if (!cancelled && reqId === requestIdRef.current) {
+        setIsLoading(true);
+        setError(null);
       }
-      if (
-        advancedFilters.quickFilter === 'discounted' &&
-        (getProductDiscount(product) <= 0 || product.is_coming_soon)
-      ) {
-        return false;
-      }
-      if (advancedFilters.quickFilter === 'featured' && !product.is_featured) {
-        return false;
-      }
-      if (advancedFilters.quickFilter === 'available' && product.is_coming_soon) {
-        return false;
-      }
-
-      const price = getProductUnitPrice(product);
-      if (min !== null && !Number.isNaN(min) && price < min) {
-        return false;
-      }
-      if (max !== null && !Number.isNaN(max) && price > max) {
-        return false;
-      }
-
-      return true;
     });
 
-    if (advancedFilters.sort === 'price_asc') {
-      return [...result].sort((a, b) => getProductUnitPrice(a) - getProductUnitPrice(b));
-    }
-    if (advancedFilters.sort === 'price_desc') {
-      return [...result].sort((a, b) => getProductUnitPrice(b) - getProductUnitPrice(a));
-    }
-    if (advancedFilters.sort === 'discount_desc') {
-      return [...result].sort((a, b) => getProductDiscount(b) - getProductDiscount(a));
-    }
-    if (advancedFilters.sort === 'newest') {
-      return [...result].sort((a, b) => {
-        if (a.is_new !== b.is_new) return a.is_new ? -1 : 1;
-        return b.id - a.id;
+    catalogApi
+      .getProducts(filters)
+      .then((res) => {
+        if (!cancelled && reqId === requestIdRef.current && res.success) {
+          setProducts(res.data.items);
+          setPagination(res.data.pagination);
+        }
+      })
+      .catch((err: unknown) => {
+        if (!cancelled && reqId === requestIdRef.current) {
+          const message =
+            (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+            'تعذر تحميل الأصناف';
+          setError(message);
+        }
+      })
+      .finally(() => {
+        if (!cancelled && reqId === requestIdRef.current) {
+          setIsLoading(false);
+          setIsLoadingMore(false);
+        }
       });
-    }
 
-    return result;
-  }, [products, advancedFilters]);
+    return () => {
+      cancelled = true;
+    };
+  }, [buildFilterParams, refreshTick]);
+
+  const loadMore = useCallback(() => {
+    if (isLoading || isLoadingMore) return;
+    if (pagination.current_page >= pagination.last_page) return;
+    const filters = buildFilterParams(pagination.current_page + 1);
+    if (!filters) return;
+
+    const reqId = ++requestIdRef.current;
+    setIsLoadingMore(true);
+    setError(null);
+
+    catalogApi
+      .getProducts(filters)
+      .then((res) => {
+        if (reqId === requestIdRef.current && res.success) {
+          setProducts((prev) => [...prev, ...res.data.items]);
+          setPagination(res.data.pagination);
+        }
+      })
+      .catch((err: unknown) => {
+        if (reqId === requestIdRef.current) {
+          const message =
+            (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+            'تعذر تحميل المزيد من الأصناف';
+          setError(message);
+        }
+      })
+      .finally(() => {
+        if (reqId === requestIdRef.current) {
+          setIsLoadingMore(false);
+        }
+      });
+  }, [isLoading, isLoadingMore, pagination.current_page, pagination.last_page, buildFilterParams]);
+
+  const setSelectedBrand = useCallback((brand: string | null) => {
+    setAdvancedFilters((prev) => ({ ...prev, brand }));
+  }, []);
+
+  const toggleOffersOnly = useCallback(() => {
+    setAdvancedFilters((prev) => ({
+      ...prev,
+      quickFilter: prev.quickFilter === 'discounted' ? 'all' : 'discounted',
+    }));
+  }, []);
 
   const activeFiltersCount = useMemo(() => {
     let count = 0;
     if (advancedFilters.sort !== 'default') count += 1;
     if (advancedFilters.quickFilter !== 'all') count += 1;
+    if (advancedFilters.brand) count += 1;
     if (advancedFilters.minPrice !== '' || advancedFilters.maxPrice !== '') count += 1;
     return count;
   }, [advancedFilters]);
@@ -143,12 +214,30 @@ export function useCatalog(branchId: number | null) {
     setAdvancedFilters(DEFAULT_CATALOG_FILTERS);
   }, []);
 
+  const resetAllFilters = useCallback(() => {
+    setSelectedCategory(null);
+    setSearchQuery('');
+    setAdvancedFilters(DEFAULT_CATALOG_FILTERS);
+  }, []);
+
+  const refresh = useCallback(() => {
+    setRefreshTick((t) => t + 1);
+  }, []);
+
   return {
     categories,
-    products: filteredProducts,
-    rawProductsCount: products.length,
+    brands,
+    offersCount,
+    totalBranchCount,
+    products,
+    pagination,
+    hasMore: pagination.current_page < pagination.last_page,
+    loadMore,
     selectedCategory,
     setSelectedCategory,
+    selectedBrand: advancedFilters.brand,
+    setSelectedBrand,
+    toggleOffersOnly,
     searchQuery,
     setSearchQuery,
     advancedFilters,
@@ -156,9 +245,10 @@ export function useCatalog(branchId: number | null) {
     activeFiltersCount,
     hasActiveFilters: activeFiltersCount > 0,
     resetAdvancedFilters,
+    resetAllFilters,
     isLoading,
+    isLoadingMore,
     error,
-    refreshProducts: fetchProducts,
+    refresh,
   };
 }
-

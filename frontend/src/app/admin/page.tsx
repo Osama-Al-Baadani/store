@@ -861,7 +861,17 @@ export default function AdminDashboardPage() {
           <div className="w-18 h-18 rounded-3xl bg-white border border-[#eddcc8] p-2 mx-auto shadow-md overflow-hidden">
             <img src="/logo.png" alt="شركة المخازن الاقتصادية" className="w-full h-full object-contain" />
           </div>
-          {isAuthLoading || !isAuthenticated ? (
+          {isAuthLoading ? (
+            <>
+              <div className="inline-flex items-center justify-center gap-2 text-xs font-bold text-[#8f5a13]">
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                <span>جاري التحقق السريع من جلسة الإدارة...</span>
+              </div>
+              <p className="text-xs text-stone-500 font-medium leading-relaxed">
+                إذا تأخر الخادم المحلي، تأكد من تشغيل خادم Laravel على المنفذ 8000.
+              </p>
+            </>
+          ) : !isAuthenticated ? (
             <>
               <h1 className="text-lg font-bold text-stone-900">
                 جاري التوجيه لبوابة تسجيل الدخول الموحد...
@@ -869,6 +879,13 @@ export default function AdminDashboardPage() {
               <p className="text-xs text-stone-500 font-medium leading-relaxed">
                 يرجى تسجيل الدخول من البوابة الرئيسية وسيتم فتح لوحة الإدارة تلقائياً لحسابات الإدارة.
               </p>
+              <Link
+                href="/"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#8f5a13] to-[#b47820] text-white text-xs font-extrabold shadow-sm"
+              >
+                <LogIn className="w-4 h-4" />
+                <span>الانتقال لبوابة تسجيل الدخول الآن</span>
+              </Link>
             </>
           ) : (
             <>

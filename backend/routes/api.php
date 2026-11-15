@@ -27,6 +27,7 @@ use App\Http\Controllers\Api\V1\BranchController;
         Route::get('/branches', [BranchController::class, 'index']);
         Route::get('/branches/{id}', [BranchController::class, 'show']);
         Route::get('/categories', [CategoryController::class, 'index']);
+        Route::get('/brands', [ProductController::class, 'brands']);
         Route::get('/products', [ProductController::class, 'index']);
         Route::get('/products/{id}', [ProductController::class, 'show']);
         Route::get('/advertisements', [AdvertisementController::class, 'index']);

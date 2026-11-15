@@ -17,6 +17,10 @@ class CategoryResource extends JsonResource
             'name' => $this->name,
             'icon_url' => $this->icon ? Storage::disk('public')->url($this->icon) : null,
             'sort' => $this->sort,
+            'products_count' => $this->when(
+                isset($this->recursive_products_count) || isset($this->products_count),
+                fn () => (int) ($this->recursive_products_count ?? $this->products_count ?? 0)
+            ),
             'children' => CategoryResource::collection($this->whenLoaded('children')),
         ];
     }

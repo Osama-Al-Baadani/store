@@ -1,11 +1,28 @@
 import { apiClient } from '@/shared/lib/axios';
 import { ApiResponse, Category, Product } from '@/types';
-import { CatalogFilter, CatalogResponse } from '../types/catalog.types';
+import {
+  CatalogBrandsResponse,
+  CatalogFilter,
+  CatalogResponse,
+} from '../types/catalog.types';
 
 export const catalogApi = {
   getCategories: async (branchId: number): Promise<ApiResponse<Category[]>> => {
     const { data } = await apiClient.get<ApiResponse<Category[]>>('/categories', {
       params: { branch_id: branchId },
+    });
+    return data;
+  },
+
+  getBrands: async (
+    branchId: number,
+    categoryId?: number | null
+  ): Promise<ApiResponse<CatalogBrandsResponse>> => {
+    const { data } = await apiClient.get<ApiResponse<CatalogBrandsResponse>>('/brands', {
+      params: {
+        branch_id: branchId,
+        ...(categoryId ? { category_id: categoryId } : {}),
+      },
     });
     return data;
   },
@@ -22,4 +39,3 @@ export const catalogApi = {
     return data;
   },
 };
-

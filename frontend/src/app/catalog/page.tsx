@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { CatalogHeader } from '@/features/catalog/components/CatalogHeader';
 import { CategoryBar } from '@/features/catalog/components/CategoryBar';
+import { BrandFilterBar } from '@/features/catalog/components/BrandFilterBar';
 import { PromoBannerSlider } from '@/features/catalog/components/PromoBannerSlider';
 import { ProductCard } from '@/features/catalog/components/ProductCard';
 import { CatalogFilterModal } from '@/features/catalog/components/CatalogFilterModal';
@@ -15,6 +16,8 @@ import { useCart } from '@/features/cart/hooks/useCart';
 import { useOrders } from '@/features/orders/hooks/useOrders';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useTheme } from '@/shared/providers/ThemeProvider';
+import { Category } from '@/types';
+import { CatalogSortOption } from '@/features/catalog/types/catalog.types';
 import {
   Sparkles,
   Tag,
@@ -23,12 +26,30 @@ import {
   Loader2,
   SlidersHorizontal,
   X,
+  Award,
+  ArrowUpDown,
+  ChevronDown,
 } from 'lucide-react';
+
+function findCategoryNamesPath(nodes: Category[], targetId: number): string[] {
+  for (const node of nodes) {
+    if (node.id === targetId) {
+      return [node.name];
+    }
+    if (node.children && node.children.length > 0) {
+      const childPath = findCategoryNamesPath(node.children, targetId);
+      if (childPath.length > 0) {
+        return [node.name, ...childPath];
+      }
+    }
+  }
+  return [];
+}
 
 export default function CatalogPage() {
   const router = useRouter();
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
-  const { branches, selectedBranch, selectBranch } = useBranches();
+  const { branches, selectedBranch } = useBranches();
   const currentBranchId = selectedBranch?.id || branches[0]?.id || 1;
   const activeBranch = selectedBranch || branches[0] || null;
   const { setBrandColor } = useTheme();
@@ -55,9 +76,18 @@ export default function CatalogPage() {
 
   const {
     categories,
+    brands,
+    offersCount,
+    totalBranchCount,
     products,
+    pagination,
+    hasMore,
+    loadMore,
     selectedCategory,
     setSelectedCategory,
+    selectedBrand,
+    setSelectedBrand,
+    toggleOffersOnly,
     searchQuery,
     setSearchQuery,
     advancedFilters,
@@ -65,7 +95,9 @@ export default function CatalogPage() {
     activeFiltersCount,
     hasActiveFilters,
     resetAdvancedFilters,
+    resetAllFilters,
     isLoading: isCatalogLoading,
+    isLoadingMore,
     error: catalogError,
   } = useCatalog(currentBranchId);
 
@@ -82,14 +114,12 @@ export default function CatalogPage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'home' | 'categories' | 'filter' | 'search' | 'cart'>('home');
 
-  // ربط كمية المنتج من السلة لعرضها على بطاقة المنتج
   const getQuantityForProduct = (packageId?: number): number => {
     if (!packageId || !cart?.items) return 0;
     const item = cart.items.find((i) => i.package_id === packageId);
     return item ? item.quantity : 0;
   };
 
-  // تحديث الكمية فوراً (متفائل) مع تمرير بيانات الصنف لإضافته للسلة محلياً
   const handleQuantityChange = (packageId: number, newQty: number) => {
     const product = products.find((p) => p.packages?.some((pk) => pk.id === packageId));
     const pkg = product?.packages?.find((pk) => pk.id === packageId);
@@ -130,16 +160,23 @@ export default function CatalogPage() {
     available: 'متوفر للتوريد الفوري',
   };
 
-  const isFilteredView = selectedCategory !== null || Boolean(searchQuery) || hasActiveFilters;
+  const selectedCategoryPathNames = useMemo(
+    () => (selectedCategory !== null ? findCategoryNamesPath(categories, selectedCategory) : []),
+    [categories, selectedCategory]
+  );
 
-  // فلترة المنتجات حسب الأقسام المميزة
+  const isFilteredView =
+    selectedCategory !== null || Boolean(searchQuery.trim()) || hasActiveFilters;
+
   const newProducts = products.filter((p) => p.is_new && !p.is_coming_soon);
   const discountedProducts = products.filter(
     (p) => (p.packages?.[0]?.discount_percent ?? 0) > 0 && !p.is_coming_soon
   );
-  const otherProducts = products.filter(
-    (p) => !p.is_new && (p.packages?.[0]?.discount_percent ?? 0) === 0
-  );
+
+  const loadedPercent =
+    pagination.total > 0
+      ? Math.min(100, Math.round((products.length / pagination.total) * 100))
+      : 0;
 
   if (isAuthLoading || !isAuthenticated || (user?.merchant_profile && user.merchant_profile.status !== 'active')) {
     return (
@@ -163,32 +200,77 @@ export default function CatalogPage() {
         onChangeBranch={() => router.push('/')}
       />
 
-      {/* شريط التصنيفات الزجاجي */}
+      {/* شريط التصنيفات الهرمي متعدد المستويات والعروض */}
       <CategoryBar
         categories={categories}
         selectedCategory={selectedCategory}
         onSelect={setSelectedCategory}
+        totalCount={totalBranchCount}
+        offersCount={offersCount}
+        isOffersActive={advancedFilters.quickFilter === 'discounted'}
+        onToggleOffers={toggleOffersOnly}
       />
 
       {/* محتوى الكتالوج الرئيسي */}
-      <main className="max-w-7xl mx-auto px-3.5 sm:px-4 py-4 sm:py-6 space-y-6 sm:space-y-8">
+      <main className="max-w-7xl mx-auto px-3.5 sm:px-4 py-4 sm:py-6 space-y-5 sm:space-y-7">
         {/* بانر الإعلانات المتحرك التفاعلي في بداية الكتالوج */}
         {!isFilteredView && (
           <PromoBannerSlider
             branchName={activeBranch?.name || 'شركة المخازن الاقتصادية'}
             newProductsCount={newProducts.length}
-            discountedCount={discountedProducts.length}
+            discountedCount={offersCount || discountedProducts.length}
           />
         )}
 
+        {/* شريط الفلترة بالعلامات التجارية */}
+        <BrandFilterBar
+          brands={brands}
+          selectedBrand={selectedBrand}
+          onSelectBrand={setSelectedBrand}
+        />
+
         {/* شريط الفلاتر النشطة */}
-        {hasActiveFilters && (
+        {(hasActiveFilters || selectedCategory !== null || Boolean(searchQuery.trim())) && (
           <div className="bg-white rounded-2xl border border-[#eddcc8] px-3.5 py-2.5 flex flex-wrap items-center justify-between gap-2 shadow-2xs">
             <div className="flex flex-wrap items-center gap-1.5 text-xs">
               <span className="font-bold text-stone-600 inline-flex items-center gap-1 ml-1">
                 <SlidersHorizontal className="w-3.5 h-3.5 text-[#b47820]" />
-                الفرز النشط:
+                الفلاتر النشطة:
               </span>
+
+              {selectedCategoryPathNames.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategory(null)}
+                  className="inline-flex items-center gap-1 bg-[#fbf3e6] text-[#8f5a13] border border-[#ebd2b0] px-2.5 py-1 rounded-full text-[11px] font-bold cursor-pointer hover:bg-[#faebd7]"
+                >
+                  <span>القسم: {selectedCategoryPathNames.join(' ← ')}</span>
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+
+              {selectedBrand && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedBrand(null)}
+                  className="inline-flex items-center gap-1 bg-[#fbf3e6] text-[#8f5a13] border border-[#ebd2b0] px-2.5 py-1 rounded-full text-[11px] font-bold cursor-pointer hover:bg-[#faebd7]"
+                >
+                  <Award className="w-3 h-3 text-[#b47820]" />
+                  <span>العلامة: {selectedBrand}</span>
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+
+              {searchQuery.trim() && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="inline-flex items-center gap-1 bg-[#fbf3e6] text-[#8f5a13] border border-[#ebd2b0] px-2.5 py-1 rounded-full text-[11px] font-bold cursor-pointer hover:bg-[#faebd7]"
+                >
+                  <span>بحث: {searchQuery.trim()}</span>
+                  <X className="w-3 h-3" />
+                </button>
+              )}
 
               {advancedFilters.sort !== 'default' && (
                 <button
@@ -209,7 +291,11 @@ export default function CatalogPage() {
                   onClick={() =>
                     setAdvancedFilters((prev) => ({ ...prev, quickFilter: 'all' }))
                   }
-                  className="inline-flex items-center gap-1 bg-[#fbf3e6] text-[#8f5a13] border border-[#ebd2b0] px-2.5 py-1 rounded-full text-[11px] font-bold cursor-pointer hover:bg-[#faebd7]"
+                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold cursor-pointer border ${
+                    advancedFilters.quickFilter === 'discounted'
+                      ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
+                      : 'bg-[#fbf3e6] text-[#8f5a13] border-[#ebd2b0] hover:bg-[#faebd7]'
+                  }`}
                 >
                   <span>{QUICK_FILTER_LABELS[advancedFilters.quickFilter]}</span>
                   <X className="w-3 h-3" />
@@ -234,7 +320,7 @@ export default function CatalogPage() {
 
             <button
               type="button"
-              onClick={resetAdvancedFilters}
+              onClick={resetAllFilters}
               className="text-[11px] font-extrabold text-rose-600 hover:text-rose-700 px-2.5 py-1 rounded-xl hover:bg-rose-50 transition-colors cursor-pointer"
             >
               إعادة ضبط الكل
@@ -244,8 +330,8 @@ export default function CatalogPage() {
 
         {isCatalogLoading && products.length === 0 ? (
           <div className="py-24 flex flex-col items-center justify-center text-brand">
-            <Loader2 className="w-10 h-10 animate-spin mb-3 text-brand" />
-            <span className="text-sm font-bold text-slate-700">
+            <Loader2 className="w-10 h-10 animate-spin mb-3 text-[#b47820]" />
+            <span className="text-sm font-bold text-stone-700">
               جاري تجهيز كتالوج الأصناف المعتمدة...
             </span>
           </div>
@@ -255,40 +341,82 @@ export default function CatalogPage() {
             <span>{catalogError}</span>
           </div>
         ) : products.length === 0 ? (
-          <div className="py-20 text-center text-slate-400 bg-white rounded-3xl border border-slate-200/60 p-8 space-y-3">
+          <div className="py-20 text-center text-stone-400 bg-white rounded-3xl border border-[#eddcc8] p-8 space-y-3 shadow-2xs">
             <span className="text-5xl block">📦</span>
-            <p className="font-extrabold text-base text-slate-800">
-              لا توجد أصناف تطابق معايير البحث أو الفرز
+            <p className="font-extrabold text-base text-stone-800">
+              لا توجد أصناف تطابق معايير البحث أو التصفية الحالية
             </p>
-            <p className="text-xs text-slate-500">
-              جرب تغيير كلمات البحث أو تعديل خيارات الفرز والتصفية
+            <p className="text-xs text-stone-500">
+              جرب تغيير القسم، العلامة التجارية، أو تعديل خيارات الفرز والتصفية
             </p>
-            {hasActiveFilters && (
+            {(hasActiveFilters || selectedCategory !== null || Boolean(searchQuery.trim())) && (
               <button
                 type="button"
-                onClick={resetAdvancedFilters}
-                className="inline-flex items-center gap-1.5 bg-[#b47820] hover:bg-[#8f5a13] text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors cursor-pointer"
+                onClick={resetAllFilters}
+                className="inline-flex items-center gap-1.5 bg-gradient-to-r from-[#8f5a13] to-[#b47820] hover:opacity-95 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-all cursor-pointer shadow-xs"
               >
-                <span>إعادة ضبط الفرز والتصفية</span>
+                <span>عرض جميع الأصناف</span>
               </button>
             )}
           </div>
         ) : (
           <>
-            {/* قسم الأصناف الجديدة */}
-            {newProducts.length > 0 && !isFilteredView && (
+            {/* قسم العروض المختارة في الصفحة الأولى غير المفلترة إذا وُجدت عروض */}
+            {!isFilteredView && discountedProducts.length > 0 && (
+              <section id="discounted-section" className="space-y-4 scroll-mt-20">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-rose-100 to-amber-100 text-rose-700 flex items-center justify-center shadow-xs border border-rose-200/70">
+                      <Tag className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h2 className="font-black text-base text-stone-900 leading-tight">
+                        عروض الجملة والتخفيضات
+                      </h2>
+                      <span className="text-xs text-stone-500 font-medium">
+                        خصومات فورية مقارنة بالسعر الأساسي
+                      </span>
+                    </div>
+                  </div>
+
+                  {offersCount > discountedProducts.length && (
+                    <button
+                      type="button"
+                      onClick={toggleOffersOnly}
+                      className="text-xs font-extrabold text-rose-700 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-full border border-rose-200 transition-colors cursor-pointer"
+                    >
+                      عرض كل العروض ({offersCount})
+                    </button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 sm:gap-5">
+                  {discountedProducts.slice(0, 5).map((p) => (
+                    <ProductCard
+                      key={`offer-${p.id}`}
+                      product={p}
+                      quantity={getQuantityForProduct(p.packages?.[0]?.id)}
+                      onQuantityChange={handleQuantityChange}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* قسم الأصناف الجديدة المميزة */}
+            {!isFilteredView && newProducts.length > 0 && (
               <section id="new-products-section" className="space-y-4 scroll-mt-20">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2.5">
                     <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-amber-100 to-amber-200 text-amber-900 flex items-center justify-center shadow-xs border border-amber-300/60">
                       <Sparkles className="w-5 h-5 text-amber-700" />
                     </div>
                     <div>
                       <h2 className="font-black text-base text-stone-900 leading-tight">
-                        الأصناف الجديدة
+                        أحدث التوريدات
                       </h2>
                       <span className="text-xs text-stone-500 font-medium">
-                        أحدث التوريدات التي وصلت للمستودع
+                        أصناف وصلت حديثاً للمستودع
                       </span>
                     </div>
                   </div>
@@ -299,9 +427,9 @@ export default function CatalogPage() {
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 sm:gap-5">
-                  {newProducts.map((p) => (
+                  {newProducts.slice(0, 5).map((p) => (
                     <ProductCard
-                      key={p.id}
+                      key={`new-${p.id}`}
                       product={p}
                       quantity={getQuantityForProduct(p.packages?.[0]?.id)}
                       onQuantityChange={handleQuantityChange}
@@ -311,95 +439,145 @@ export default function CatalogPage() {
               </section>
             )}
 
-            {/* قسم العروض المختارة */}
-            {discountedProducts.length > 0 && !isFilteredView && (
-              <section id="discounted-section" className="space-y-4 scroll-mt-20">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center shadow-xs">
-                      <Tag className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h2 className="font-black text-base text-slate-900 leading-tight">
-                        عروض الجملة المميزة
-                      </h2>
-                      <span className="text-xs text-slate-400 font-medium">
-                        خصومات خاصة على أسعار الحبة
-                      </span>
-                    </div>
-                  </div>
-
-                  <span className="text-xs font-bold text-rose-700 bg-rose-50 px-3 py-1 rounded-full border border-rose-200">
-                    توفير بالجملة
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 sm:gap-5">
-                  {discountedProducts.map((p) => (
-                    <ProductCard
-                      key={p.id}
-                      product={p}
-                      quantity={getQuantityForProduct(p.packages?.[0]?.id)}
-                      onQuantityChange={handleQuantityChange}
-                    />
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* جميع أصناف الكتالوج */}
+            {/* شبكة جميع أصناف الكتالوج */}
             <section className="space-y-4">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-amber-100 to-amber-200 text-amber-900 flex items-center justify-center shadow-xs border border-amber-300/60">
-                    <TrendingUp className="w-5 h-5 text-amber-700" />
+              {/* ترويسة وشريط التحكم والترتيب */}
+              <div className="bg-white/95 rounded-2xl sm:rounded-3xl border border-[#eddcc8] p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-[#fbf3e6] to-amber-100 text-[#8f5a13] flex items-center justify-center shadow-2xs border border-[#ebd2b0] shrink-0">
+                    <TrendingUp className="w-5 h-5 text-[#b47820]" />
                   </div>
-                  <div>
-                    <h2 className="font-black text-base text-stone-900 leading-tight">
-                      {selectedCategory
-                        ? categories.find((c) => c.id === selectedCategory)?.name
-                        : 'كتالوج الأصناف المعتمدة'}
+                  <div className="min-w-0">
+                    <h2 className="font-black text-sm sm:text-base text-stone-900 leading-tight truncate">
+                      {selectedCategoryPathNames.length > 0
+                        ? selectedCategoryPathNames.join(' ← ')
+                        : selectedBrand
+                          ? `منتجات ${selectedBrand}`
+                          : advancedFilters.quickFilter === 'discounted'
+                            ? 'العروض والتخفيضات'
+                            : 'كتالوج الأصناف المعتمدة'}
                     </h2>
-                    <span className="text-xs text-stone-500 font-medium">
-                      {products.length} صنف مسعر بالحبة
+                    <span className="text-xs text-stone-500 font-medium block mt-0.5">
+                      عرض <strong className="text-stone-800 font-mono">{products.length}</strong> من أصل{' '}
+                      <strong className="text-[#8f5a13] font-mono">{pagination.total}</strong> صنف
+                      {brands.length > 0 ? ` • ${brands.length} علامة تجارية` : ''}
                     </span>
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveTab('filter');
-                    setIsFilterOpen(true);
-                  }}
-                  className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                    hasActiveFilters
-                      ? 'bg-[#fbf3e6] text-[#8f5a13] border-[#b47820]'
-                      : 'bg-white text-stone-700 border-stone-200 hover:border-amber-300'
-                  }`}
-                >
-                  <SlidersHorizontal className="w-3.5 h-3.5 text-[#b47820]" />
-                  <span>الفرز والتصفية</span>
-                  {activeFiltersCount > 0 && (
-                    <span className="bg-[#b47820] text-white text-[10px] font-black px-1.5 py-0.5 rounded-full leading-none">
-                      {activeFiltersCount}
-                    </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* زر تبديل العروض السريع */}
+                  {offersCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={toggleOffersOnly}
+                      className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                        advancedFilters.quickFilter === 'discounted'
+                          ? 'bg-rose-600 text-white border-rose-600 shadow-xs'
+                          : 'bg-rose-50/80 text-rose-700 border-rose-200 hover:bg-rose-100'
+                      }`}
+                    >
+                      <Tag className="w-3.5 h-3.5" />
+                      <span>العروض ({offersCount})</span>
+                    </button>
                   )}
-                </button>
+
+                  {/* قائمة الترتيب المباشر */}
+                  <div className="relative flex items-center bg-[#fdfbf7] border border-[#eddcc8] rounded-xl px-2.5 py-2">
+                    <ArrowUpDown className="w-3.5 h-3.5 text-[#b47820] ml-1.5 shrink-0 pointer-events-none" />
+                    <select
+                      aria-label="ترتيب الأصناف"
+                      value={advancedFilters.sort}
+                      onChange={(e) =>
+                        setAdvancedFilters((prev) => ({
+                          ...prev,
+                          sort: e.target.value as CatalogSortOption,
+                        }))
+                      }
+                      className="bg-transparent text-xs font-bold text-stone-800 focus:outline-hidden cursor-pointer pl-1"
+                    >
+                      <option value="default">الترتيب الافتراضي</option>
+                      <option value="discount_desc">الأكثر توفيراً (أعلى خصم)</option>
+                      <option value="price_asc">السعر: من الأقل للأعلى</option>
+                      <option value="price_desc">السعر: من الأعلى للأقل</option>
+                      <option value="newest">الأحدث وصولاً</option>
+                    </select>
+                  </div>
+
+                  {/* زر الفرز والتصفية المتقدمة */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab('filter');
+                      setIsFilterOpen(true);
+                    }}
+                    className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                      hasActiveFilters
+                        ? 'bg-[#fbf3e6] text-[#8f5a13] border-[#b47820]'
+                        : 'bg-white text-stone-700 border-stone-200 hover:border-amber-300'
+                    }`}
+                  >
+                    <SlidersHorizontal className="w-3.5 h-3.5 text-[#b47820]" />
+                    <span>تصفية متقدمة</span>
+                    {activeFiltersCount > 0 && (
+                      <span className="bg-[#b47820] text-white text-[10px] font-black px-1.5 py-0.5 rounded-full leading-none">
+                        {activeFiltersCount}
+                      </span>
+                    )}
+                  </button>
+                </div>
               </div>
 
+              {/* شبكة المنتجات */}
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 sm:gap-5">
-                {(isFilteredView ? products : otherProducts).map(
-                  (p) => (
-                    <ProductCard
-                      key={p.id}
-                      product={p}
-                      quantity={getQuantityForProduct(p.packages?.[0]?.id)}
-                      onQuantityChange={handleQuantityChange}
-                    />
-                  )
-                )}
+                {products.map((p) => (
+                  <ProductCard
+                    key={p.id}
+                    product={p}
+                    quantity={getQuantityForProduct(p.packages?.[0]?.id)}
+                    onQuantityChange={handleQuantityChange}
+                  />
+                ))}
               </div>
+
+              {/* شريط التقدم وعرض المزيد للكتالوج الكامل */}
+              {pagination.total > 0 && (
+                <div className="bg-white rounded-2xl sm:rounded-3xl border border-[#eddcc8] p-4 sm:p-5 flex flex-col items-center gap-3 shadow-2xs">
+                  <div className="w-full max-w-md space-y-1.5 text-center">
+                    <p className="text-xs font-bold text-stone-600">
+                      تم عرض <span className="font-mono font-black text-stone-900">{products.length}</span> من إجمالي{' '}
+                      <span className="font-mono font-black text-[#8f5a13]">{pagination.total}</span> صنف
+                    </p>
+                    <div className="w-full h-2 rounded-full bg-[#f5ebdc] overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-[#8f5a13] via-[#b47820] to-[#dfb76c] transition-all duration-500"
+                        style={{ width: `${loadedPercent}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {hasMore && (
+                    <button
+                      type="button"
+                      onClick={loadMore}
+                      disabled={isLoadingMore}
+                      className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-2xl bg-gradient-to-r from-[#8f5a13] via-[#b47820] to-[#c28b38] hover:opacity-95 active:scale-[0.99] text-white text-xs sm:text-sm font-black shadow-md transition-all cursor-pointer disabled:opacity-60"
+                    >
+                      {isLoadingMore ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>جاري تحميل المزيد...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>عرض المزيد من الأصناف</span>
+                          <ChevronDown className="w-4 h-4" />
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+              )}
             </section>
           </>
         )}
@@ -429,6 +607,7 @@ export default function CatalogPage() {
           setActiveTab(hasActiveFilters ? 'filter' : 'home');
         }}
         filters={advancedFilters}
+        brands={brands}
         onApply={setAdvancedFilters}
         onReset={resetAdvancedFilters}
       />
@@ -445,4 +624,3 @@ export default function CatalogPage() {
     </div>
   );
 }
-

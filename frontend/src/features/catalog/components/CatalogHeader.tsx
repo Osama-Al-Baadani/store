@@ -58,7 +58,7 @@ export const CatalogHeader: React.FC<CatalogHeaderProps> = ({
           <input
             id="search"
             type="text"
-            placeholder="ابحث باسم الصنف، الكود، أو الباركود..."
+            placeholder="ابحث باسم الصنف، العلامة التجارية، الكود، أو الباركود..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             className="w-full bg-transparent text-stone-900 placeholder-stone-400 text-xs sm:text-sm py-2 sm:py-2.5 pr-2 pl-3 focus:outline-hidden font-medium"

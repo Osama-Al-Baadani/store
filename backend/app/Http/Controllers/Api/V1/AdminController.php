@@ -393,7 +393,12 @@ class AdminController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'brand' => 'nullable|string|max:120',
-            'code' => 'required|string|max:100|unique:products,code',
+            'code' => [
+                'required',
+                'string',
+                'max:100',
+                Rule::unique('products', 'code')->where('branch_id', $request->input('branch_id')),
+            ],
             'category_id' => 'required|exists:categories,id',
             'branch_id' => 'required|exists:branches,id',
             'unit_price' => 'required|numeric|min:0.01',
@@ -637,10 +642,17 @@ class AdminController extends Controller
     {
         $product = Product::with('defaultPackage')->findOrFail($id);
 
+        $targetBranchId = $request->input('branch_id', $product->branch_id);
         $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'brand' => 'nullable|string|max:120',
-            'code' => 'sometimes|required|string|max:100|unique:products,code,' . $id,
+            'code' => [
+                'sometimes',
+                'required',
+                'string',
+                'max:100',
+                Rule::unique('products', 'code')->where('branch_id', $targetBranchId)->ignore($id),
+            ],
             'category_id' => 'sometimes|required|exists:categories,id',
             'branch_id' => 'sometimes|required|exists:branches,id',
             'unit_price' => 'sometimes|required|numeric|min:0.01',

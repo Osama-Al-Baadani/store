@@ -131,8 +131,11 @@ class ProductBulkImportService
         $errors = [];
 
         $existingCodes = Product::query()
-            ->pluck('id', 'code')
-            ->mapWithKeys(fn ($id, $code) => [mb_strtolower(trim((string) $code)) => (int) $id])
+            ->select(['id', 'branch_id', 'code'])
+            ->get()
+            ->mapWithKeys(fn (Product $p) => [
+                ((int) $p->branch_id) . ':' . mb_strtolower(trim((string) $p->code)) => (int) $p->id,
+            ])
             ->all();
 
         try {
@@ -209,7 +212,7 @@ class ProductBulkImportService
                     }
 
                     $rawCode = $this->cleanText($record['code'] ?? '', 50);
-                    $codeKey = mb_strtolower($rawCode);
+                    $codeKey = $branch->id . ':' . mb_strtolower($rawCode);
                     $existingProductId = $rawCode !== '' ? ($existingCodes[$codeKey] ?? null) : null;
 
                     if ($existingProductId !== null && $duplicateMode === 'skip') {
@@ -290,7 +293,7 @@ class ProductBulkImportService
                     }
 
                     $finalCode = $rawCode;
-                    if ($finalCode === '' || isset($existingCodes[mb_strtolower($finalCode)])) {
+                    if ($finalCode === '' || isset($existingCodes[$branch->id . ':' . mb_strtolower($finalCode)])) {
                         $finalCode = $this->urlExtractor->generateUniqueCode('DRV');
                     }
 
@@ -319,7 +322,7 @@ class ProductBulkImportService
                         'is_active' => true,
                     ]);
 
-                    $existingCodes[mb_strtolower($finalCode)] = $product->id;
+                    $existingCodes[$branch->id . ':' . mb_strtolower($finalCode)] = $product->id;
                     $created++;
                 }
             });
@@ -1040,8 +1043,11 @@ class ProductBulkImportService
         $branches = Branch::query()->get();
         $categories = Category::query()->get();
         $existingCodes = Product::query()
-            ->pluck('id', 'code')
-            ->mapWithKeys(fn ($id, $code) => [mb_strtolower(trim((string) $code)) => (int) $id])
+            ->select(['id', 'branch_id', 'code'])
+            ->get()
+            ->mapWithKeys(fn (Product $p) => [
+                ((int) $p->branch_id) . ':' . mb_strtolower(trim((string) $p->code)) => (int) $p->id,
+            ])
             ->all();
 
         $summary = [
@@ -1090,11 +1096,11 @@ class ProductBulkImportService
             }
 
             $status = 'create';
-            $codeLower = mb_strtolower($rawCode);
+            $codeKey = ($branch ? $branch->id : 0) . ':' . mb_strtolower($rawCode);
             if ($error !== null) {
                 $status = 'error';
                 $summary['errors']++;
-            } elseif ($rawCode !== '' && (isset($existingCodes[$codeLower]) || isset($seenCodesInFile[$codeLower]))) {
+            } elseif ($rawCode !== '' && (isset($existingCodes[$codeKey]) || isset($seenCodesInFile[$codeKey]))) {
                 if ($duplicateMode === 'skip') {
                     $status = 'skip';
                     $summary['will_skip']++;
@@ -1108,7 +1114,7 @@ class ProductBulkImportService
             }
 
             if ($rawCode !== '') {
-                $seenCodesInFile[$codeLower] = true;
+                $seenCodesInFile[$codeKey] = true;
             }
 
             $rawImage = trim((string) ($record['image'] ?? ''));
@@ -1263,13 +1269,15 @@ class ProductBulkImportService
         $val = trim($rawCategory);
         if ($val !== '') {
             if (is_numeric($val)) {
-                $byId = $categories->firstWhere('id', (int) $val);
+                $byId = $categories->first(
+                    fn (Category $c) => (int) $c->id === (int) $val && (int) $c->branch_id === $branchId
+                );
                 if ($byId) {
                     return $byId;
                 }
             }
 
-            // دعم مسار التصنيفات الهرمي مثل: "العناية ← العناية الشخصية ← مستلزمات طبية"
+            // دعم مسار التصنيفات الهرمي داخل المستودع نفسه فقط: "العناية ← العناية الشخصية ← مستلزمات طبية"
             $segments = $this->parseCategoryHierarchy($val);
             if (! empty($segments)) {
                 $parentId = null;
@@ -1281,22 +1289,12 @@ class ProductBulkImportService
                         if ((int) $c->branch_id !== $branchId) {
                             return false;
                         }
-                        if ($parentId !== null && (int) $c->parent_id !== $parentId) {
+                        if ((int) ($c->parent_id ?? 0) !== (int) ($parentId ?? 0)) {
                             return false;
                         }
 
                         return mb_strtolower(trim($c->name)) === $segLower;
                     });
-
-                    if (! $matched) {
-                        $matched = $categories->first(function (Category $c) use ($parentId, $segLower) {
-                            if ($parentId !== null && (int) $c->parent_id !== $parentId) {
-                                return false;
-                            }
-
-                            return mb_strtolower(trim($c->name)) === $segLower;
-                        });
-                    }
 
                     if (! $matched && $createIfMissing) {
                         $matched = Category::create([
@@ -1310,13 +1308,11 @@ class ProductBulkImportService
                     }
 
                     if (! $matched) {
-                        // عند عدم التفعيل للإنشاء التلقائي، ابحث بأدق اسم فرعي موجود (من آخر مستوى لأول مستوى)
+                        // عند عدم التفعيل للإنشاء التلقائي، ابحث بأدق اسم فرعي موجود داخل نفس المستودع فقط
                         foreach (array_reverse($segments) as $fallbackName) {
                             $fbLower = mb_strtolower($fallbackName);
                             $found = $categories->first(
                                 fn (Category $c) => (int) $c->branch_id === $branchId && mb_strtolower(trim($c->name)) === $fbLower
-                            ) ?? $categories->first(
-                                fn (Category $c) => mb_strtolower(trim($c->name)) === $fbLower
                             );
                             if ($found) {
                                 return $found;
@@ -1337,7 +1333,9 @@ class ProductBulkImportService
         }
 
         if ($defaultCategoryId) {
-            return $categories->firstWhere('id', $defaultCategoryId);
+            return $categories->first(
+                fn (Category $c) => (int) $c->id === $defaultCategoryId && (int) $c->branch_id === $branchId
+            );
         }
 
         return null;

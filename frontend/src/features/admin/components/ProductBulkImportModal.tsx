@@ -95,6 +95,15 @@ export const ProductBulkImportModal: React.FC<ProductBulkImportModalProps> = ({
 
   if (!isOpen) return null;
 
+  const effectiveBranchId =
+    defaultBranchId && branches.some((b) => b.id.toString() === defaultBranchId)
+      ? defaultBranchId
+      : branches[0]?.id?.toString() || '';
+
+  const branchCategories = categories.filter(
+    (c) => !effectiveBranchId || c.branch_id === undefined || c.branch_id.toString() === effectiveBranchId
+  );
+
   const buildFormData = (mappingOverride?: Record<string, number | null> | null): FormData => {
     const fd = new FormData();
     if (sourceMode === 'file' && sheetFile) {
@@ -106,10 +115,10 @@ export const ProductBulkImportModal: React.FC<ProductBulkImportModalProps> = ({
     if (imagesZipFile) {
       fd.append('images_zip', imagesZipFile);
     }
-    if (defaultBranchId) {
-      fd.append('default_branch_id', defaultBranchId);
+    if (effectiveBranchId) {
+      fd.append('default_branch_id', effectiveBranchId);
     }
-    if (defaultCategoryId && categories.some((c) => c.id.toString() === defaultCategoryId)) {
+    if (defaultCategoryId && branchCategories.some((c) => c.id.toString() === defaultCategoryId)) {
       fd.append('default_category_id', defaultCategoryId);
     }
     fd.append('duplicate_mode', duplicateMode);
@@ -393,8 +402,12 @@ export const ProductBulkImportModal: React.FC<ProductBulkImportModalProps> = ({
             <div>
               <label className="block font-bold text-stone-700 mb-1">المستودع الافتراضي</label>
               <select
-                value={defaultBranchId}
-                onChange={(e) => setDefaultBranchId(e.target.value)}
+                value={effectiveBranchId}
+                onChange={(e) => {
+                  setDefaultBranchId(e.target.value);
+                  setDefaultCategoryId('');
+                  setPreview(null);
+                }}
                 className="w-full bg-white border border-[#eddcc8] rounded-xl py-2 px-3 text-xs font-bold text-stone-800 focus:outline-hidden focus:border-[#b47820]"
               >
                 {branches.map((b) => (
@@ -413,7 +426,7 @@ export const ProductBulkImportModal: React.FC<ProductBulkImportModalProps> = ({
                 className="w-full bg-white border border-[#eddcc8] rounded-xl py-2 px-3 text-xs font-bold text-stone-800 focus:outline-hidden focus:border-[#b47820]"
               >
                 <option value="">بدون قسم افتراضي</option>
-                {categories.map((c) => (
+                {branchCategories.map((c) => (
                   <option key={c.id} value={c.id.toString()}>
                     {c.name}
                   </option>

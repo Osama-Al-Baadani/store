@@ -49,8 +49,9 @@ function findCategoryNamesPath(nodes: Category[], targetId: number): string[] {
 export default function CatalogPage() {
   const router = useRouter();
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
-  const { branches, selectedBranch } = useBranches();
-  const currentBranchId = selectedBranch?.id || branches[0]?.id || 1;
+  const { branches, selectedBranch, isLoading: isBranchesLoading } = useBranches();
+  const currentBranchId =
+    selectedBranch?.id ?? (isBranchesLoading ? null : (branches[0]?.id ?? 1));
   const activeBranch = selectedBranch || branches[0] || null;
   const { setBrandColor } = useTheme();
 
@@ -140,7 +141,7 @@ export default function CatalogPage() {
 
   const handleCheckout = async () => {
     return await checkout({
-      branch_id: currentBranchId,
+      branch_id: currentBranchId ?? 1,
       notes: 'طلب عبر الكتالوج الرقمي',
     });
   };
@@ -326,7 +327,7 @@ export default function CatalogPage() {
           </div>
         )}
 
-        {isCatalogLoading && products.length === 0 ? (
+        {(isBranchesLoading || isCatalogLoading) && products.length === 0 ? (
           <div className="py-24 flex flex-col items-center justify-center text-brand">
             <Loader2 className="w-10 h-10 animate-spin mb-3 text-[#b47820]" />
             <span className="text-sm font-bold text-stone-700">

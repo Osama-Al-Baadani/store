@@ -13,6 +13,7 @@ import {
   AdvertisementItem,
 } from '@/features/admin/api/admin.api';
 import { ProductBulkImportModal } from '@/features/admin/components/ProductBulkImportModal';
+import { extractUploadErrorMessage, prepareImageForUpload } from '@/shared/lib/imageUpload';
 import {
   Building2,
   Users,
@@ -549,7 +550,8 @@ export default function AdminDashboardPage() {
       formData.append('old_price', newProduct.old_price.trim() ? parseFloat(newProduct.old_price).toString() : '');
       formData.append('description', newProduct.description || '');
       if (productImageFile) {
-        formData.append('image_file', productImageFile);
+        const preparedProductImage = await prepareImageForUpload(productImageFile, { maxDimension: 1400 });
+        formData.append('image_file', preparedProductImage);
       } else if (newProduct.image.trim()) {
         formData.append('image', newProduct.image.trim());
       }
@@ -582,8 +584,8 @@ export default function AdminDashboardPage() {
         });
         loadData();
       }
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'تعذر حفظ بيانات المنتج، تأكد من عدم تكرار الكود');
+    } catch (err: unknown) {
+      alert(extractUploadErrorMessage(err, 'تعذر حفظ بيانات المنتج، تأكد من عدم تكرار الكود أو صحة الصورة'));
     } finally {
       setIsSavingProduct(false);
     }
@@ -872,7 +874,10 @@ export default function AdminDashboardPage() {
     setIsUploadingAd(true);
     try {
       const formData = new FormData();
-      if (adImageFile) formData.append('image', adImageFile);
+      if (adImageFile) {
+        const preparedAdImage = await prepareImageForUpload(adImageFile, { maxDimension: 2048 });
+        formData.append('image', preparedAdImage);
+      }
       if (adImageUrl.trim()) formData.append('image_url', adImageUrl.trim());
       formData.append('title', adTitle.trim());
       formData.append('subtitle', adSubtitle.trim());
@@ -907,8 +912,8 @@ export default function AdminDashboardPage() {
         setActiveTab('advertisements');
         loadData();
       }
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'تعذر حفظ الإعلان، تأكد من حجم وصيغة الصورة (jpg, png, webp)');
+    } catch (err: unknown) {
+      alert(extractUploadErrorMessage(err, 'تعذر حفظ الإعلان، تأكد من حجم وصيغة الصورة'));
     } finally {
       setIsUploadingAd(false);
     }
@@ -3757,7 +3762,7 @@ export default function AdminDashboardPage() {
                     <div className="py-4 space-y-1.5">
                       <Upload className="w-8 h-8 text-[#b47820] mx-auto" />
                       <p className="font-bold text-stone-800">اضغط هنا لاختيار صورة الإعلان</p>
-                      <p className="text-[10px] text-stone-400">PNG, JPG, WEBP — الحد الأقصى 5 ميجابايت</p>
+                      <p className="text-[10px] text-stone-400">JPG, PNG, WEBP, AVIF — ضغط تلقائي ذكي حتى 20 ميجابايت</p>
                     </div>
                   )}
                 </label>

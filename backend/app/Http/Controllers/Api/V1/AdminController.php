@@ -367,6 +367,29 @@ class AdminController extends Controller
     }
 
     /**
+     * قاعدة التحقق الموحدة للصور المرفوعة (تشمل صور الذكاء الاصطناعي حتى 20 ميجابايت)
+     */
+    private function uploadedImageValidationRule(): string
+    {
+        return 'nullable|file|mimetypes:image/jpeg,image/pjpeg,image/png,image/webp,image/gif,image/avif,image/bmp,image/x-ms-bmp|max:20480';
+    }
+
+    /**
+     * رسائل التحقق العربية الموحدة لرفع الصور
+     *
+     * @return array<string, string>
+     */
+    private function uploadedImageValidationMessages(string $field = 'image'): array
+    {
+        return [
+            "{$field}.uploaded" => 'تعذر استلام ملف الصورة على الخادم؛ تأكد أن حجمها أقل من الحد المسموح.',
+            "{$field}.file" => 'الملف المختار غير صالح.',
+            "{$field}.mimetypes" => 'صيغة الصورة غير مدعومة؛ الصيغ المدعومة: JPG, PNG, WEBP, AVIF, GIF.',
+            "{$field}.max" => 'حجم الصورة يتجاوز الحد الأقصى المسموح به (20 ميجابايت).',
+        ];
+    }
+
+    /**
      * حفظ صورة مرفوعة داخل مجلد public/uploads وإرجاع المسار النسبي
      */
     private function saveUploadedImage(Request $request, string $field, string $folder, string $prefix): ?string
@@ -376,12 +399,21 @@ class AdminController extends Controller
         }
 
         $file = $request->file($field);
+        if (!$file || !$file->isValid()) {
+            throw new \RuntimeException('تعذر رفع الصورة: تأكد من سلامة الملف أو حاول بصيغة أخرى.');
+        }
+
         $dir = public_path($folder);
         if (!is_dir($dir)) {
             mkdir($dir, 0755, true);
         }
 
-        $filename = $prefix . '_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        $extension = strtolower((string) ($file->guessExtension() ?: $file->getClientOriginalExtension() ?: 'png'));
+        if ($extension === 'jpeg') {
+            $extension = 'jpg';
+        }
+
+        $filename = $prefix . '_' . time() . '_' . uniqid() . '.' . $extension;
         $file->move($dir, $filename);
 
         return trim($folder, '/') . '/' . $filename;
@@ -407,8 +439,8 @@ class AdminController extends Controller
             'old_price' => 'nullable|numeric|min:0',
             'description' => 'nullable|string',
             'image' => 'nullable|string',
-            'image_file' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
-        ]);
+            'image_file' => $this->uploadedImageValidationRule(),
+        ], $this->uploadedImageValidationMessages('image_file'));
 
         $imagePath = $validated['image'] ?? null;
         if ($uploaded = $this->saveUploadedImage($request, 'image_file', 'uploads/products', 'prd')) {
@@ -661,9 +693,9 @@ class AdminController extends Controller
             'old_price' => 'nullable|numeric|min:0',
             'description' => 'nullable|string',
             'image' => 'nullable|string',
-            'image_file' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
+            'image_file' => $this->uploadedImageValidationRule(),
             'is_active' => 'nullable|boolean',
-        ]);
+        ], $this->uploadedImageValidationMessages('image_file'));
 
         $updates = $request->only(['name', 'brand', 'code', 'description', 'category_id', 'branch_id', 'image']);
         if ($request->has('is_active')) {
@@ -980,9 +1012,9 @@ class AdminController extends Controller
             'link_url' => 'nullable|string|max:500',
             'sort' => 'nullable|integer',
             'is_active' => 'nullable|boolean',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
+            'image' => $this->uploadedImageValidationRule(),
             'image_url' => 'nullable|string|max:1000',
-        ]);
+        ], $this->uploadedImageValidationMessages('image'));
 
         if (!$request->hasFile('image') && !$request->filled('image_url')) {
             return response()->json([
@@ -1032,9 +1064,9 @@ class AdminController extends Controller
             'link_url' => 'nullable|string|max:500',
             'sort' => 'nullable|integer',
             'is_active' => 'nullable|boolean',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
+            'image' => $this->uploadedImageValidationRule(),
             'image_url' => 'nullable|string|max:1000',
-        ]);
+        ], $this->uploadedImageValidationMessages('image'));
 
         if ($request->hasFile('image')) {
             $oldFullPath = $ad->image_path ? public_path($ad->image_path) : null;

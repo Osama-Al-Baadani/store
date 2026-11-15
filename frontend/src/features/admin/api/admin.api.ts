@@ -263,7 +263,7 @@ export const adminApi = {
     const { data } = await apiClient.post<ApiResponse<any>>(
       '/admin/products',
       payload,
-      isForm ? { headers: { 'Content-Type': 'multipart/form-data' } } : undefined
+      isForm ? { timeout: 120000 } : undefined
     );
     return data;
   },
@@ -309,7 +309,7 @@ export const adminApi = {
     const isForm = typeof FormData !== 'undefined' && payload instanceof FormData;
     if (isForm) {
       const { data } = await apiClient.post<ApiResponse<any>>(`/admin/products/${id}`, payload, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 120000,
       });
       return data;
     }
@@ -388,7 +388,7 @@ export const adminApi = {
 
   createAdvertisement: async (formData: FormData): Promise<ApiResponse<AdvertisementItem>> => {
     const { data } = await apiClient.post<ApiResponse<AdvertisementItem>>('/admin/advertisements', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 120000,
     });
     return data;
   },
@@ -399,7 +399,7 @@ export const adminApi = {
   ): Promise<ApiResponse<AdvertisementItem>> => {
     if (payload instanceof FormData) {
       const { data } = await apiClient.post<ApiResponse<AdvertisementItem>>(`/admin/advertisements/${id}`, payload, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 120000,
       });
       return data;
     }

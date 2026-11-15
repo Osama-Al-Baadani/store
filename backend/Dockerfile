@@ -13,6 +13,14 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 
+# رفع حدود رفع الصور والملفات في PHP
+RUN { \
+      echo "upload_max_filesize=25M"; \
+      echo "post_max_size=30M"; \
+      echo "memory_limit=256M"; \
+      echo "max_execution_time=120"; \
+    } > /usr/local/etc/php/conf.d/uploads.ini
+
 # جلب Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 

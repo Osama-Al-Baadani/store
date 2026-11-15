@@ -542,13 +542,13 @@ export default function CatalogPage() {
 
               {/* شريط التقدم وعرض المزيد للكتالوج الكامل */}
               {pagination.total > 0 && (
-                <div className="bg-white rounded-2xl sm:rounded-3xl border border-[#eddcc8] p-4 sm:p-5 flex flex-col items-center gap-3 shadow-2xs">
-                  <div className="w-full max-w-md space-y-1.5 text-center">
-                    <p className="text-xs font-bold text-stone-600">
-                      تم عرض <span className="font-mono font-black text-stone-900">{products.length}</span> من إجمالي{' '}
+                <div className="mx-auto w-full max-w-md bg-white rounded-2xl border border-[#eddcc8] px-3.5 py-2.5 flex items-center justify-between gap-3 shadow-2xs">
+                  <div className={`flex-1 min-w-0 space-y-1 ${!hasMore ? 'text-center' : ''}`}>
+                    <p className="text-[11px] font-bold text-stone-600 truncate">
+                      عرض <span className="font-mono font-black text-stone-900">{products.length}</span> من{' '}
                       <span className="font-mono font-black text-[#8f5a13]">{pagination.total}</span> صنف
                     </p>
-                    <div className="w-full h-2 rounded-full bg-[#f5ebdc] overflow-hidden">
+                    <div className="w-full h-1.5 rounded-full bg-[#f5ebdc] overflow-hidden">
                       <div
                         className="h-full rounded-full bg-gradient-to-r from-[#8f5a13] via-[#b47820] to-[#dfb76c] transition-all duration-500"
                         style={{ width: `${loadedPercent}%` }}
@@ -561,17 +561,17 @@ export default function CatalogPage() {
                       type="button"
                       onClick={loadMore}
                       disabled={isLoadingMore}
-                      className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-2xl bg-gradient-to-r from-[#8f5a13] via-[#b47820] to-[#c28b38] hover:opacity-95 active:scale-[0.99] text-white text-xs sm:text-sm font-black shadow-md transition-all cursor-pointer disabled:opacity-60"
+                      className="shrink-0 inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#8f5a13] via-[#b47820] to-[#c28b38] hover:opacity-95 active:scale-[0.98] text-white text-[11px] sm:text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-60"
                     >
                       {isLoadingMore ? (
                         <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>جاري تحميل المزيد...</span>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>جاري التحميل...</span>
                         </>
                       ) : (
                         <>
-                          <span>عرض المزيد من الأصناف</span>
-                          <ChevronDown className="w-4 h-4" />
+                          <span>عرض المزيد</span>
+                          <ChevronDown className="w-3.5 h-3.5" />
                         </>
                       )}
                     </button>

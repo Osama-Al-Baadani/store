@@ -353,6 +353,15 @@ export const adminApi = {
     return data;
   },
 
+  clearBranchData: async (
+    id: number
+  ): Promise<ApiResponse<{ branch_id: number; deleted_products: number; deleted_categories: number }>> => {
+    const { data } = await apiClient.post<
+      ApiResponse<{ branch_id: number; deleted_products: number; deleted_categories: number }>
+    >(`/admin/branches/${id}/clear-data`);
+    return data;
+  },
+
   getUsers: async (): Promise<ApiResponse<any[]>> => {
     const { data } = await apiClient.get<ApiResponse<any[]>>('/admin/users');
     return data;

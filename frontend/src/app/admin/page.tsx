@@ -61,6 +61,7 @@ import {
   ChevronUp,
   FileSpreadsheet,
   Download,
+  Eraser,
 } from 'lucide-react';
 
 type TabType = 'merchants' | 'products' | 'categories' | 'branches' | 'advertisements' | 'orders' | 'users';
@@ -165,6 +166,7 @@ export default function AdminDashboardPage() {
   const [passwordUserId, setPasswordUserId] = useState<number | null>(null);
   const [newPassword, setNewPassword] = useState<string>('');
   const [isMobileMoreOpen, setIsMobileMoreOpen] = useState(false);
+  const [clearingBranchId, setClearingBranchId] = useState<number | null>(null);
 
   const hasLoadedMetaRef = useRef(false);
   const metaPromiseRef = useRef<Promise<void> | null>(null);
@@ -728,8 +730,34 @@ export default function AdminDashboardPage() {
         setActionMessage({ text: `تم حذف المستودع "${name}"`, type: 'success' });
         setBranches((prev) => prev.filter((b) => b.id !== id));
       }
-    } catch (err: any) {
-      alert('تعذر حذف المستودع');
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      alert(msg || 'تعذر حذف المستودع');
+    }
+  };
+
+  // تفريغ أصناف وأقسام مستودع مع إبقاء المستودع نفسه
+  const handleClearBranchData = async (id: number, name: string) => {
+    const confirmed = confirm(
+      `هل أنت متأكد من تفريغ جميع بيانات مستودع "${name}"؟\nسيتم حذف كل الأصناف والأقسام والباقات داخل هذا المستودع مع بقاء المستودع والطلبات السابقة.`
+    );
+    if (!confirmed) return;
+
+    setClearingBranchId(id);
+    try {
+      const res = await adminApi.clearBranchData(id);
+      if (res.success) {
+        setActionMessage({
+          text: res.message || `تم تفريغ بيانات مستودع "${name}" بنجاح`,
+          type: 'success',
+        });
+        await loadData(true);
+      }
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      alert(msg || 'تعذر تفريغ بيانات المستودع');
+    } finally {
+      setClearingBranchId(null);
     }
   };
 
@@ -2318,12 +2346,12 @@ export default function AdminDashboardPage() {
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between pt-1 gap-2">
+                      <div className="flex items-center justify-between pt-1 gap-2 flex-wrap">
                         <span className="text-[11px] text-stone-400 font-mono">
-                          الأصناف: <strong className="text-stone-700">{b.products_count ?? 31}</strong>
+                          الأصناف: <strong className="text-stone-700">{b.products_count ?? 0}</strong>
                         </span>
 
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <button
                             type="button"
                             onClick={() => openEditBranchModal(b)}
@@ -2331,7 +2359,18 @@ export default function AdminDashboardPage() {
                             title="تعديل بيانات المستودع"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
-                            <span>تعديل البيانات</span>
+                            <span>تعديل</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            disabled={clearingBranchId === b.id}
+                            onClick={() => handleClearBranchData(b.id, b.name)}
+                            className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                            title="حذف كل الأصناف والأقسام داخل هذا المستودع مع بقاء المستودع"
+                          >
+                            <Eraser className="w-3.5 h-3.5" />
+                            <span>{clearingBranchId === b.id ? 'جاري التفريغ...' : 'تفريغ البيانات'}</span>
                           </button>
 
                           <button

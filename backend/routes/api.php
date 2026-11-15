@@ -88,6 +88,7 @@ use App\Http\Controllers\Api\V1\BranchController;
 
             Route::get('/branches', [AdminController::class, 'branches']);
             Route::post('/branches', [AdminController::class, 'storeBranch']);
+            Route::post('/branches/{id}/clear-data', [AdminController::class, 'clearBranchData']);
             Route::patch('/branches/{id}', [AdminController::class, 'updateBranch']);
             Route::delete('/branches/{id}', [AdminController::class, 'deleteBranch']);
             Route::get('/users', [AdminController::class, 'users']);

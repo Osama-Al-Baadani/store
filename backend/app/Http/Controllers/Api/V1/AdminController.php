@@ -15,12 +15,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Advertisement;
 use App\Models\Branch;
 use App\Models\Cart;
+use App\Models\Category;
 use App\Models\MerchantProfile;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class AdminController extends Controller
@@ -831,11 +833,47 @@ class AdminController extends Controller
     }
 
     /**
+     * تفريغ جميع أصناف وأقسام وسلات مستودع معين مع إبقاء المستودع والطلبات السابقة سليمة
+     */
+    public function clearBranchData(int $id): JsonResponse
+    {
+        $branch = Branch::findOrFail($id);
+
+        $deletedProducts = 0;
+        $deletedCategories = 0;
+
+        DB::transaction(function () use ($id, &$deletedProducts, &$deletedCategories) {
+            Cart::where('branch_id', $id)->delete();
+            $deletedProducts = Product::where('branch_id', $id)->delete();
+            Category::where('branch_id', $id)->update(['parent_id' => null]);
+            $deletedCategories = Category::where('branch_id', $id)->delete();
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => "تم تفريغ بيانات مستودع ({$branch->name}) بنجاح: تم حذف {$deletedProducts} صنف و{$deletedCategories} قسم.",
+            'data' => [
+                'branch_id' => $branch->id,
+                'deleted_products' => $deletedProducts,
+                'deleted_categories' => $deletedCategories,
+            ],
+        ]);
+    }
+
+    /**
      * حذف مستودع
      */
     public function deleteBranch(int $id): JsonResponse
     {
         $branch = Branch::findOrFail($id);
+
+        if (Order::where('branch_id', $id)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'لا يمكن حذف هذا المستودع لوجود طلبات مرتبطة به؛ استخدم «تفريغ البيانات» لحذف أصنافه وأقسامه فقط.',
+            ], 422);
+        }
+
         $branch->delete();
 
         return response()->json([

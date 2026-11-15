@@ -19,6 +19,7 @@ class Product extends Model
         'code',
         'barcode',
         'name',
+        'brand',
         'description',
         'image',
         'is_new',

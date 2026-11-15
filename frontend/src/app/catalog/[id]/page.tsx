@@ -386,9 +386,16 @@ function ProductDetailsContent() {
                   <div className="space-y-5">
                     {/* التصنيف وحالة التوفر */}
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="inline-flex items-center gap-1.5 bg-amber-50/90 text-[#8f5a13] border border-amber-300/70 px-3 py-1 rounded-full text-xs font-extrabold">
-                        <Layers className="w-3.5 h-3.5 text-[#b47820]" />
-                        <span>{product.category_name || 'الأصناف المعتمدة'}</span>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="inline-flex items-center gap-1.5 bg-amber-50/90 text-[#8f5a13] border border-amber-300/70 px-3 py-1 rounded-full text-xs font-extrabold">
+                          <Layers className="w-3.5 h-3.5 text-[#b47820]" />
+                          <span>{product.category_name || 'الأصناف المعتمدة'}</span>
+                        </div>
+                        {product.brand && (
+                          <div className="inline-flex items-center gap-1 bg-stone-100 text-stone-800 border border-stone-200 px-3 py-1 rounded-full text-xs font-extrabold">
+                            <span>{product.brand}</span>
+                          </div>
+                        )}
                       </div>
 
                       {isComingSoon ? (

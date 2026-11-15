@@ -18,9 +18,11 @@ class ProductBulkImportService
 {
     public const SUPPORTED_FIELDS = [
         'name',
+        'brand',
         'code',
         'barcode',
         'unit_price',
+        'sale_price',
         'old_price',
         'unit',
         'description',
@@ -31,15 +33,17 @@ class ProductBulkImportService
 
     private const HEADER_ALIASES = [
         'name' => ['name', 'product_name', 'product name', 'title', 'اسم المنتج', 'الاسم', 'الصنف', 'اسم الصنف', 'اسم', 'المسمى'],
+        'brand' => ['brand', 'brand_name', 'manufacturer', 'vendor', 'العلامة التجارية', 'العلامه التجاريه', 'العلامة', 'الماركة', 'براند', 'الشركة المصنعة'],
         'code' => ['code', 'sku', 'product_code', 'product code', 'item_code', 'كود', 'الكود', 'رمز الصنف', 'رقم الصنف', 'كود الصنف'],
         'barcode' => ['barcode', 'ean', 'upc', 'باركود', 'الباركود', 'رقم الباركود'],
-        'unit_price' => ['unit_price', 'price', 'unit price', 'wholesale_price', 'سعر الحبة', 'السعر', 'سعر', 'السعر للحبة', 'سعر الجملة', 'السعر بالجملة'],
+        'unit_price' => ['unit_price', 'regular_price', 'base_price', 'price', 'unit price', 'wholesale_price', 'السعر الأساسي', 'السعر الاساسي', 'سعر الحبة', 'السعر', 'سعر', 'السعر للحبة', 'سعر الجملة', 'السعر بالجملة'],
+        'sale_price' => ['sale_price', 'offer_price', 'discount_price', 'special_price', 'سعر العرض', 'السعر بعد الخصم', 'سعر الخصم', 'عرض'],
         'old_price' => ['old_price', 'old price', 'compare_price', 'original_price', 'السعر القديم', 'قبل الخصم', 'سعر قبل الخصم'],
         'unit' => ['unit', 'unit_name', 'الوحدة', 'وحدة البيع', 'وحدة'],
-        'description' => ['description', 'desc', 'details', 'notes', 'الوصف', 'وصف', 'تفاصيل', 'وصف المنتج', 'الوصف التفصيلي'],
-        'category' => ['category', 'category_name', 'category_id', 'cat', 'القسم', 'الفئة', 'التصنيف', 'اسم القسم'],
+        'description' => ['description', 'short_description', 'short description', 'desc', 'details', 'notes', 'وصف مختصر', 'الوصف المختصر', 'الوصف', 'وصف', 'تفاصيل', 'وصف المنتج', 'الوصف التفصيلي'],
+        'category' => ['category', 'categories', 'category_name', 'category_id', 'cat', 'التصنيفات', 'تصنيفات', 'التصنيف', 'القسم', 'الفئة', 'الفئات', 'اسم القسم'],
         'branch' => ['branch', 'branch_name', 'branch_id', 'warehouse', 'المستودع', 'الفرع', 'اسم المستودع'],
-        'image' => ['image', 'image_url', 'image url', 'photo', 'img', 'pic', 'picture', 'thumbnail', 'الصورة', 'صورة', 'رابط الصورة', 'ملف الصورة', 'اسم الصورة'],
+        'image' => ['image', 'images', 'image_url', 'image url', 'photo', 'img', 'pic', 'picture', 'thumbnail', 'الصورة', 'الصور', 'صورة', 'رابط الصورة', 'روابط الصور', 'ملف الصورة', 'اسم الصورة'],
     ];
 
     public function __construct(
@@ -163,23 +167,25 @@ class ProductBulkImportService
                         continue;
                     }
 
-                    $name = $this->cleanText($record['name'] ?? '', 255);
+                    $name = $this->cleanText($record['name'] ?? '', 150);
                     if ($name === '') {
                         $failed++;
                         $errors[] = "الصف {$rowNumber}: اسم المنتج مفقود.";
                         continue;
                     }
 
-                    $unitPrice = $this->parsePrice($record['unit_price'] ?? '');
+                    $pricing = $this->resolveRowPricing(
+                        $record['unit_price'] ?? '',
+                        $record['sale_price'] ?? '',
+                        $record['old_price'] ?? ''
+                    );
+                    $unitPrice = $pricing['unit_price'];
+                    $oldPrice = $pricing['old_price'];
+
                     if ($unitPrice === null || $unitPrice <= 0) {
                         $failed++;
-                        $errors[] = "الصف {$rowNumber} ({$name}): سعر الحبة غير صالح.";
+                        $errors[] = "الصف {$rowNumber} ({$name}): السعر الأساسي / سعر الحبة غير صالح.";
                         continue;
-                    }
-
-                    $oldPrice = $this->parsePrice($record['old_price'] ?? '');
-                    if ($oldPrice !== null && $oldPrice <= $unitPrice) {
-                        $oldPrice = null;
                     }
 
                     $branch = $this->matchBranch($record['branch'] ?? '', $branches, $defaultBranchId);
@@ -202,7 +208,7 @@ class ProductBulkImportService
                         continue;
                     }
 
-                    $rawCode = $this->cleanText($record['code'] ?? '', 100);
+                    $rawCode = $this->cleanText($record['code'] ?? '', 50);
                     $codeKey = mb_strtolower($rawCode);
                     $existingProductId = $rawCode !== '' ? ($existingCodes[$codeKey] ?? null) : null;
 
@@ -225,8 +231,12 @@ class ProductBulkImportService
                         $imagesSaved++;
                     }
 
+                    $brand = $this->cleanText($record['brand'] ?? '', 120);
                     $description = $this->cleanText($record['description'] ?? '', 2000);
-                    $barcode = $this->cleanText($record['barcode'] ?? '', 100);
+                    $barcode = $this->cleanText($record['barcode'] ?? '', 50);
+                    if ($barcode === '' && $rawCode !== '' && preg_match('/^\d{8,14}$/', $rawCode)) {
+                        $barcode = $rawCode;
+                    }
                     $unitName = $this->cleanText($record['unit'] ?? '', 50) ?: 'حبة';
 
                     if ($existingProductId !== null) {
@@ -237,6 +247,9 @@ class ProductBulkImportService
                                 'category_id' => $category->id,
                                 'branch_id' => $branch->id,
                             ];
+                            if ($brand !== '') {
+                                $updatePayload['brand'] = $brand;
+                            }
                             if ($description !== '') {
                                 $updatePayload['description'] = $description;
                             }
@@ -287,6 +300,7 @@ class ProductBulkImportService
                         'code' => $finalCode,
                         'barcode' => $barcode !== '' ? $barcode : null,
                         'name' => $name,
+                        'brand' => $brand !== '' ? $brand : null,
                         'description' => $description !== '' ? $description : "صنف جملة معتمد بالحبة - {$name}",
                         'image' => $imageResult['url'],
                         'is_active' => true,
@@ -337,45 +351,42 @@ class ProductBulkImportService
         fwrite($handle, "\xEF\xBB\xBF");
 
         fputcsv($handle, [
-            'name',
-            'code',
-            'barcode',
-            'unit_price',
-            'old_price',
-            'unit',
-            'category',
-            'branch',
-            'description',
-            'image',
+            'SKU',
+            'الاسم',
+            'التصنيفات',
+            'السعر الأساسي',
+            'سعر العرض',
+            'العلامة التجارية',
+            'وصف مختصر',
+            'المستودع',
+            'الصورة',
         ]);
 
         if ($templateOnly) {
             fputcsv($handle, [
-                'ورق تصوير A4 فاخر 80 جرام',
-                'SKU-1001',
-                '6281000001001',
-                '16.50',
-                '19.00',
-                'حبة',
-                'الورقيات والتغليف',
+                '6217000480372',
+                'سيلفا ضماد طبي لاصق',
+                'العناية ← العناية الشخصية ← مستلزمات طبية',
+                '25.30',
+                '',
+                'Silva',
+                'ضماد طبي لاصق لتغطية الجروح والخدوش البسيطة',
                 'المستودع الرئيسي',
-                'رزمة ورق عالية البياض 500 ورقة مناسبة للمكاتب والمطابع',
-                'https://example.com/images/a4-paper.jpg',
+                'https://example.com/images/silva.jpg',
             ]);
             fputcsv($handle, [
-                'شريط تغليف شفاف عريض',
-                'SKU-1002',
-                '6281000001002',
-                '4.75',
-                '',
-                'حبة',
-                'الورقيات والتغليف',
+                '033200191223',
+                'أرم آند هامر مزيل عرق',
+                'العناية ← العناية الشخصية ← مزيلات العرق',
+                '9.00',
+                '4.90',
+                'Arm & Hammer',
+                'مزيل عرق مضاد للتعرق يوفر حماية فعالة طوال اليوم',
                 'المستودع الرئيسي',
-                'شريط لاصق قوي للتغليف والكراتين مقاس 48 مم',
-                'SKU-1002.jpg',
+                '033200191223.jpg',
             ]);
         } else {
-            $query = Product::with(['branch', 'category', 'defaultPackage'])
+            $query = Product::with(['branch', 'category.parent.parent', 'defaultPackage'])
                 ->orderBy('sort')
                 ->orderByDesc('id');
 
@@ -389,22 +400,35 @@ class ProductBulkImportService
                 $term = '%' . trim($search) . '%';
                 $query->where(function ($q) use ($term) {
                     $q->where('name', 'like', $term)
+                        ->orWhere('brand', 'like', $term)
                         ->orWhere('code', 'like', $term)
                         ->orWhere('barcode', 'like', $term);
                 });
             }
 
             foreach ($query->cursor() as $product) {
+                $pkgUnit = $product->defaultPackage?->unit_price;
+                $pkgOld = $product->defaultPackage?->old_price;
+                $regularPrice = ($pkgOld && (float) $pkgOld > (float) $pkgUnit) ? $pkgOld : ($pkgUnit ?? '0');
+                $salePrice = ($pkgOld && (float) $pkgOld > (float) $pkgUnit) ? $pkgUnit : '';
+
+                $catPath = $product->category?->name ?? '';
+                if ($product->category?->parent) {
+                    $catPath = $product->category->parent->name . ' ← ' . $catPath;
+                    if ($product->category->parent->parent) {
+                        $catPath = $product->category->parent->parent->name . ' ← ' . $catPath;
+                    }
+                }
+
                 fputcsv($handle, [
-                    $product->name,
                     $product->code,
-                    $product->barcode ?? '',
-                    $product->defaultPackage?->unit_price ?? '0',
-                    $product->defaultPackage?->old_price ?? '',
-                    $product->defaultPackage?->unit ?? 'حبة',
-                    $product->category?->name ?? '',
-                    $product->branch?->name ?? '',
+                    $product->name,
+                    $catPath,
+                    $regularPrice,
+                    $salePrice,
+                    $product->brand ?? '',
                     $product->description ?? '',
+                    $product->branch?->name ?? '',
                     $product->image_url ?? ($product->image ?? ''),
                 ]);
             }
@@ -1039,9 +1063,16 @@ class ProductBulkImportService
             }
             $totalNonEmpty++;
 
-            $name = $this->cleanText($record['name'] ?? '', 255);
-            $rawCode = $this->cleanText($record['code'] ?? '', 100);
-            $price = $this->parsePrice($record['unit_price'] ?? '');
+            $name = $this->cleanText($record['name'] ?? '', 150);
+            $brand = $this->cleanText($record['brand'] ?? '', 120);
+            $rawCode = $this->cleanText($record['code'] ?? '', 50);
+            $pricing = $this->resolveRowPricing(
+                $record['unit_price'] ?? '',
+                $record['sale_price'] ?? '',
+                $record['old_price'] ?? ''
+            );
+            $price = $pricing['unit_price'];
+            $oldPrice = $pricing['old_price'];
             $branch = $this->matchBranch($record['branch'] ?? '', $branches, $defaultBranchId);
             $category = $branch
                 ? $this->matchOrCreateCategory($record['category'] ?? '', $branch->id, $categories, $defaultCategoryId, false)
@@ -1051,7 +1082,7 @@ class ProductBulkImportService
             if ($name === '') {
                 $error = 'اسم المنتج مفقود';
             } elseif ($price === null || $price <= 0) {
-                $error = 'سعر الحبة غير صالح';
+                $error = 'السعر الأساسي / سعر الحبة غير صالح';
             } elseif (! $branch) {
                 $error = 'تعذر تحديد المستودع';
             } elseif (! $category && ! ($createMissingCategories && trim((string) ($record['category'] ?? '')) !== '')) {
@@ -1090,8 +1121,10 @@ class ProductBulkImportService
                     'status' => $status,
                     'error' => $error,
                     'name' => $name,
+                    'brand' => $brand !== '' ? $brand : null,
                     'code' => $rawCode !== '' ? $rawCode : '(توليد تلقائي)',
                     'unit_price' => $price,
+                    'old_price' => $oldPrice,
                     'category' => $category?->name ?? ($record['category'] ?: '—'),
                     'branch' => $branch?->name ?? ($record['branch'] ?: '—'),
                     'image_source' => $hasEmbedded ? 'embedded' : ($hasZipMatch ? 'zip' : ($rawImage !== '' ? 'url' : 'none')),
@@ -1134,6 +1167,34 @@ class ProductBulkImportService
         }
 
         return true;
+    }
+
+    /**
+     * حساب السعر الفعلي (سعر العرض إن وجد، وإلا السعر الأساسي) والسعر قبل الخصم.
+     *
+     * @return array{unit_price: float|null, old_price: float|null}
+     */
+    private function resolveRowPricing(string $baseRaw, string $saleRaw, string $oldRaw): array
+    {
+        $base = $this->parsePrice($baseRaw);
+        $sale = $this->parsePrice($saleRaw);
+        $old = $this->parsePrice($oldRaw);
+
+        if ($sale !== null && $sale > 0 && ($base === null || $sale < $base)) {
+            return [
+                'unit_price' => $sale,
+                'old_price' => ($base !== null && $base > $sale) ? $base : null,
+            ];
+        }
+
+        if ($base !== null && $base > 0) {
+            return [
+                'unit_price' => $base,
+                'old_price' => ($old !== null && $old > $base) ? $old : null,
+            ];
+        }
+
+        return ['unit_price' => null, 'old_price' => null];
     }
 
     private function parsePrice(string $raw): ?float
@@ -1208,29 +1269,70 @@ class ProductBulkImportService
                 }
             }
 
-            $lower = mb_strtolower($val);
-            $inBranch = $categories->first(
-                fn (Category $c) => (int) $c->branch_id === $branchId && mb_strtolower(trim($c->name)) === $lower
-            );
-            if ($inBranch) {
-                return $inBranch;
-            }
+            // دعم مسار التصنيفات الهرمي مثل: "العناية ← العناية الشخصية ← مستلزمات طبية"
+            $segments = $this->parseCategoryHierarchy($val);
+            if (! empty($segments)) {
+                $parentId = null;
+                $current = null;
 
-            $anyBranch = $categories->first(fn (Category $c) => mb_strtolower(trim($c->name)) === $lower);
-            if ($anyBranch) {
-                return $anyBranch;
-            }
+                foreach ($segments as $segmentName) {
+                    $segLower = mb_strtolower($segmentName);
+                    $matched = $categories->first(function (Category $c) use ($branchId, $parentId, $segLower) {
+                        if ((int) $c->branch_id !== $branchId) {
+                            return false;
+                        }
+                        if ($parentId !== null && (int) $c->parent_id !== $parentId) {
+                            return false;
+                        }
 
-            if ($createIfMissing) {
-                $created = Category::create([
-                    'name' => mb_substr($val, 0, 255),
-                    'branch_id' => $branchId,
-                    'sort' => 99,
-                    'is_active' => true,
-                ]);
-                $categories->push($created);
+                        return mb_strtolower(trim($c->name)) === $segLower;
+                    });
 
-                return $created;
+                    if (! $matched) {
+                        $matched = $categories->first(function (Category $c) use ($parentId, $segLower) {
+                            if ($parentId !== null && (int) $c->parent_id !== $parentId) {
+                                return false;
+                            }
+
+                            return mb_strtolower(trim($c->name)) === $segLower;
+                        });
+                    }
+
+                    if (! $matched && $createIfMissing) {
+                        $matched = Category::create([
+                            'name' => mb_substr($segmentName, 0, 255),
+                            'branch_id' => $branchId,
+                            'parent_id' => $parentId,
+                            'sort' => 99,
+                            'is_active' => true,
+                        ]);
+                        $categories->push($matched);
+                    }
+
+                    if (! $matched) {
+                        // عند عدم التفعيل للإنشاء التلقائي، ابحث بأدق اسم فرعي موجود (من آخر مستوى لأول مستوى)
+                        foreach (array_reverse($segments) as $fallbackName) {
+                            $fbLower = mb_strtolower($fallbackName);
+                            $found = $categories->first(
+                                fn (Category $c) => (int) $c->branch_id === $branchId && mb_strtolower(trim($c->name)) === $fbLower
+                            ) ?? $categories->first(
+                                fn (Category $c) => mb_strtolower(trim($c->name)) === $fbLower
+                            );
+                            if ($found) {
+                                return $found;
+                            }
+                        }
+
+                        break;
+                    }
+
+                    $current = $matched;
+                    $parentId = $matched->id;
+                }
+
+                if ($current) {
+                    return $current;
+                }
             }
         }
 
@@ -1239,6 +1341,23 @@ class ProductBulkImportService
         }
 
         return null;
+    }
+
+    /**
+     * تفكيك مسار التصنيفات الهرمي (يدعم ← ، -> ، > ، › ، /).
+     *
+     * @return array<int, string>
+     */
+    private function parseCategoryHierarchy(string $rawCategory): array
+    {
+        // إذا احتوى على أكثر من مسار مفصول بفاصلة، نأخذ المسار الأول الرئيسي
+        $primaryPath = preg_split('/[,،]+/u', $rawCategory)[0] ?? $rawCategory;
+        $parts = preg_split('/\s*(?:←|→|<-|->|=>|>|›|»|\/)\s*/u', trim($primaryPath));
+        if (! is_array($parts)) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map('trim', $parts), fn ($p) => $p !== ''));
     }
 
     /**
@@ -1356,9 +1475,10 @@ class ProductBulkImportService
             }
         }
 
-        // 3. رابط صورة (أو رابط Google Drive لصورة)
-        if ($rawImage !== '' && preg_match('/^https?:\/\/.+/i', $rawImage)) {
-            $normalizedUrl = $this->normalizeGoogleImageUrl($rawImage);
+        // 3. رابط صورة (أو رابط Google Drive لصورة — وإذا كانت عدة روابط مفصولة بفاصلة نأخذ الأولى)
+        $firstImageCandidate = $rawImage !== '' ? trim(explode(',', $rawImage)[0]) : '';
+        if ($firstImageCandidate !== '' && preg_match('/^https?:\/\/.+/i', $firstImageCandidate)) {
+            $normalizedUrl = $this->normalizeGoogleImageUrl($firstImageCandidate);
             if ($downloadRemote) {
                 try {
                     $this->assertSafePublicUrl($normalizedUrl);

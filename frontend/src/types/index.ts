@@ -77,6 +77,7 @@ export interface Product {
   code: string;
   barcode: string | null;
   name: string;
+  brand?: string | null;
   description: string | null;
   image_url: string | null;
   is_new: boolean;

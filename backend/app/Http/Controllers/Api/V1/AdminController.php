@@ -337,6 +337,7 @@ class AdminController extends Controller
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('brand', 'like', "%{$search}%")
                   ->orWhere('code', 'like', "%{$search}%")
                   ->orWhere('barcode', 'like', "%{$search}%");
             });
@@ -391,10 +392,12 @@ class AdminController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'brand' => 'nullable|string|max:120',
             'code' => 'required|string|max:100|unique:products,code',
             'category_id' => 'required|exists:categories,id',
             'branch_id' => 'required|exists:branches,id',
             'unit_price' => 'required|numeric|min:0.01',
+            'old_price' => 'nullable|numeric|min:0',
             'description' => 'nullable|string',
             'image' => 'nullable|string',
             'image_file' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
@@ -411,6 +414,7 @@ class AdminController extends Controller
 
         $product = Product::create([
             'name' => $validated['name'],
+            'brand' => filled($validated['brand'] ?? null) ? trim((string) $validated['brand']) : null,
             'code' => $validated['code'],
             'category_id' => $validated['category_id'],
             'branch_id' => $validated['branch_id'],
@@ -420,6 +424,11 @@ class AdminController extends Controller
             'sort' => 99,
         ]);
 
+        $unitPrice = (float) $validated['unit_price'];
+        $oldPrice = isset($validated['old_price']) && (float) $validated['old_price'] > $unitPrice
+            ? (float) $validated['old_price']
+            : null;
+
         // إنشاء حزمة التسعير بالحبة الافتراضية
         \App\Models\ProductPackage::create([
             'product_id' => $product->id,
@@ -427,8 +436,8 @@ class AdminController extends Controller
             'unit' => 'حبة',
             'pack_quantity' => 1,
             'step_quantity' => 1,
-            'unit_price' => $validated['unit_price'],
-            'old_price' => null,
+            'unit_price' => $unitPrice,
+            'old_price' => $oldPrice,
             'is_default' => true,
             'is_active' => true,
         ]);
@@ -616,17 +625,19 @@ class AdminController extends Controller
 
         $request->validate([
             'name' => 'sometimes|required|string|max:255',
+            'brand' => 'nullable|string|max:120',
             'code' => 'sometimes|required|string|max:100|unique:products,code,' . $id,
             'category_id' => 'sometimes|required|exists:categories,id',
             'branch_id' => 'sometimes|required|exists:branches,id',
             'unit_price' => 'sometimes|required|numeric|min:0.01',
+            'old_price' => 'nullable|numeric|min:0',
             'description' => 'nullable|string',
             'image' => 'nullable|string',
             'image_file' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
             'is_active' => 'nullable|boolean',
         ]);
 
-        $updates = $request->only(['name', 'code', 'description', 'category_id', 'branch_id', 'image']);
+        $updates = $request->only(['name', 'brand', 'code', 'description', 'category_id', 'branch_id', 'image']);
         if ($request->has('is_active')) {
             $updates['is_active'] = $request->boolean('is_active');
         }
@@ -640,10 +651,18 @@ class AdminController extends Controller
 
         $product->update($updates);
 
-        if ($request->has('unit_price') && $product->defaultPackage) {
+        if (($request->has('unit_price') || $request->has('old_price')) && $product->defaultPackage) {
+            $nextUnitPrice = (float) ($request->input('unit_price', $product->defaultPackage->unit_price));
+            $rawOldPrice = $request->has('old_price')
+                ? $request->input('old_price')
+                : $product->defaultPackage->old_price;
+            $nextOldPrice = ($rawOldPrice !== null && $rawOldPrice !== '' && (float) $rawOldPrice > $nextUnitPrice)
+                ? (float) $rawOldPrice
+                : null;
+
             $product->defaultPackage->update([
-                'unit_price' => $request->input('unit_price'),
-                'old_price' => $request->input('old_price', $product->defaultPackage->old_price),
+                'unit_price' => $nextUnitPrice,
+                'old_price' => $nextOldPrice,
             ]);
         }
 

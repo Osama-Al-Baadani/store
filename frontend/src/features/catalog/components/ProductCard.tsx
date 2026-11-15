@@ -113,6 +113,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
           {/* اسم الصنف */}
           <Link href={`/catalog/${product.id}`} className="block">
+            {product.brand && (
+              <span className="inline-block text-[10px] font-extrabold text-[#8f5a13] bg-[#fbf3e6] border border-[#ebd2b0]/70 px-1.5 py-0.5 rounded-md mb-1">
+                {product.brand}
+              </span>
+            )}
             <h3 className="font-extrabold text-stone-900 text-xs sm:text-sm leading-snug line-clamp-2 group-hover:text-brand transition-colors">
               {product.name}
             </h3>

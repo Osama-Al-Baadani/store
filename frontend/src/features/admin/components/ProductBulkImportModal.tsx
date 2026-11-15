@@ -39,15 +39,17 @@ interface ProductBulkImportModalProps {
 }
 
 const MAPPING_LABELS: Array<{ key: string; label: string; required?: boolean }> = [
-  { key: 'name', label: 'اسم المنتج', required: true },
-  { key: 'unit_price', label: 'سعر الحبة', required: true },
-  { key: 'code', label: 'كود الصنف (SKU)' },
-  { key: 'description', label: 'الوصف' },
-  { key: 'category', label: 'القسم' },
-  { key: 'branch', label: 'المستودع' },
+  { key: 'name', label: 'الاسم / المنتج', required: true },
+  { key: 'unit_price', label: 'السعر الأساسي', required: true },
+  { key: 'sale_price', label: 'سعر العرض' },
+  { key: 'brand', label: 'العلامة التجارية' },
+  { key: 'code', label: 'SKU / الكود' },
+  { key: 'category', label: 'التصنيفات' },
+  { key: 'description', label: 'وصف مختصر' },
   { key: 'image', label: 'الصورة (رابط / اسم)' },
-  { key: 'old_price', label: 'السعر قبل الخصم' },
+  { key: 'branch', label: 'المستودع' },
   { key: 'barcode', label: 'الباركود' },
+  { key: 'old_price', label: 'سعر قديم (بديل)' },
   { key: 'unit', label: 'الوحدة' },
 ];
 
@@ -553,10 +555,10 @@ export const ProductBulkImportModal: React.FC<ProductBulkImportModalProps> = ({
                     <tr>
                       <th className="py-2.5 px-3">الصف</th>
                       <th className="py-2.5 px-3">الحالة</th>
-                      <th className="py-2.5 px-3">اسم المنتج</th>
-                      <th className="py-2.5 px-3">الكود</th>
-                      <th className="py-2.5 px-3">السعر</th>
-                      <th className="py-2.5 px-3">القسم / المستودع</th>
+                      <th className="py-2.5 px-3">اسم المنتج والعلامة</th>
+                      <th className="py-2.5 px-3">SKU / الكود</th>
+                      <th className="py-2.5 px-3">السعر (العرض / الأساسي)</th>
+                      <th className="py-2.5 px-3">التصنيف / المستودع</th>
                       <th className="py-2.5 px-3">الصورة</th>
                     </tr>
                   </thead>
@@ -575,10 +577,28 @@ export const ProductBulkImportModal: React.FC<ProductBulkImportModalProps> = ({
                             </span>
                             {row.error && <div className="text-[10px] text-rose-600 mt-0.5">{row.error}</div>}
                           </td>
-                          <td className="py-2 px-3 font-bold text-stone-900 max-w-[200px] truncate">{row.name || '—'}</td>
+                          <td className="py-2 px-3 max-w-[220px]">
+                            <div className="font-bold text-stone-900 truncate">{row.name || '—'}</div>
+                            {row.brand && (
+                              <span className="inline-block mt-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#fbf3e6] text-[#8f5a13] border border-[#ebd2b0]/70">
+                                {row.brand}
+                              </span>
+                            )}
+                          </td>
                           <td className="py-2 px-3 font-mono text-stone-600">{row.code}</td>
                           <td className="py-2 px-3 font-mono font-bold text-[#8f5a13]">
-                            {row.unit_price !== null ? `${row.unit_price} ر.س` : '—'}
+                            {row.unit_price !== null ? (
+                              <div className="flex flex-col">
+                                <span>{row.unit_price} ر.س</span>
+                                {row.old_price && row.old_price > row.unit_price && (
+                                  <span className="text-[10px] text-stone-400 line-through font-normal">
+                                    {row.old_price} ر.س
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              '—'
+                            )}
                           </td>
                           <td className="py-2 px-3 text-stone-600">
                             {row.category} · <span className="text-stone-400">{row.branch}</span>

@@ -137,8 +137,10 @@ export interface ProductImportPreviewRow {
   status: 'create' | 'update' | 'skip' | 'error';
   error: string | null;
   name: string;
+  brand?: string | null;
   code: string;
   unit_price: number | null;
+  old_price?: number | null;
   category: string;
   branch: string;
   image_source: 'embedded' | 'zip' | 'url' | 'none';

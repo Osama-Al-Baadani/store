@@ -133,10 +133,12 @@ export default function AdminDashboardPage() {
   // نماذج الإضافة
   const [newProduct, setNewProduct] = useState({
     name: '',
+    brand: '',
     code: '',
     category_id: '',
     branch_id: '',
     unit_price: '',
+    old_price: '',
     description: '',
     image: '',
   });
@@ -369,10 +371,12 @@ export default function AdminDashboardPage() {
     setExtractFeedback(null);
     setNewProduct({
       name: '',
+      brand: '',
       code: '',
       category_id: categories[0]?.id?.toString() || '',
       branch_id: branches[0]?.id?.toString() || '',
       unit_price: '',
+      old_price: '',
       description: '',
       image: '',
     });
@@ -387,10 +391,12 @@ export default function AdminDashboardPage() {
     setExtractFeedback(null);
     setNewProduct({
       name: product.name || '',
+      brand: product.brand || '',
       code: product.code || '',
       category_id: product.category_id?.toString() || product.category?.id?.toString() || '',
       branch_id: product.branch_id?.toString() || product.branch?.id?.toString() || '',
       unit_price: (product.default_package?.unit_price ?? '').toString(),
+      old_price: (product.default_package?.old_price ?? '').toString(),
       description: product.description || '',
       image: product.image || '',
     });
@@ -476,10 +482,12 @@ export default function AdminDashboardPage() {
     try {
       const formData = new FormData();
       formData.append('name', newProduct.name);
+      formData.append('brand', newProduct.brand.trim());
       formData.append('code', newProduct.code);
       formData.append('category_id', (parseInt(newProduct.category_id) || categories[0]?.id || 1).toString());
       formData.append('branch_id', (parseInt(newProduct.branch_id) || branches[0]?.id || 1).toString());
       formData.append('unit_price', parseFloat(newProduct.unit_price).toString());
+      formData.append('old_price', newProduct.old_price.trim() ? parseFloat(newProduct.old_price).toString() : '');
       formData.append('description', newProduct.description || '');
       if (productImageFile) {
         formData.append('image_file', productImageFile);
@@ -504,10 +512,12 @@ export default function AdminDashboardPage() {
         setProductImagePreview(null);
         setNewProduct({
           name: '',
+          brand: '',
           code: '',
           category_id: '',
           branch_id: '',
           unit_price: '',
+          old_price: '',
           description: '',
           image: '',
         });
@@ -1793,6 +1803,11 @@ export default function AdminDashboardPage() {
                               <span className="font-mono font-bold bg-stone-100 text-stone-700 px-2 py-0.5 rounded-md">
                                 {product.code}
                               </span>
+                              {product.brand && (
+                                <span className="bg-amber-50 text-[#8f5a13] border border-[#ebd2b0] px-2 py-0.5 rounded-md font-bold">
+                                  {product.brand}
+                                </span>
+                              )}
                               <span className="bg-[#fbf3e6] text-[#8f5a13] px-2 py-0.5 rounded-md font-semibold">
                                 {product.category?.name || 'عام'}
                               </span>
@@ -1916,7 +1931,14 @@ export default function AdminDashboardPage() {
                                 </div>
                                 <div>
                                   <div className="font-bold text-stone-900 leading-snug">{product.name}</div>
-                                  <div className="font-mono text-[10px] text-stone-500 mt-0.5">كود: {product.code}</div>
+                                  <div className="flex items-center gap-2 mt-0.5">
+                                    <span className="font-mono text-[10px] text-stone-500">كود: {product.code}</span>
+                                    {product.brand && (
+                                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#fbf3e6] text-[#8f5a13] border border-[#ebd2b0]/70">
+                                        {product.brand}
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </td>
@@ -3188,10 +3210,21 @@ export default function AdminDashboardPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-stone-700 mb-1">العلامة التجارية (اختياري)</label>
+                  <input
+                    type="text"
+                    placeholder="مثال: Silva / Rasasi / Lux"
+                    value={newProduct.brand}
+                    onChange={(e) => setNewProduct({ ...newProduct, brand: e.target.value })}
+                    className="w-full bg-stone-50 border border-stone-200 rounded-xl p-3 text-stone-900 focus:outline-hidden focus:border-[#b47820] focus:bg-white"
+                  />
+                </div>
+
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="block font-bold text-stone-700">كود الصنف الفريد *</label>
+                    <label className="block font-bold text-stone-700">كود الصنف / SKU *</label>
                     <button
                       type="button"
                       onClick={handleGenerateProductCode}
@@ -3209,17 +3242,31 @@ export default function AdminDashboardPage() {
                     required
                   />
                 </div>
+              </div>
 
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-stone-700 mb-1">سعر الحبة جملة (ر.س) *</label>
+                  <label className="block font-bold text-stone-700 mb-1">سعر البيع / العرض (ر.س) *</label>
                   <input
                     type="number"
                     step="0.01"
-                    placeholder="مثال: 4.50"
+                    placeholder="مثال: 4.90"
                     value={newProduct.unit_price}
                     onChange={(e) => setNewProduct({ ...newProduct, unit_price: e.target.value })}
                     className="w-full bg-stone-50 border border-stone-200 rounded-xl p-3 font-mono font-bold text-stone-900 focus:outline-hidden focus:border-[#b47820] focus:bg-white"
                     required
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-stone-700 mb-1">السعر الأساسي قبل العرض (اختياري)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="مثال: 9.00"
+                    value={newProduct.old_price}
+                    onChange={(e) => setNewProduct({ ...newProduct, old_price: e.target.value })}
+                    className="w-full bg-stone-50 border border-stone-200 rounded-xl p-3 font-mono text-stone-900 focus:outline-hidden focus:border-[#b47820] focus:bg-white"
                   />
                 </div>
               </div>

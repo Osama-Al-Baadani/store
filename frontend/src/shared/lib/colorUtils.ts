@@ -33,16 +33,20 @@ export interface BrandThemeTokens {
   gradient: string;
 }
 
-export function generateThemeTokens(primaryHex: string = '#b47820'): BrandThemeTokens {
-  // ترقية الألوان تلقائياً إلى درجات الأبيض والذهبي الملكي الفاخر
+export function generateThemeTokens(primaryHex: string = '#8c649c'): BrandThemeTokens {
+  // توحيد ألوان المنصة والمستودعات مع هوية دار الأميرات (اللافندر الملكي والبرقوقي العميق)
   const colorMap: Record<string, string> = {
-    '#68107e': '#b47820', // ذهبي ملكي دافئ (مستودع البديعة)
-    '#58126b': '#b47820',
-    '#4c1d95': '#c28b38', // ذهبي كلاسيكي ناصع (مستودع العزيزية)
-    '#701a75': '#854d0e', // ذهبي برونزي فاخر (مستودع السلي)
-    '#4f46e5': '#b47820',
-    '#059669': '#c28b38',
-    '#7c3aed': '#854d0e',
+    '#68107e': '#8c649c',
+    '#58126b': '#7d568d',
+    '#4c1d95': '#482b52',
+    '#701a75': '#a184ab',
+    '#4f46e5': '#8c649c',
+    '#059669': '#a184ab',
+    '#7c3aed': '#482b52',
+    '#b47820': '#8c649c',
+    '#c28b38': '#a184ab',
+    '#854d0e': '#482b52',
+    '#8f5a13': '#482b52',
   };
 
   let safeHex = primaryHex.startsWith('#') ? primaryHex.toLowerCase() : `#${primaryHex.toLowerCase()}`;
@@ -52,11 +56,10 @@ export function generateThemeTokens(primaryHex: string = '#b47820'): BrandThemeT
 
   const rgb = hexToRgb(safeHex);
 
-  const dark = adjustBrightness(safeHex, -32);
-  const bright = adjustBrightness(safeHex, 24);
-  const light = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.08)`;
-  const ring = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.3)`;
-  const gradient = `linear-gradient(135deg, #8f5a13 0%, #b47820 40%, #c28b38 75%, #dfb76c 100%)`;
+  const dark = '#482b52';
+  const light = `rgba(199, 170, 209, 0.16)`;
+  const ring = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.28)`;
+  const gradient = `linear-gradient(135deg, #482b52 0%, #8c649c 55%, #c7aad1 100%)`;
 
   return {
     primary: safeHex,

@@ -201,13 +201,13 @@ export const ProductBulkImportModal: React.FC<ProductBulkImportModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/55 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-      <div className="bg-white rounded-t-3xl sm:rounded-3xl p-4 sm:p-6 max-w-4xl w-full max-h-[93vh] overflow-y-auto border-t sm:border border-[#eddcc8] shadow-2xl space-y-4">
+      <div className="bg-white rounded-t-3xl sm:rounded-3xl p-4 sm:p-6 max-w-4xl w-full max-h-[93vh] overflow-y-auto border-t sm:border border-[#eeeeee] shadow-2xl space-y-4">
         <div className="w-12 h-1.5 rounded-full bg-stone-200 mx-auto sm:hidden" />
 
         {/* الرأس */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-[#eddcc8]/70 pb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-[#eeeeee]/70 pb-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#fbf3e6] to-amber-100/80 border border-[#ebd2b0] text-[#b47820] flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#faf6fc] to-amber-100/80 border border-[#c7aad1] text-[#8c649c] flex items-center justify-center shrink-0">
               <FileSpreadsheet className="w-5 h-5" />
             </div>
             <div>
@@ -225,7 +225,7 @@ export const ProductBulkImportModal: React.FC<ProductBulkImportModalProps> = ({
               type="button"
               onClick={handleDownloadTemplate}
               disabled={isDownloadingTemplate}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#fbf3e6] hover:bg-[#f5e7cf] border border-[#ebd2b0] text-[#8f5a13] text-xs font-bold transition-colors cursor-pointer disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#faf6fc] hover:bg-[#f5e7cf] border border-[#c7aad1] text-[#482b52] text-xs font-bold transition-colors cursor-pointer disabled:opacity-60"
             >
               <Download className="w-3.5 h-3.5" />
               <span>{isDownloadingTemplate ? 'جاري التحميل...' : 'تحميل قالب جاهز'}</span>
@@ -268,7 +268,7 @@ export const ProductBulkImportModal: React.FC<ProductBulkImportModalProps> = ({
               </div>
               <div className="bg-white rounded-xl px-3 py-2 border border-amber-100">
                 <span className="text-stone-500 block text-[10px]">صور محفوظة</span>
-                <span className="font-mono font-black text-[#8f5a13] text-sm">{executeResult.images_saved}</span>
+                <span className="font-mono font-black text-[#482b52] text-sm">{executeResult.images_saved}</span>
               </div>
               <div className="bg-white rounded-xl px-3 py-2 border border-rose-100">
                 <span className="text-stone-500 block text-[10px]">أخطاء</span>
@@ -286,8 +286,8 @@ export const ProductBulkImportModal: React.FC<ProductBulkImportModalProps> = ({
         )}
 
         {/* اختيار مصدر البيانات */}
-        <div className="bg-[#fdfbf7] rounded-2xl border border-[#eddcc8] p-3.5 sm:p-4 space-y-3.5">
-          <div className="bg-white p-1 rounded-xl border border-[#eddcc8] inline-flex gap-1">
+        <div className="bg-[#f9fafb] rounded-2xl border border-[#eeeeee] p-3.5 sm:p-4 space-y-3.5">
+          <div className="bg-white p-1 rounded-xl border border-[#eeeeee] inline-flex gap-1">
             <button
               type="button"
               onClick={() => {
@@ -296,7 +296,7 @@ export const ProductBulkImportModal: React.FC<ProductBulkImportModalProps> = ({
               }}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 sourceMode === 'file'
-                  ? 'bg-gradient-to-r from-[#8f5a13] to-[#b47820] text-white shadow-2xs'
+                  ? 'bg-gradient-to-r from-[#482b52] to-[#8c649c] text-white shadow-2xs'
                   : 'text-stone-600 hover:text-stone-900'
               }`}
             >
@@ -311,7 +311,7 @@ export const ProductBulkImportModal: React.FC<ProductBulkImportModalProps> = ({
               }}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 sourceMode === 'url'
-                  ? 'bg-gradient-to-r from-[#8f5a13] to-[#b47820] text-white shadow-2xs'
+                  ? 'bg-gradient-to-r from-[#482b52] to-[#8c649c] text-white shadow-2xs'
                   : 'text-stone-600 hover:text-stone-900'
               }`}
             >
@@ -326,11 +326,11 @@ export const ProductBulkImportModal: React.FC<ProductBulkImportModalProps> = ({
                 <label className="block font-bold text-stone-800 mb-1">
                   ملف المنتجات (.xlsx أو .csv) *
                 </label>
-                <label className="flex items-center justify-between gap-2 bg-white border border-dashed border-[#d9b683] hover:border-[#b47820] rounded-xl px-3 py-2.5 cursor-pointer transition-colors">
+                <label className="flex items-center justify-between gap-2 bg-white border border-dashed border-[#d9b683] hover:border-[#8c649c] rounded-xl px-3 py-2.5 cursor-pointer transition-colors">
                   <span className="truncate font-semibold text-stone-700">
                     {sheetFile ? sheetFile.name : 'اختر ملف Excel أو CSV من جهازك...'}
                   </span>
-                  <span className="px-2.5 py-1 rounded-lg bg-[#fbf3e6] text-[#8f5a13] font-bold shrink-0">
+                  <span className="px-2.5 py-1 rounded-lg bg-[#faf6fc] text-[#482b52] font-bold shrink-0">
                     استعراض
                   </span>
                   <input
@@ -362,7 +362,7 @@ export const ProductBulkImportModal: React.FC<ProductBulkImportModalProps> = ({
                     setPreview(null);
                     setColumnMapping(null);
                   }}
-                  className="w-full bg-white border border-[#eddcc8] rounded-xl px-3 py-2.5 text-xs text-stone-900 placeholder-stone-400 focus:outline-hidden focus:border-[#b47820]"
+                  className="w-full bg-white border border-[#eeeeee] rounded-xl px-3 py-2.5 text-xs text-stone-900 placeholder-stone-400 focus:outline-hidden focus:border-[#8c649c]"
                 />
                 <p className="text-[10px] text-stone-500 mt-1">
                   اجعل مشاركة الملف على Drive/Sheets: «أي شخص لديه الرابط — عارض».
@@ -374,9 +374,9 @@ export const ProductBulkImportModal: React.FC<ProductBulkImportModalProps> = ({
               <label className="block font-bold text-stone-800 mb-1">
                 ملف صور مضغوط (.zip) — اختياري
               </label>
-              <label className="flex items-center justify-between gap-2 bg-white border border-dashed border-stone-300 hover:border-[#b47820] rounded-xl px-3 py-2.5 cursor-pointer transition-colors">
+              <label className="flex items-center justify-between gap-2 bg-white border border-dashed border-stone-300 hover:border-[#8c649c] rounded-xl px-3 py-2.5 cursor-pointer transition-colors">
                 <span className="flex items-center gap-1.5 truncate font-medium text-stone-600">
-                  <FolderArchive className="w-4 h-4 text-[#b47820] shrink-0" />
+                  <FolderArchive className="w-4 h-4 text-[#8c649c] shrink-0" />
                   <span className="truncate">
                     {imagesZipFile ? imagesZipFile.name : 'مجلد صور ZIP (يطابق الكود أو اسم الصورة)'}
                   </span>
@@ -408,7 +408,7 @@ export const ProductBulkImportModal: React.FC<ProductBulkImportModalProps> = ({
                   setDefaultCategoryId('');
                   setPreview(null);
                 }}
-                className="w-full bg-white border border-[#eddcc8] rounded-xl py-2 px-3 text-xs font-bold text-stone-800 focus:outline-hidden focus:border-[#b47820]"
+                className="w-full bg-white border border-[#eeeeee] rounded-xl py-2 px-3 text-xs font-bold text-stone-800 focus:outline-hidden focus:border-[#8c649c]"
               >
                 {branches.map((b) => (
                   <option key={b.id} value={b.id.toString()}>
@@ -423,7 +423,7 @@ export const ProductBulkImportModal: React.FC<ProductBulkImportModalProps> = ({
               <select
                 value={defaultCategoryId}
                 onChange={(e) => setDefaultCategoryId(e.target.value)}
-                className="w-full bg-white border border-[#eddcc8] rounded-xl py-2 px-3 text-xs font-bold text-stone-800 focus:outline-hidden focus:border-[#b47820]"
+                className="w-full bg-white border border-[#eeeeee] rounded-xl py-2 px-3 text-xs font-bold text-stone-800 focus:outline-hidden focus:border-[#8c649c]"
               >
                 <option value="">بدون قسم افتراضي</option>
                 {branchCategories.map((c) => (
@@ -439,7 +439,7 @@ export const ProductBulkImportModal: React.FC<ProductBulkImportModalProps> = ({
               <select
                 value={duplicateMode}
                 onChange={(e) => setDuplicateMode(e.target.value as 'update' | 'skip')}
-                className="w-full bg-white border border-[#eddcc8] rounded-xl py-2 px-3 text-xs font-bold text-stone-800 focus:outline-hidden focus:border-[#b47820]"
+                className="w-full bg-white border border-[#eeeeee] rounded-xl py-2 px-3 text-xs font-bold text-stone-800 focus:outline-hidden focus:border-[#8c649c]"
               >
                 <option value="update">تحديث بيانات وسعر المنتج</option>
                 <option value="skip">تخطي المنتج الموجود</option>
@@ -454,7 +454,7 @@ export const ProductBulkImportModal: React.FC<ProductBulkImportModalProps> = ({
                   type="checkbox"
                   checked={createMissingCategories}
                   onChange={(e) => setCreateMissingCategories(e.target.checked)}
-                  className="rounded border-stone-300 text-[#b47820] focus:ring-[#b47820]"
+                  className="rounded border-stone-300 text-[#8c649c] focus:ring-[#8c649c]"
                 />
                 <span>إنشاء الأقسام الجديدة غير الموجودة تلقائياً</span>
               </label>
@@ -464,7 +464,7 @@ export const ProductBulkImportModal: React.FC<ProductBulkImportModalProps> = ({
                   type="checkbox"
                   checked={downloadRemoteImages}
                   onChange={(e) => setDownloadRemoteImages(e.target.checked)}
-                  className="rounded border-stone-300 text-[#b47820] focus:ring-[#b47820]"
+                  className="rounded border-stone-300 text-[#8c649c] focus:ring-[#8c649c]"
                 />
                 <span>حفظ صور الروابط داخل السيرفر محلياً</span>
               </label>
@@ -490,7 +490,7 @@ export const ProductBulkImportModal: React.FC<ProductBulkImportModalProps> = ({
         {preview && (
           <div className="space-y-3.5">
             {/* ربط الأعمدة */}
-            <div className="bg-white rounded-2xl border border-[#eddcc8] p-3.5 space-y-2.5">
+            <div className="bg-white rounded-2xl border border-[#eeeeee] p-3.5 space-y-2.5">
               <div className="flex items-center justify-between gap-2">
                 <h4 className="text-xs font-extrabold text-stone-800">
                   مطابقة أعمدة الملف ({preview.headers.length} عمود · {preview.rows_count} منتج)
@@ -499,7 +499,7 @@ export const ProductBulkImportModal: React.FC<ProductBulkImportModalProps> = ({
                   type="button"
                   onClick={() => handlePreview(columnMapping)}
                   disabled={isPreviewing}
-                  className="text-[11px] font-bold text-[#8f5a13] hover:underline cursor-pointer"
+                  className="text-[11px] font-bold text-[#482b52] hover:underline cursor-pointer"
                 >
                   تحديث المعاينة حسب الربط
                 </button>
@@ -508,7 +508,7 @@ export const ProductBulkImportModal: React.FC<ProductBulkImportModalProps> = ({
                 {MAPPING_LABELS.map((field) => {
                   const val = columnMapping?.[field.key];
                   return (
-                    <div key={field.key} className="bg-[#fdfbf7] rounded-xl p-2 border border-[#eddcc8]/70">
+                    <div key={field.key} className="bg-[#f9fafb] rounded-xl p-2 border border-[#eeeeee]/70">
                       <label className="block font-bold text-stone-700 mb-1 truncate">
                         {field.label}
                         {field.required && <span className="text-rose-500"> *</span>}
@@ -519,7 +519,7 @@ export const ProductBulkImportModal: React.FC<ProductBulkImportModalProps> = ({
                           const nextVal = e.target.value === '' ? null : parseInt(e.target.value, 10);
                           setColumnMapping((prev) => ({ ...(prev || preview.mapping), [field.key]: nextVal }));
                         }}
-                        className="w-full bg-white border border-stone-200 rounded-lg py-1 px-1.5 text-[11px] font-semibold text-stone-800 focus:outline-hidden focus:border-[#b47820]"
+                        className="w-full bg-white border border-stone-200 rounded-lg py-1 px-1.5 text-[11px] font-semibold text-stone-800 focus:outline-hidden focus:border-[#8c649c]"
                       >
                         <option value="">— غير مرتبط —</option>
                         {preview.headers.map((header, idx) => (
@@ -550,7 +550,7 @@ export const ProductBulkImportModal: React.FC<ProductBulkImportModalProps> = ({
               </div>
               <div className="rounded-xl bg-amber-50 border border-amber-200 px-3 py-2">
                 <span className="text-[10px] text-amber-800 block">صور مدمجة / ZIP</span>
-                <span className="font-mono font-black text-[#8f5a13] text-sm">
+                <span className="font-mono font-black text-[#482b52] text-sm">
                   {preview.embedded_images_count + preview.zip_images_count}
                 </span>
               </div>
@@ -561,10 +561,10 @@ export const ProductBulkImportModal: React.FC<ProductBulkImportModalProps> = ({
             </div>
 
             {/* جدول المعاينة */}
-            <div className="bg-white rounded-2xl border border-[#eddcc8] overflow-hidden">
+            <div className="bg-white rounded-2xl border border-[#eeeeee] overflow-hidden">
               <div className="max-h-64 overflow-auto">
                 <table className="w-full text-right text-[11px]">
-                  <thead className="bg-[#faf7f2] border-b border-[#eddcc8] text-stone-600 font-bold sticky top-0">
+                  <thead className="bg-[#faf7f2] border-b border-[#eeeeee] text-stone-600 font-bold sticky top-0">
                     <tr>
                       <th className="py-2.5 px-3">الصف</th>
                       <th className="py-2.5 px-3">الحالة</th>
@@ -579,7 +579,7 @@ export const ProductBulkImportModal: React.FC<ProductBulkImportModalProps> = ({
                     {preview.rows.map((row) => {
                       const badge = STATUS_BADGE[row.status] || STATUS_BADGE.create;
                       return (
-                        <tr key={row.row_number} className="hover:bg-[#fdfbf7]">
+                        <tr key={row.row_number} className="hover:bg-[#f9fafb]">
                           <td className="py-2 px-3 font-mono text-stone-500">{row.row_number}</td>
                           <td className="py-2 px-3">
                             <span
@@ -593,13 +593,13 @@ export const ProductBulkImportModal: React.FC<ProductBulkImportModalProps> = ({
                           <td className="py-2 px-3 max-w-[220px]">
                             <div className="font-bold text-stone-900 truncate">{row.name || '—'}</div>
                             {row.brand && (
-                              <span className="inline-block mt-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#fbf3e6] text-[#8f5a13] border border-[#ebd2b0]/70">
+                              <span className="inline-block mt-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#faf6fc] text-[#482b52] border border-[#c7aad1]/70">
                                 {row.brand}
                               </span>
                             )}
                           </td>
                           <td className="py-2 px-3 font-mono text-stone-600">{row.code}</td>
-                          <td className="py-2 px-3 font-mono font-bold text-[#8f5a13]">
+                          <td className="py-2 px-3 font-mono font-bold text-[#482b52]">
                             {row.unit_price !== null ? (
                               <div className="flex flex-col">
                                 <span>{row.unit_price} ر.س</span>
@@ -626,7 +626,7 @@ export const ProductBulkImportModal: React.FC<ProductBulkImportModalProps> = ({
                 </table>
               </div>
               {preview.rows_count > preview.rows.length && (
-                <div className="px-3 py-2 bg-[#faf7f2] border-t border-[#eddcc8] text-[10px] text-stone-500 text-center">
+                <div className="px-3 py-2 bg-[#faf7f2] border-t border-[#eeeeee] text-[10px] text-stone-500 text-center">
                   يتم عرض أول {preview.rows.length} صفاً من أصل {preview.rows_count} صفاً في المعاينة (سيتم استيراد جميع الصفوف عند التنفيذ).
                 </div>
               )}
@@ -645,7 +645,7 @@ export const ProductBulkImportModal: React.FC<ProductBulkImportModalProps> = ({
                 type="button"
                 onClick={handleExecuteImport}
                 disabled={isImporting || preview.summary.will_create + preview.summary.will_update === 0}
-                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#8f5a13] to-[#b47820] hover:opacity-95 text-white text-xs font-extrabold shadow-sm transition-all cursor-pointer disabled:opacity-50"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#482b52] to-[#8c649c] hover:opacity-95 text-white text-xs font-extrabold shadow-sm transition-all cursor-pointer disabled:opacity-50"
               >
                 {isImporting ? (
                   <>

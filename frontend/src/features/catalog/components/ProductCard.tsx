@@ -41,24 +41,24 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   return (
     <article
-      className={`group relative flex flex-col bg-white rounded-3xl border transition-all duration-300 overflow-hidden ${
+      className={`group relative flex flex-col bg-white rounded-xl sm:rounded-2xl border transition-all duration-300 overflow-hidden ${
         inCart
-          ? 'border-[#b47820] shadow-lg ring-1 ring-[#c28b38]/35 bg-gradient-to-b from-white to-[#fbf3e6]/45'
-          : 'border-[#eddcc8]/90 hover:border-[#c28b38] shadow-xs hover:shadow-[0_14px_34px_-12px_rgba(180,120,32,0.26)] hover:-translate-y-1'
+          ? 'border-[#a184ab] shadow-md ring-1 ring-[#c7aad1]/50 bg-gradient-to-b from-white to-[#faf6fc]'
+          : 'border-[#eeeeee] hover:border-[#c7aad1] shadow-2xs hover:shadow-[0_12px_28px_-10px_rgba(72,43,82,0.16)] hover:-translate-y-0.5'
       }`}
     >
       {/* مؤشر وجود الصنف في السلة */}
       {inCart && (
-        <div className="absolute top-3 left-3 z-10 bg-gradient-to-r from-[#8f5a13] to-[#c28b38] text-white text-[10px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm border border-amber-300/40">
+        <div className="absolute top-2.5 left-2.5 z-10 bg-[#482b52] text-white text-[10px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-xs">
           <Check className="w-3 h-3 stroke-[3]" />
           <span>{quantity} بالسلة</span>
         </div>
       )}
 
-      {/* منطقة الصورة والشارات الفاخرة */}
+      {/* منطقة الصورة والشارات */}
       <Link
         href={`/catalog/${product.id}`}
-        className="relative w-full aspect-square bg-gradient-to-b from-[#fdfbf7] to-white flex items-center justify-center p-3.5 sm:p-4 overflow-hidden border-b border-[#f3e6d3] cursor-pointer"
+        className="relative w-full aspect-square bg-white flex items-center justify-center p-3.5 sm:p-4 overflow-hidden border-b border-[#f3f4f6] cursor-pointer"
       >
         {resolvedImageUrl ? (
           <img
@@ -68,28 +68,28 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             loading="lazy"
           />
         ) : (
-          <div className="w-full h-full rounded-2xl bg-[#faf7f2] border border-dashed border-[#ebd2b0] flex flex-col items-center justify-center text-stone-400">
-            <Package className="w-11 h-11 text-[#d9b683] mb-1" />
-            <span className="text-[10px] font-mono text-stone-400">
+          <div className="w-full h-full rounded-xl bg-[#faf6fc] border border-dashed border-[#c7aad1] flex flex-col items-center justify-center text-gray-400">
+            <Package className="w-11 h-11 text-[#c7aad1] mb-1" />
+            <span className="text-[10px] font-mono text-gray-400">
               {product.code}
             </span>
           </div>
         )}
 
         {/* الشارات العلوية */}
-        <div className="absolute top-3 right-3 flex flex-col gap-1.5 items-end">
+        <div className="absolute top-2.5 right-2.5 flex flex-col gap-1.5 items-end">
           {isComingSoon && (
-            <span className="inline-flex items-center gap-1 bg-amber-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-xs">
+            <span className="inline-flex items-center gap-1 bg-[#482b52] text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-xs">
               <Bell className="w-3 h-3" /> قريباً
             </span>
           )}
           {product.is_new && !isComingSoon && (
-            <span className="inline-flex items-center gap-1 bg-gradient-to-r from-[#8f5a13] via-[#b47820] to-[#c28b38] text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-xs tracking-wider border border-amber-300/40">
-              <Sparkles className="w-3 h-3" /> جديد
+            <span className="inline-flex items-center gap-1 bg-[#c7aad1] text-[#111827] text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-xs">
+              <Sparkles className="w-3 h-3 text-[#482b52]" /> جديد
             </span>
           )}
           {discountPercent > 0 && !isComingSoon && (
-            <span className="inline-flex items-center gap-0.5 bg-gradient-to-r from-rose-600 to-amber-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-xs border border-white/25">
+            <span className="inline-flex items-center gap-0.5 bg-rose-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-xs">
               <Tag className="w-2.5 h-2.5" />
               خصم {discountPercent}%
             </span>
@@ -98,23 +98,23 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
         {/* شارة التصنيف السفلية */}
         {product.category_name && (
-          <span className="absolute bottom-2 right-2.5 max-w-[80%] truncate bg-white/92 backdrop-blur-xs text-[10px] font-bold text-stone-600 px-2 py-0.5 rounded-lg border border-[#eddcc8]/80 shadow-2xs">
+          <span className="absolute bottom-2 right-2.5 max-w-[80%] truncate bg-white/95 backdrop-blur-xs text-[10px] font-bold text-[#4b5563] px-2 py-0.5 rounded-lg border border-[#eeeeee] shadow-2xs">
             {product.category_name}
           </span>
         )}
       </Link>
 
-      {/* تفاصيل الصنف الفاخرة */}
+      {/* تفاصيل الصنف */}
       <div className="p-3 sm:p-4 flex flex-col flex-1 justify-between gap-2.5 sm:gap-3">
         <div>
           {/* كود الصنف وزر التفاصيل */}
           <div className="flex items-center justify-between gap-1.5 mb-1.5">
-            <span className="text-[10px] sm:text-[11px] font-mono font-bold text-stone-600 bg-stone-100 px-1.5 sm:px-2 py-0.5 rounded-md truncate">
+            <span className="text-[10px] sm:text-[11px] font-mono font-bold text-[#4b5563] bg-gray-100 px-1.5 sm:px-2 py-0.5 rounded-md truncate">
               {product.code}
             </span>
             <Link
               href={`/catalog/${product.id}`}
-              className="shrink-0 inline-flex items-center gap-1 text-[10px] font-extrabold text-[#8f5a13] hover:text-[#b47820] bg-[#fbf3e6] hover:bg-[#f5e6cd] px-1.5 sm:px-2 py-0.5 rounded-md border border-[#ebd2b0] transition-colors"
+              className="shrink-0 inline-flex items-center gap-1 text-[10px] font-extrabold text-[#482b52] hover:bg-[#edd0f7]/45 bg-[#faf6fc] px-1.5 sm:px-2 py-0.5 rounded-md border border-[#c7aad1]/70 transition-colors"
             >
               <Eye className="w-3 h-3" />
               <span>التفاصيل</span>
@@ -124,12 +124,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           {/* العلامة التجارية + اسم الصنف */}
           <Link href={`/catalog/${product.id}`} className="block space-y-1">
             {product.brand && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-[#8f5a13] bg-[#fbf3e6] border border-[#ebd2b0]/90 px-2 py-0.5 rounded-md">
-                <Award className="w-2.5 h-2.5 text-[#b47820]" />
+              <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-[#482b52] bg-[#faf6fc] border border-[#c7aad1]/70 px-2 py-0.5 rounded-md">
+                <Award className="w-2.5 h-2.5 text-[#a184ab]" />
                 <span>{product.brand}</span>
               </span>
             )}
-            <h3 className="font-extrabold text-stone-900 text-xs sm:text-sm leading-snug line-clamp-2 min-h-[2.4em] group-hover:text-[#8f5a13] transition-colors">
+            <h3 className="font-extrabold text-[#111827] text-xs sm:text-sm leading-snug line-clamp-2 min-h-[2.4em] group-hover:text-[#482b52] transition-colors">
               {product.name}
             </h3>
           </Link>
@@ -137,28 +137,28 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
         {/* لوحة تسعيرة الجملة */}
         <div
-          className={`rounded-2xl p-2 sm:p-2.5 border ${
+          className={`rounded-xl p-2 sm:p-2.5 border ${
             hasDiscount
-              ? 'bg-gradient-to-br from-[#fffaf3] to-[#fbf3e6]/80 border-[#ebd2b0]'
-              : 'bg-[#faf8f5] border-[#eddcc8]/80'
+              ? 'bg-[#faf6fc] border-[#c7aad1]/80'
+              : 'bg-[#f9fafb] border-[#eeeeee]'
           }`}
         >
           <div className="flex items-end justify-between gap-2">
             <div>
-              <span className="text-[10px] text-stone-500 block font-semibold">
+              <span className="text-[10px] text-[#4b5563] block font-semibold">
                 {hasDiscount ? 'سعر العرض للحبة' : 'سعر الحبة'}
               </span>
               <div className="flex items-baseline gap-1">
-                <span className="text-lg sm:text-xl font-black text-[#8f5a13] tracking-tight">
+                <span className="text-lg sm:text-xl font-black text-[#482b52] tracking-tight">
                   {unitPrice.toFixed(2)}
                 </span>
-                <span className="text-[10px] sm:text-[11px] font-bold text-[#b47820]">ر.س</span>
+                <span className="text-[10px] sm:text-[11px] font-bold text-[#a184ab]">ر.س</span>
               </div>
             </div>
 
             {hasDiscount && oldPrice && (
               <div className="text-left">
-                <span className="text-[11px] font-semibold line-through text-stone-400 block">
+                <span className="text-[11px] font-semibold line-through text-gray-400 block">
                   {oldPrice.toFixed(2)} ر.س
                 </span>
                 {savingsAmount > 0 && (
@@ -176,7 +176,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           {isComingSoon ? (
             <button
               type="button"
-              className="w-full py-2.5 px-3 rounded-2xl border border-amber-300 bg-amber-50 text-amber-800 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
+              className="w-full py-2.5 px-3 rounded-xl border border-[#c7aad1] bg-[#faf6fc] text-[#482b52] text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
             >
               <Bell className="w-3.5 h-3.5" /> نبهني عند توفر المخزون
             </button>

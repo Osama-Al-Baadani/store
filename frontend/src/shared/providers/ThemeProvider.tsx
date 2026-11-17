@@ -9,7 +9,7 @@ interface ThemeContextType {
   setBrandColor: (hex: string) => void;
 }
 
-const defaultColor = '#b47820';
+const defaultColor = '#8c649c';
 const defaultTokens = generateThemeTokens(defaultColor);
 
 const ThemeContext = createContext<ThemeContextType>({

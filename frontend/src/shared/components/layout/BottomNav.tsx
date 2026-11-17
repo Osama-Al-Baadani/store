@@ -22,7 +22,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   onCategoriesClick,
 }) => {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-[#eddcc8] shadow-[0_-4px_20px_-4px_rgba(180,120,32,0.1)] z-30 py-1.5 px-3 safe-pb">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-[#eeeeee] shadow-[0_-4px_20px_-4px_rgba(72,43,82,0.08)] z-30 py-1.5 px-3 safe-pb">
       <div className="max-w-md mx-auto flex items-center justify-around text-slate-500">
         {/* الرئيسية */}
         <Link

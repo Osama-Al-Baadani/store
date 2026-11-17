@@ -180,18 +180,18 @@ export default function CatalogPage() {
 
   if (isAuthLoading || !isAuthenticated || (user?.merchant_profile && user.merchant_profile.status !== 'active')) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#fdfbf7] via-[#f8f4eb] to-[#f2ecde] flex flex-col items-center justify-center text-stone-900 px-4">
-        <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-[#dfb76c] via-[#c28b38] to-[#996515] text-white flex items-center justify-center shadow-xl shadow-amber-900/10 mb-4 animate-pulse">
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center text-[#111827] px-4">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#482b52] via-[#8c649c] to-[#c7aad1] text-white flex items-center justify-center shadow-xl shadow-purple-950/10 mb-4 animate-pulse">
           <Loader2 className="w-8 h-8 animate-spin text-white" />
         </div>
-        <p className="text-base font-black text-stone-900">التحقق من اعتماد المنشأة والتصريح...</p>
-        <p className="text-xs text-stone-500 mt-1 font-medium">المنصة مخصصة لقطاع الجملة والشركات المعتمدة فقط</p>
+        <p className="text-base font-black text-[#111827]">التحقق من اعتماد المنشأة والتصريح...</p>
+        <p className="text-xs text-[#4b5563] mt-1 font-medium">المنصة مخصصة لقطاع الجملة والشركات المعتمدة فقط</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#faf8f5] pb-32 text-stone-900 font-sans selection:bg-amber-200 selection:text-amber-950">
+    <div className="min-h-screen bg-white pb-32 text-[#111827] font-sans selection:bg-[#edd0f7] selection:text-[#482b52]">
       {/* رأس الكتالوج الفاخر */}
       <CatalogHeader
         branch={activeBranch}
@@ -231,10 +231,10 @@ export default function CatalogPage() {
 
         {/* شريط الفلاتر النشطة */}
         {(hasActiveFilters || selectedCategory !== null || Boolean(searchQuery.trim())) && (
-          <div className="bg-white rounded-2xl border border-[#eddcc8] px-3.5 py-2.5 flex flex-wrap items-center justify-between gap-2 shadow-2xs">
+          <div className="bg-white rounded-xl border border-[#eeeeee] px-3.5 py-2.5 flex flex-wrap items-center justify-between gap-2 shadow-2xs">
             <div className="flex flex-wrap items-center gap-1.5 text-xs">
-              <span className="font-bold text-stone-600 inline-flex items-center gap-1 ml-1">
-                <SlidersHorizontal className="w-3.5 h-3.5 text-[#b47820]" />
+              <span className="font-bold text-[#4b5563] inline-flex items-center gap-1 ml-1">
+                <SlidersHorizontal className="w-3.5 h-3.5 text-[#a184ab]" />
                 الفلاتر النشطة:
               </span>
 
@@ -242,7 +242,7 @@ export default function CatalogPage() {
                 <button
                   type="button"
                   onClick={() => setSelectedCategory(null)}
-                  className="inline-flex items-center gap-1 bg-[#fbf3e6] text-[#8f5a13] border border-[#ebd2b0] px-2.5 py-1 rounded-full text-[11px] font-bold cursor-pointer hover:bg-[#faebd7]"
+                  className="inline-flex items-center gap-1 bg-[#faf6fc] text-[#482b52] border border-[#c7aad1] px-2.5 py-1 rounded-full text-[11px] font-bold cursor-pointer hover:bg-[#edd0f7]/45"
                 >
                   <span>القسم: {selectedCategoryPathNames.join(' ← ')}</span>
                   <X className="w-3 h-3" />
@@ -253,9 +253,9 @@ export default function CatalogPage() {
                 <button
                   type="button"
                   onClick={() => setSelectedBrand(null)}
-                  className="inline-flex items-center gap-1 bg-[#fbf3e6] text-[#8f5a13] border border-[#ebd2b0] px-2.5 py-1 rounded-full text-[11px] font-bold cursor-pointer hover:bg-[#faebd7]"
+                  className="inline-flex items-center gap-1 bg-[#faf6fc] text-[#482b52] border border-[#c7aad1] px-2.5 py-1 rounded-full text-[11px] font-bold cursor-pointer hover:bg-[#edd0f7]/45"
                 >
-                  <Award className="w-3 h-3 text-[#b47820]" />
+                  <Award className="w-3 h-3 text-[#a184ab]" />
                   <span>العلامة: {selectedBrand}</span>
                   <X className="w-3 h-3" />
                 </button>
@@ -265,7 +265,7 @@ export default function CatalogPage() {
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="inline-flex items-center gap-1 bg-[#fbf3e6] text-[#8f5a13] border border-[#ebd2b0] px-2.5 py-1 rounded-full text-[11px] font-bold cursor-pointer hover:bg-[#faebd7]"
+                  className="inline-flex items-center gap-1 bg-[#faf6fc] text-[#482b52] border border-[#c7aad1] px-2.5 py-1 rounded-full text-[11px] font-bold cursor-pointer hover:bg-[#edd0f7]/45"
                 >
                   <span>بحث: {searchQuery.trim()}</span>
                   <X className="w-3 h-3" />
@@ -278,7 +278,7 @@ export default function CatalogPage() {
                   onClick={() =>
                     setAdvancedFilters((prev) => ({ ...prev, sort: 'default' }))
                   }
-                  className="inline-flex items-center gap-1 bg-[#fbf3e6] text-[#8f5a13] border border-[#ebd2b0] px-2.5 py-1 rounded-full text-[11px] font-bold cursor-pointer hover:bg-[#faebd7]"
+                  className="inline-flex items-center gap-1 bg-[#faf6fc] text-[#482b52] border border-[#c7aad1] px-2.5 py-1 rounded-full text-[11px] font-bold cursor-pointer hover:bg-[#edd0f7]/45"
                 >
                   <span>{SORT_LABELS[advancedFilters.sort]}</span>
                   <X className="w-3 h-3" />
@@ -294,7 +294,7 @@ export default function CatalogPage() {
                   className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold cursor-pointer border ${
                     advancedFilters.quickFilter === 'discounted'
                       ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
-                      : 'bg-[#fbf3e6] text-[#8f5a13] border-[#ebd2b0] hover:bg-[#faebd7]'
+                      : 'bg-[#faf6fc] text-[#482b52] border-[#c7aad1] hover:bg-[#edd0f7]/45'
                   }`}
                 >
                   <span>{QUICK_FILTER_LABELS[advancedFilters.quickFilter]}</span>
@@ -308,7 +308,7 @@ export default function CatalogPage() {
                   onClick={() =>
                     setAdvancedFilters((prev) => ({ ...prev, minPrice: '', maxPrice: '' }))
                   }
-                  className="inline-flex items-center gap-1 bg-[#fbf3e6] text-[#8f5a13] border border-[#ebd2b0] px-2.5 py-1 rounded-full text-[11px] font-bold cursor-pointer hover:bg-[#faebd7]"
+                  className="inline-flex items-center gap-1 bg-[#faf6fc] text-[#482b52] border border-[#c7aad1] px-2.5 py-1 rounded-full text-[11px] font-bold cursor-pointer hover:bg-[#edd0f7]/45"
                 >
                   <span>
                     السعر: {advancedFilters.minPrice || '0'} - {advancedFilters.maxPrice || '∞'} ر.س
@@ -330,30 +330,30 @@ export default function CatalogPage() {
 
         {(isBranchesLoading || isCatalogLoading) && products.length === 0 ? (
           <div className="py-24 flex flex-col items-center justify-center text-brand">
-            <Loader2 className="w-10 h-10 animate-spin mb-3 text-[#b47820]" />
-            <span className="text-sm font-bold text-stone-700">
+            <Loader2 className="w-10 h-10 animate-spin mb-3 text-[#8c649c]" />
+            <span className="text-sm font-bold text-[#111827]">
               جاري تجهيز كتالوج الأصناف المعتمدة...
             </span>
           </div>
         ) : catalogError ? (
-          <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-3xl flex items-center gap-3 text-sm">
+          <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-2xl flex items-center gap-3 text-sm">
             <AlertCircle className="w-5 h-5 shrink-0 text-rose-600" />
             <span>{catalogError}</span>
           </div>
         ) : products.length === 0 ? (
-          <div className="py-20 text-center text-stone-400 bg-white rounded-3xl border border-[#eddcc8] p-8 space-y-3 shadow-2xs">
+          <div className="py-20 text-center text-gray-400 bg-white rounded-2xl border border-[#eeeeee] p-8 space-y-3 shadow-2xs">
             <span className="text-5xl block">📦</span>
-            <p className="font-extrabold text-base text-stone-800">
+            <p className="font-extrabold text-base text-[#111827]">
               لا توجد أصناف تطابق معايير البحث أو التصفية الحالية
             </p>
-            <p className="text-xs text-stone-500">
+            <p className="text-xs text-[#4b5563]">
               جرب تغيير القسم، العلامة التجارية، أو تعديل خيارات الفرز والتصفية
             </p>
             {(hasActiveFilters || selectedCategory !== null || Boolean(searchQuery.trim())) && (
               <button
                 type="button"
                 onClick={resetAllFilters}
-                className="inline-flex items-center gap-1.5 bg-gradient-to-r from-[#8f5a13] to-[#b47820] hover:opacity-95 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-all cursor-pointer shadow-xs"
+                className="inline-flex items-center gap-1.5 bg-[#482b52] hover:bg-[#5c3969] text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-all cursor-pointer shadow-xs"
               >
                 <span>عرض جميع الأصناف</span>
               </button>
@@ -408,20 +408,20 @@ export default function CatalogPage() {
               <section id="new-products-section" className="space-y-4 scroll-mt-20">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-amber-100 to-amber-200 text-amber-900 flex items-center justify-center shadow-xs border border-amber-300/60">
-                      <Sparkles className="w-5 h-5 text-amber-700" />
+                    <div className="w-9 h-9 rounded-xl bg-[#faf6fc] text-[#482b52] flex items-center justify-center shadow-xs border border-[#c7aad1]">
+                      <Sparkles className="w-5 h-5 text-[#a184ab]" />
                     </div>
                     <div>
-                      <h2 className="font-black text-base text-stone-900 leading-tight">
+                      <h2 className="font-black text-base text-[#111827] leading-tight">
                         أحدث التوريدات
                       </h2>
-                      <span className="text-xs text-stone-500 font-medium">
+                      <span className="text-xs text-[#4b5563] font-medium">
                         أصناف وصلت حديثاً للمستودع
                       </span>
                     </div>
                   </div>
 
-                  <span className="text-xs font-black text-amber-900 bg-gradient-to-r from-amber-50 to-amber-100/90 px-3 py-1 rounded-full border border-amber-300/80 shadow-xs">
+                  <span className="text-xs font-black text-[#482b52] bg-[#faf6fc] px-3 py-1 rounded-full border border-[#c7aad1] shadow-2xs">
                     {newProducts.length} صنف جديد
                   </span>
                 </div>
@@ -442,13 +442,13 @@ export default function CatalogPage() {
             {/* شبكة جميع أصناف الكتالوج */}
             <section className="space-y-4">
               {/* ترويسة وشريط التحكم والترتيب */}
-              <div className="bg-white/95 rounded-2xl sm:rounded-3xl border border-[#eddcc8] p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+              <div className="bg-white rounded-xl sm:rounded-2xl border border-[#eeeeee] p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-[#fbf3e6] to-amber-100 text-[#8f5a13] flex items-center justify-center shadow-2xs border border-[#ebd2b0] shrink-0">
-                    <TrendingUp className="w-5 h-5 text-[#b47820]" />
+                  <div className="w-9 h-9 rounded-xl bg-[#faf6fc] text-[#482b52] flex items-center justify-center shadow-2xs border border-[#c7aad1] shrink-0">
+                    <TrendingUp className="w-5 h-5 text-[#a184ab]" />
                   </div>
                   <div className="min-w-0">
-                    <h2 className="font-black text-sm sm:text-base text-stone-900 leading-tight truncate">
+                    <h2 className="font-black text-sm sm:text-base text-[#111827] leading-tight truncate">
                       {selectedCategoryPathNames.length > 0
                         ? selectedCategoryPathNames.join(' ← ')
                         : selectedBrand
@@ -457,9 +457,9 @@ export default function CatalogPage() {
                             ? 'العروض والتخفيضات'
                             : 'كتالوج الأصناف المعتمدة'}
                     </h2>
-                    <span className="text-xs text-stone-500 font-medium block mt-0.5">
-                      عرض <strong className="text-stone-800 font-mono">{products.length}</strong> من أصل{' '}
-                      <strong className="text-[#8f5a13] font-mono">{pagination.total}</strong> صنف
+                    <span className="text-xs text-[#4b5563] font-medium block mt-0.5">
+                      عرض <strong className="text-[#111827] font-mono">{products.length}</strong> من أصل{' '}
+                      <strong className="text-[#482b52] font-mono">{pagination.total}</strong> صنف
                       {brands.length > 0 ? ` • ${brands.length} علامة تجارية` : ''}
                     </span>
                   </div>
@@ -483,8 +483,8 @@ export default function CatalogPage() {
                   )}
 
                   {/* قائمة الترتيب المباشر */}
-                  <div className="relative flex items-center bg-[#fdfbf7] border border-[#eddcc8] rounded-xl px-2.5 py-2">
-                    <ArrowUpDown className="w-3.5 h-3.5 text-[#b47820] ml-1.5 shrink-0 pointer-events-none" />
+                  <div className="relative flex items-center bg-[#f9fafb] border border-[#e5e7eb] rounded-xl px-2.5 py-2">
+                    <ArrowUpDown className="w-3.5 h-3.5 text-[#a184ab] ml-1.5 shrink-0 pointer-events-none" />
                     <select
                       aria-label="ترتيب الأصناف"
                       value={advancedFilters.sort}
@@ -494,7 +494,7 @@ export default function CatalogPage() {
                           sort: e.target.value as CatalogSortOption,
                         }))
                       }
-                      className="bg-transparent text-xs font-bold text-stone-800 focus:outline-hidden cursor-pointer pl-1"
+                      className="bg-transparent text-xs font-bold text-[#111827] focus:outline-hidden cursor-pointer pl-1"
                     >
                       <option value="default">الترتيب الافتراضي</option>
                       <option value="discount_desc">الأكثر توفيراً (أعلى خصم)</option>
@@ -513,14 +513,14 @@ export default function CatalogPage() {
                     }}
                     className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                       hasActiveFilters
-                        ? 'bg-[#fbf3e6] text-[#8f5a13] border-[#b47820]'
-                        : 'bg-white text-stone-700 border-stone-200 hover:border-amber-300'
+                        ? 'bg-[#faf6fc] text-[#482b52] border-[#a184ab]'
+                        : 'bg-white text-[#111827] border-[#e5e7eb] hover:border-[#c7aad1]'
                     }`}
                   >
-                    <SlidersHorizontal className="w-3.5 h-3.5 text-[#b47820]" />
+                    <SlidersHorizontal className="w-3.5 h-3.5 text-[#a184ab]" />
                     <span>تصفية متقدمة</span>
                     {activeFiltersCount > 0 && (
-                      <span className="bg-[#b47820] text-white text-[10px] font-black px-1.5 py-0.5 rounded-full leading-none">
+                      <span className="bg-[#482b52] text-white text-[10px] font-black px-1.5 py-0.5 rounded-full leading-none">
                         {activeFiltersCount}
                       </span>
                     )}
@@ -542,15 +542,15 @@ export default function CatalogPage() {
 
               {/* شريط التقدم وعرض المزيد للكتالوج الكامل */}
               {pagination.total > 0 && (
-                <div className="mx-auto w-full max-w-md bg-white rounded-2xl border border-[#eddcc8] px-3.5 py-2.5 flex items-center justify-between gap-3 shadow-2xs">
+                <div className="mx-auto w-full max-w-md bg-white rounded-xl border border-[#eeeeee] px-3.5 py-2.5 flex items-center justify-between gap-3 shadow-2xs">
                   <div className={`flex-1 min-w-0 space-y-1 ${!hasMore ? 'text-center' : ''}`}>
-                    <p className="text-[11px] font-bold text-stone-600 truncate">
-                      عرض <span className="font-mono font-black text-stone-900">{products.length}</span> من{' '}
-                      <span className="font-mono font-black text-[#8f5a13]">{pagination.total}</span> صنف
+                    <p className="text-[11px] font-bold text-[#4b5563] truncate">
+                      عرض <span className="font-mono font-black text-[#111827]">{products.length}</span> من{' '}
+                      <span className="font-mono font-black text-[#482b52]">{pagination.total}</span> صنف
                     </p>
-                    <div className="w-full h-1.5 rounded-full bg-[#f5ebdc] overflow-hidden">
+                    <div className="w-full h-1.5 rounded-full bg-[#edd0f7]/45 overflow-hidden">
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-[#8f5a13] via-[#b47820] to-[#dfb76c] transition-all duration-500"
+                        className="h-full rounded-full bg-gradient-to-r from-[#482b52] via-[#8c649c] to-[#c7aad1] transition-all duration-500"
                         style={{ width: `${loadedPercent}%` }}
                       />
                     </div>
@@ -561,7 +561,7 @@ export default function CatalogPage() {
                       type="button"
                       onClick={loadMore}
                       disabled={isLoadingMore}
-                      className="shrink-0 inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#8f5a13] via-[#b47820] to-[#c28b38] hover:opacity-95 active:scale-[0.98] text-white text-[11px] sm:text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-60"
+                      className="shrink-0 inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#482b52] hover:bg-[#5c3969] active:scale-[0.98] text-white text-[11px] sm:text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-60"
                     >
                       {isLoadingMore ? (
                         <>

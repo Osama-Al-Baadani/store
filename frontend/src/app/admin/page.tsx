@@ -158,7 +158,7 @@ export default function AdminDashboardPage() {
     name: '',
     code: '',
     description: '',
-    color: '#b47820',
+    color: '#8c649c',
   });
 
   // تعديل السعر لمنتج
@@ -675,7 +675,7 @@ export default function AdminDashboardPage() {
   // 3. فتح نافذة إضافة أو تعديل مستودع
   const openAddBranchModal = () => {
     setEditingBranchId(null);
-    setNewBranch({ name: '', code: '', description: '', color: '#b47820' });
+    setNewBranch({ name: '', code: '', description: '', color: '#8c649c' });
     setIsAddBranchOpen(true);
   };
 
@@ -685,7 +685,7 @@ export default function AdminDashboardPage() {
       name: b.name || '',
       code: b.code || '',
       description: b.description || '',
-      color: b.color || '#b47820',
+      color: b.color || '#8c649c',
     });
     setIsAddBranchOpen(true);
   };
@@ -717,7 +717,7 @@ export default function AdminDashboardPage() {
         });
         setIsAddBranchOpen(false);
         setEditingBranchId(null);
-        setNewBranch({ name: '', code: '', description: '', color: '#b47820' });
+        setNewBranch({ name: '', code: '', description: '', color: '#8c649c' });
         loadData();
       }
     } catch (err: any) {
@@ -950,14 +950,14 @@ export default function AdminDashboardPage() {
   // التحقق من الصلاحية أو التوجيه لبوابة الدخول الموحد
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-[#faf8f5] text-stone-900 flex flex-col justify-center items-center p-4 selection:bg-amber-200">
-        <div className="max-w-md w-full bg-white rounded-3xl p-6 sm:p-8 border border-[#eddcc8] shadow-xl shadow-amber-950/5 text-center space-y-4">
-          <div className="w-18 h-18 rounded-3xl bg-white border border-[#eddcc8] p-2 mx-auto shadow-md overflow-hidden">
+      <div className="min-h-screen bg-[#ffffff] text-stone-900 flex flex-col justify-center items-center p-4 selection:bg-[#edd0f7]">
+        <div className="max-w-md w-full bg-white rounded-3xl p-6 sm:p-8 border border-[#eeeeee] shadow-xl shadow-purple-950/5 text-center space-y-4">
+          <div className="w-18 h-18 rounded-3xl bg-white border border-[#eeeeee] p-2 mx-auto shadow-md overflow-hidden">
             <img src="/logo.png" alt="شركة المخازن الاقتصادية" className="w-full h-full object-contain" />
           </div>
           {isAuthLoading ? (
             <>
-              <div className="inline-flex items-center justify-center gap-2 text-xs font-bold text-[#8f5a13]">
+              <div className="inline-flex items-center justify-center gap-2 text-xs font-bold text-[#482b52]">
                 <RefreshCw className="w-4 h-4 animate-spin" />
                 <span>جاري التحقق السريع من جلسة الإدارة...</span>
               </div>
@@ -975,7 +975,7 @@ export default function AdminDashboardPage() {
               </p>
               <Link
                 href="/"
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#8f5a13] to-[#b47820] text-white text-xs font-extrabold shadow-sm"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#482b52] to-[#8c649c] text-white text-xs font-extrabold shadow-sm"
               >
                 <LogIn className="w-4 h-4" />
                 <span>الانتقال لبوابة تسجيل الدخول الآن</span>
@@ -996,7 +996,7 @@ export default function AdminDashboardPage() {
               <div className="pt-2 flex flex-col gap-2">
                 <Link
                   href="/"
-                  className="btn-shimmer w-full bg-gradient-to-r from-[#8f5a13] via-[#b47820] to-[#d4973b] text-white font-bold py-3 rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 text-xs"
+                  className="btn-shimmer w-full bg-gradient-to-r from-[#482b52] via-[#8c649c] to-[#a184ab] text-white font-bold py-3 rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 text-xs"
                 >
                   <Store className="w-4 h-4" />
                   <span>الانتقال لبوابة الشركة والمتجر</span>
@@ -1095,19 +1095,19 @@ export default function AdminDashboardPage() {
   const CurrentNavIcon = currentNavItem.icon;
 
   return (
-    <div className="min-h-screen bg-[#faf8f5] text-stone-900 flex flex-col lg:flex-row font-sans selection:bg-amber-200 pb-24 lg:pb-0">
+    <div className="min-h-screen bg-[#ffffff] text-stone-900 flex flex-col lg:flex-row font-sans selection:bg-[#edd0f7] pb-24 lg:pb-0">
       {/* 1. القائمة الجانبية التنفيذية (Desktop Sidebar) */}
-      <aside className="hidden lg:flex lg:flex-col w-72 shrink-0 bg-white border-l border-[#eddcc8] sticky top-0 h-screen z-30 shadow-[0_0_24px_-8px_rgba(180,120,32,0.1)]">
+      <aside className="hidden lg:flex lg:flex-col w-72 shrink-0 bg-white border-l border-[#eeeeee] sticky top-0 h-screen z-30 shadow-[0_0_24px_-8px_rgba(72, 43, 82,0.1)]">
         {/* شعار المنصة */}
-        <div className="px-5 py-4 border-b border-[#eddcc8]/80 flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-[#fdfbf7] border border-[#eddcc8] p-1 flex items-center justify-center shrink-0 shadow-2xs overflow-hidden">
+        <div className="px-5 py-4 border-b border-[#eeeeee]/80 flex items-center gap-3">
+          <div className="w-11 h-11 rounded-2xl bg-[#f9fafb] border border-[#eeeeee] p-1 flex items-center justify-center shrink-0 shadow-2xs overflow-hidden">
             <img src="/logo.png" alt="شركة المخازن الاقتصادية" className="w-full h-full object-contain" />
           </div>
           <div className="min-w-0">
             <h1 className="text-sm font-black text-stone-900 truncate leading-tight">
               المخازن الاقتصادية
             </h1>
-            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#8f5a13] bg-[#fbf3e6] border border-[#ebd2b0] px-2 py-0.5 rounded-full mt-1">
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#482b52] bg-[#faf6fc] border border-[#c7aad1] px-2 py-0.5 rounded-full mt-1">
               <LayoutDashboard className="w-3 h-3" />
               لوحة الإدارة المركزية
             </span>
@@ -1134,8 +1134,8 @@ export default function AdminDashboardPage() {
                         type="button"
                         onClick={() => setActiveTab(item.id)}
                         className={`w-full flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer ${isActive
-                          ? 'bg-gradient-to-r from-[#8f5a13] to-[#b47820] text-white shadow-md shadow-amber-950/15'
-                          : 'text-stone-600 hover:text-stone-900 hover:bg-[#fdfbf7] border border-transparent hover:border-[#eddcc8]/70'
+                          ? 'bg-gradient-to-r from-[#482b52] to-[#8c649c] text-white shadow-md shadow-purple-950/15'
+                          : 'text-stone-600 hover:text-stone-900 hover:bg-[#f9fafb] border border-transparent hover:border-[#eeeeee]/70'
                           }`}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
@@ -1161,9 +1161,9 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* تذييل القائمة الجانبية: الحساب + المتجر + خروج */}
-        <div className="p-3.5 border-t border-[#eddcc8]/80 bg-[#fdfbf7]/80 space-y-2.5">
-          <div className="flex items-center gap-2.5 px-3 py-2 rounded-2xl bg-white border border-[#eddcc8]/90">
-            <div className="w-8 h-8 rounded-xl bg-[#fbf3e6] text-[#b47820] flex items-center justify-center shrink-0">
+        <div className="p-3.5 border-t border-[#eeeeee]/80 bg-[#f9fafb]/80 space-y-2.5">
+          <div className="flex items-center gap-2.5 px-3 py-2 rounded-2xl bg-white border border-[#eeeeee]/90">
+            <div className="w-8 h-8 rounded-xl bg-[#faf6fc] text-[#8c649c] flex items-center justify-center shrink-0">
               <ShieldCheck className="w-4 h-4" />
             </div>
             <div className="min-w-0">
@@ -1177,7 +1177,7 @@ export default function AdminDashboardPage() {
           <div className="grid grid-cols-2 gap-2">
             <Link
               href="/?view=store"
-              className="flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-xl bg-stone-900 hover:bg-[#b47820] text-white text-[11px] font-bold transition-colors"
+              className="flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-xl bg-stone-900 hover:bg-[#8c649c] text-white text-[11px] font-bold transition-colors"
             >
               <Store className="w-3.5 h-3.5 text-amber-300" />
               <span>المتجر</span>
@@ -1197,14 +1197,14 @@ export default function AdminDashboardPage() {
       {/* 2. مساحة العمل الرئيسية */}
       <div className="flex-1 min-w-0 flex flex-col">
         {/* الشريط العلوي المرن */}
-        <header className="bg-white/95 backdrop-blur-md border-b border-[#eddcc8] px-3.5 sm:px-6 py-3 sticky top-0 z-20 shadow-[0_2px_14px_-4px_rgba(180,120,32,0.06)]">
+        <header className="bg-white/95 backdrop-blur-md border-b border-[#eeeeee] px-3.5 sm:px-6 py-3 sticky top-0 z-20 shadow-[0_2px_14px_-4px_rgba(72, 43, 82,0.06)]">
           <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
             {/* عنوان القسم الحالي على الكمبيوتر / الشعار على الجوال */}
             <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-              <div className="lg:hidden w-9 h-9 rounded-xl bg-white border border-[#eddcc8] p-1 flex items-center justify-center shrink-0 overflow-hidden">
+              <div className="lg:hidden w-9 h-9 rounded-xl bg-white border border-[#eeeeee] p-1 flex items-center justify-center shrink-0 overflow-hidden">
                 <img src="/logo.png" alt="شركة المخازن الاقتصادية" className="w-full h-full object-contain" />
               </div>
-              <div className="hidden lg:flex w-10 h-10 rounded-2xl bg-[#fbf3e6] border border-[#ebd2b0] text-[#b47820] items-center justify-center shrink-0">
+              <div className="hidden lg:flex w-10 h-10 rounded-2xl bg-[#faf6fc] border border-[#c7aad1] text-[#8c649c] items-center justify-center shrink-0">
                 <CurrentNavIcon className="w-5 h-5" />
               </div>
               <div className="min-w-0">
@@ -1212,7 +1212,7 @@ export default function AdminDashboardPage() {
                   <h2 className="text-sm sm:text-base font-black text-stone-900 truncate">
                     {currentNavItem.label}
                   </h2>
-                  <span className="text-[10px] font-mono font-bold bg-[#fbf3e6] text-[#8f5a13] border border-[#ebd2b0] px-2 py-0.5 rounded-full shrink-0">
+                  <span className="text-[10px] font-mono font-bold bg-[#faf6fc] text-[#482b52] border border-[#c7aad1] px-2 py-0.5 rounded-full shrink-0">
                     {currentNavItem.count}
                   </span>
                 </div>
@@ -1227,10 +1227,10 @@ export default function AdminDashboardPage() {
               <button
                 type="button"
                 onClick={loadData}
-                className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl border border-[#eddcc8] bg-[#fdfbf7] hover:bg-[#fbf3e6] text-stone-700 text-xs font-bold transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl border border-[#eeeeee] bg-[#f9fafb] hover:bg-[#faf6fc] text-stone-700 text-xs font-bold transition-colors cursor-pointer"
                 title="تحديث البيانات"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-[#b47820]' : ''}`} />
+                <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-[#8c649c]' : ''}`} />
                 <span className="hidden sm:inline">تحديث</span>
               </button>
 
@@ -1255,7 +1255,7 @@ export default function AdminDashboardPage() {
         </header>
 
         {/* شريط التبويبات السريع للأجهزة اللوحية والجوال */}
-        <div className="lg:hidden bg-white border-b border-[#eddcc8]/80 px-3 py-2 overflow-x-auto no-scrollbar">
+        <div className="lg:hidden bg-white border-b border-[#eeeeee]/80 px-3 py-2 overflow-x-auto no-scrollbar">
           <div className="flex items-center gap-1.5">
             {navigationItems.map((item) => {
               const Icon = item.icon;
@@ -1266,7 +1266,7 @@ export default function AdminDashboardPage() {
                   type="button"
                   onClick={() => setActiveTab(item.id)}
                   className={`shrink-0 px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all flex items-center gap-1.5 cursor-pointer ${isActive
-                    ? 'bg-[#b47820] text-white shadow-xs'
+                    ? 'bg-[#8c649c] text-white shadow-xs'
                     : 'bg-stone-50 text-stone-600 border border-stone-200/80'
                     }`}
                 >
@@ -1329,7 +1329,7 @@ export default function AdminDashboardPage() {
             <button
               type="button"
               onClick={() => { setActiveTab('merchants'); setStatusFilter('all'); }}
-              className="text-right bg-white rounded-2xl border border-[#eddcc8] hover:border-[#b47820]/60 p-3.5 sm:p-4 shadow-2xs transition-all flex items-center justify-between gap-2 cursor-pointer"
+              className="text-right bg-white rounded-2xl border border-[#eeeeee] hover:border-[#8c649c]/60 p-3.5 sm:p-4 shadow-2xs transition-all flex items-center justify-between gap-2 cursor-pointer"
             >
               <div className="min-w-0">
                 <span className="text-[11px] text-stone-500 font-semibold block truncate">إجمالي المنشآت</span>
@@ -1338,7 +1338,7 @@ export default function AdminDashboardPage() {
                 </span>
                 <span className="text-[10px] text-stone-400 block font-medium truncate">مؤسسات مسجلة</span>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-[#fbf3e6] border border-[#ebd2b0] text-[#b47820] flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-[#faf6fc] border border-[#c7aad1] text-[#8c649c] flex items-center justify-center shrink-0">
                 <Building2 className="w-5 h-5" />
               </div>
             </button>
@@ -1368,7 +1368,7 @@ export default function AdminDashboardPage() {
             <button
               type="button"
               onClick={() => setActiveTab('products')}
-              className="text-right bg-white rounded-2xl border border-[#eddcc8] hover:border-emerald-400 p-3.5 sm:p-4 shadow-2xs transition-all flex items-center justify-between gap-2 cursor-pointer"
+              className="text-right bg-white rounded-2xl border border-[#eeeeee] hover:border-emerald-400 p-3.5 sm:p-4 shadow-2xs transition-all flex items-center justify-between gap-2 cursor-pointer"
             >
               <div className="min-w-0">
                 <span className="text-[11px] text-emerald-800 font-semibold block truncate">أصناف الكتالوج</span>
@@ -1389,7 +1389,7 @@ export default function AdminDashboardPage() {
               onClick={() => setActiveTab('orders')}
               className={`text-right bg-white rounded-2xl border p-3.5 sm:p-4 shadow-2xs transition-all flex items-center justify-between gap-2 cursor-pointer ${activeCarts.length > 0 || (stats?.orders.active_carts ?? 0) > 0
                 ? 'border-amber-400 hover:border-amber-500 ring-1 ring-amber-200/70'
-                : 'border-[#eddcc8] hover:border-stone-400'
+                : 'border-[#eeeeee] hover:border-stone-400'
                 }`}
             >
               <div className="min-w-0">
@@ -1410,17 +1410,17 @@ export default function AdminDashboardPage() {
                       : `${stats?.orders.revenue ?? 0} ر.س`}
                 </span>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-[#fbf3e6] border border-[#ebd2b0] text-[#b47820] flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-[#faf6fc] border border-[#c7aad1] text-[#8c649c] flex items-center justify-center shrink-0">
                 <ShoppingCart className="w-5 h-5" />
               </div>
             </button>
           </div>
 
           {activeCarts.length > 0 && activeTab !== 'orders' && (
-            <div className="rounded-2xl border border-amber-300 bg-gradient-to-r from-amber-50 to-[#fbf3e6] px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs">
+            <div className="rounded-2xl border border-amber-300 bg-gradient-to-r from-amber-50 to-[#faf6fc] px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs">
               <div className="flex items-center gap-2.5 text-xs font-bold text-amber-950">
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping shrink-0" />
-                <ShoppingCart className="w-4 h-4 text-[#b47820] shrink-0" />
+                <ShoppingCart className="w-4 h-4 text-[#8c649c] shrink-0" />
                 <span>
                   يوجد حالياً {activeCarts.length} {activeCarts.length === 1 ? 'تاجر يضيف منتجات إلى السلة' : 'تجار يضيفون منتجات إلى السلة'} الآن
                   {' '}
@@ -1431,7 +1431,7 @@ export default function AdminDashboardPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab('orders')}
-                className="self-start sm:self-auto px-3.5 py-1.5 rounded-xl bg-[#b47820] hover:bg-[#8f5a13] text-white text-xs font-bold transition-colors cursor-pointer shrink-0"
+                className="self-start sm:self-auto px-3.5 py-1.5 rounded-xl bg-[#8c649c] hover:bg-[#482b52] text-white text-xs font-bold transition-colors cursor-pointer shrink-0"
               >
                 عرض السلات والطلبات
               </button>
@@ -1439,9 +1439,9 @@ export default function AdminDashboardPage() {
           )}
 
           {/* شريط الإضافة السريعة المدمج */}
-          <div className="bg-white rounded-2xl border border-[#eddcc8] px-3.5 py-2.5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div className="bg-white rounded-2xl border border-[#eeeeee] px-3.5 py-2.5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
             <div className="flex items-center gap-2 text-xs font-bold text-stone-700 shrink-0">
-              <Zap className="w-4 h-4 text-[#b47820]" />
+              <Zap className="w-4 h-4 text-[#8c649c]" />
               <span>إضافة سريعة:</span>
             </div>
 
@@ -1449,7 +1449,7 @@ export default function AdminDashboardPage() {
               <button
                 type="button"
                 onClick={openAddProductModal}
-                className="flex items-center justify-center gap-1.5 bg-[#b47820] hover:bg-[#8f5a13] active:scale-95 text-white font-bold text-[11px] py-2 px-3 rounded-xl transition-all cursor-pointer"
+                className="flex items-center justify-center gap-1.5 bg-[#8c649c] hover:bg-[#482b52] active:scale-95 text-white font-bold text-[11px] py-2 px-3 rounded-xl transition-all cursor-pointer"
               >
                 <PackagePlus className="w-3.5 h-3.5 shrink-0" />
                 <span>+ منتج جديد</span>
@@ -1458,7 +1458,7 @@ export default function AdminDashboardPage() {
               <button
                 type="button"
                 onClick={() => setIsBulkImportOpen(true)}
-                className="flex items-center justify-center gap-1.5 bg-[#fbf3e6] hover:bg-[#f5e7cf] border border-[#ebd2b0] active:scale-95 text-[#8f5a13] font-bold text-[11px] py-2 px-3 rounded-xl transition-all cursor-pointer"
+                className="flex items-center justify-center gap-1.5 bg-[#faf6fc] hover:bg-[#f5e7cf] border border-[#c7aad1] active:scale-95 text-[#482b52] font-bold text-[11px] py-2 px-3 rounded-xl transition-all cursor-pointer"
               >
                 <FileSpreadsheet className="w-3.5 h-3.5 shrink-0" />
                 <span>استيراد Excel / Drive</span>
@@ -1485,7 +1485,7 @@ export default function AdminDashboardPage() {
               <button
                 type="button"
                 onClick={openAddAdModal}
-                className="flex items-center justify-center gap-1.5 bg-[#fbf3e6] hover:bg-[#faebd7] active:scale-95 text-[#8f5a13] border border-[#ebd2b0] font-bold text-[11px] py-2 px-3 rounded-xl transition-all cursor-pointer"
+                className="flex items-center justify-center gap-1.5 bg-[#faf6fc] hover:bg-[#faebd7] active:scale-95 text-[#482b52] border border-[#c7aad1] font-bold text-[11px] py-2 px-3 rounded-xl transition-all cursor-pointer"
               >
                 <ImagePlus className="w-3.5 h-3.5 shrink-0" />
                 <span>+ رفع إعلان</span>
@@ -1497,11 +1497,11 @@ export default function AdminDashboardPage() {
 
           {/* ================= تبويب 1: المنشآت والتجار ================= */}
           {activeTab === 'merchants' && (
-            <div className="bg-white rounded-3xl border border-[#eddcc8] shadow-sm overflow-hidden">
+            <div className="bg-white rounded-3xl border border-[#eeeeee] shadow-sm overflow-hidden">
               <div className="p-4 sm:p-5 border-b border-stone-100 flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
                 <div>
                   <h3 className="text-sm sm:text-base font-bold text-stone-900 flex items-center gap-2">
-                    <Building2 className="w-5 h-5 text-[#b47820]" />
+                    <Building2 className="w-5 h-5 text-[#8c649c]" />
                     المنشآت والمؤسسات التجارية
                   </h3>
                   <p className="text-[11px] sm:text-xs text-stone-500 mt-0.5 font-medium">
@@ -1517,7 +1517,7 @@ export default function AdminDashboardPage() {
                       placeholder="بحث باسم المنشأة أو السجل..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full sm:w-56 bg-stone-50 border border-stone-200 rounded-xl pr-8 pl-3 py-2 text-xs text-stone-900 placeholder-stone-400 focus:outline-hidden focus:border-[#b47820]"
+                      className="w-full sm:w-56 bg-stone-50 border border-stone-200 rounded-xl pr-8 pl-3 py-2 text-xs text-stone-900 placeholder-stone-400 focus:outline-hidden focus:border-[#8c649c]"
                     />
                   </form>
 
@@ -1552,7 +1552,7 @@ export default function AdminDashboardPage() {
 
               {isLoading ? (
                 <div className="text-center py-16 text-stone-500 text-sm font-bold flex items-center justify-center gap-2">
-                  <RefreshCw className="w-5 h-5 animate-spin text-[#b47820]" />
+                  <RefreshCw className="w-5 h-5 animate-spin text-[#8c649c]" />
                   <span>جاري تحميل بيانات المنشآت...</span>
                 </div>
               ) : merchants.length === 0 ? (
@@ -1567,7 +1567,7 @@ export default function AdminDashboardPage() {
                       <div key={merchant.id} className="p-4 space-y-3">
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex items-center gap-2.5 min-w-0">
-                            <div className="w-10 h-10 rounded-xl bg-[#fbf3e6] border border-[#ebd2b0] text-[#b47820] flex items-center justify-center shrink-0">
+                            <div className="w-10 h-10 rounded-xl bg-[#faf6fc] border border-[#c7aad1] text-[#8c649c] flex items-center justify-center shrink-0">
                               <Building2 className="w-5 h-5" />
                             </div>
                             <div className="min-w-0">
@@ -1575,7 +1575,7 @@ export default function AdminDashboardPage() {
                                 {merchant.company_name}
                               </h4>
                               <span className="font-mono text-[10px] text-stone-500">
-                                كود: <strong className="text-[#b47820]">{merchant.customer_code}</strong>
+                                كود: <strong className="text-[#8c649c]">{merchant.customer_code}</strong>
                               </span>
                             </div>
                           </div>
@@ -1612,7 +1612,7 @@ export default function AdminDashboardPage() {
                           </div>
                           <div>
                             <span className="text-stone-400 block">الجوال</span>
-                            <a href={`tel:${merchant.user?.phone || ''}`} className="font-mono font-bold text-[#b47820]" dir="ltr">
+                            <a href={`tel:${merchant.user?.phone || ''}`} className="font-mono font-bold text-[#8c649c]" dir="ltr">
                               {merchant.user?.phone || '—'}
                             </a>
                           </div>
@@ -1653,7 +1653,7 @@ export default function AdminDashboardPage() {
                   {/* عرض الديسكتوب: جدول تنفيذي متكامل */}
                   <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-right text-xs">
-                      <thead className="bg-[#fcfbfa] border-b border-[#eddcc8] text-stone-600 font-bold">
+                      <thead className="bg-[#fcfbfa] border-b border-[#eeeeee] text-stone-600 font-bold">
                         <tr>
                           <th className="py-4 px-5">المؤسسة / الشركة</th>
                           <th className="py-4 px-5">السجل التجاري (CR)</th>
@@ -1669,13 +1669,13 @@ export default function AdminDashboardPage() {
                           <tr key={merchant.id} className="hover:bg-stone-50/70 transition-colors">
                             <td className="py-4 px-5">
                               <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-[#fbf3e6] border border-[#ebd2b0] text-[#b47820] flex items-center justify-center shrink-0 shadow-2xs font-bold">
+                                <div className="w-10 h-10 rounded-xl bg-[#faf6fc] border border-[#c7aad1] text-[#8c649c] flex items-center justify-center shrink-0 shadow-2xs font-bold">
                                   <Building2 className="w-5 h-5" />
                                 </div>
                                 <div>
                                   <div className="font-bold text-stone-900 text-sm leading-snug">{merchant.company_name}</div>
                                   <div className="font-mono text-[10px] text-stone-500 mt-0.5">
-                                    كود التاجر: <strong className="text-[#b47820]">{merchant.customer_code}</strong>
+                                    كود التاجر: <strong className="text-[#8c649c]">{merchant.customer_code}</strong>
                                   </div>
                                 </div>
                               </div>
@@ -1754,11 +1754,11 @@ export default function AdminDashboardPage() {
 
           {/* ================= تبويب 2: المنتجات وأسعار الحبة ================= */}
           {activeTab === 'products' && (
-            <div className="bg-white rounded-3xl border border-[#eddcc8] shadow-sm overflow-hidden">
+            <div className="bg-white rounded-3xl border border-[#eeeeee] shadow-sm overflow-hidden">
               <div className="p-4 sm:p-5 border-b border-stone-100 flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
                 <div>
                   <h3 className="text-sm sm:text-base font-bold text-stone-900 flex items-center gap-2">
-                    <Boxes className="w-5 h-5 text-[#b47820]" />
+                    <Boxes className="w-5 h-5 text-[#8c649c]" />
                     المنتجات والتسعير بالحبة ({products.length} صنف)
                   </h3>
                   <p className="text-[11px] sm:text-xs text-stone-500 mt-0.5 font-medium">
@@ -1805,14 +1805,14 @@ export default function AdminDashboardPage() {
                         placeholder="بحث بالصنف أو الكود..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full sm:w-48 bg-stone-50 border border-stone-200 rounded-xl pr-8 pl-3 py-2 text-xs text-stone-900 placeholder-stone-400 focus:outline-hidden focus:border-[#b47820]"
+                        className="w-full sm:w-48 bg-stone-50 border border-stone-200 rounded-xl pr-8 pl-3 py-2 text-xs text-stone-900 placeholder-stone-400 focus:outline-hidden focus:border-[#8c649c]"
                       />
                     </form>
 
                     <button
                       type="button"
                       onClick={() => setIsBulkImportOpen(true)}
-                      className="shrink-0 inline-flex items-center gap-1.5 bg-[#fbf3e6] hover:bg-[#f5e7cf] border border-[#ebd2b0] text-[#8f5a13] font-bold text-xs py-2 px-3 rounded-xl cursor-pointer transition-colors"
+                      className="shrink-0 inline-flex items-center gap-1.5 bg-[#faf6fc] hover:bg-[#f5e7cf] border border-[#c7aad1] text-[#482b52] font-bold text-xs py-2 px-3 rounded-xl cursor-pointer transition-colors"
                       title="استيراد جماعي من Excel / CSV / Google Drive"
                     >
                       <FileSpreadsheet className="w-4 h-4" />
@@ -1844,7 +1844,7 @@ export default function AdminDashboardPage() {
                     <button
                       type="button"
                       onClick={openAddProductModal}
-                      className="shrink-0 inline-flex items-center gap-1.5 bg-[#b47820] hover:bg-[#8f5a13] text-white font-bold text-xs py-2 px-3.5 rounded-xl shadow-xs cursor-pointer transition-colors"
+                      className="shrink-0 inline-flex items-center gap-1.5 bg-[#8c649c] hover:bg-[#482b52] text-white font-bold text-xs py-2 px-3.5 rounded-xl shadow-xs cursor-pointer transition-colors"
                     >
                       <Plus className="w-4 h-4" />
                       <span>إضافة صنف</span>
@@ -1855,7 +1855,7 @@ export default function AdminDashboardPage() {
 
               {isLoading ? (
                 <div className="text-center py-16 text-stone-500 text-sm font-bold flex items-center justify-center gap-2">
-                  <RefreshCw className="w-5 h-5 animate-spin text-[#b47820]" />
+                  <RefreshCw className="w-5 h-5 animate-spin text-[#8c649c]" />
                   <span>جاري تحميل الأصناف...</span>
                 </div>
               ) : products.length === 0 ? (
@@ -1864,7 +1864,7 @@ export default function AdminDashboardPage() {
                   <p>لا توجد أصناف مطابقة للشروط المحددة</p>
                   <button
                     onClick={openAddProductModal}
-                    className="inline-flex items-center gap-1 text-xs font-bold text-[#b47820] underline cursor-pointer"
+                    className="inline-flex items-center gap-1 text-xs font-bold text-[#8c649c] underline cursor-pointer"
                   >
                     + أضف أول صنف الآن
                   </button>
@@ -1907,11 +1907,11 @@ export default function AdminDashboardPage() {
                                   {product.code}
                                 </span>
                                 {product.brand && (
-                                  <span className="bg-amber-50 text-[#8f5a13] border border-[#ebd2b0] px-2 py-0.5 rounded-md font-bold">
+                                  <span className="bg-amber-50 text-[#482b52] border border-[#c7aad1] px-2 py-0.5 rounded-md font-bold">
                                     {product.brand}
                                   </span>
                                 )}
-                                <span className="bg-[#fbf3e6] text-[#8f5a13] px-2 py-0.5 rounded-md font-semibold">
+                                <span className="bg-[#faf6fc] text-[#482b52] px-2 py-0.5 rounded-md font-semibold">
                                   {product.category?.name || 'عام'}
                                 </span>
                                 <span className="text-stone-500">
@@ -1930,7 +1930,7 @@ export default function AdminDashboardPage() {
                                   step="0.01"
                                   value={editingPrice}
                                   onChange={(e) => setEditingPrice(e.target.value)}
-                                  className="flex-1 bg-white border-2 border-[#b47820] rounded-xl p-2 text-center font-mono font-bold text-sm"
+                                  className="flex-1 bg-white border-2 border-[#8c649c] rounded-xl p-2 text-center font-mono font-bold text-sm"
                                   autoFocus
                                 />
                                 <button
@@ -1950,9 +1950,9 @@ export default function AdminDashboardPage() {
                               </div>
                             ) : (
                               <>
-                                <div className="inline-flex items-baseline gap-1 font-mono bg-[#fdfbf7] border border-[#ebd2b0] px-3 py-1.5 rounded-xl">
+                                <div className="inline-flex items-baseline gap-1 font-mono bg-[#f9fafb] border border-[#c7aad1] px-3 py-1.5 rounded-xl">
                                   <span className="text-base font-bold text-stone-900">{unitPrice}</span>
-                                  <span className="text-[10px] font-sans text-[#8f5a13] font-semibold">ر.س / حبة</span>
+                                  <span className="text-[10px] font-sans text-[#482b52] font-semibold">ر.س / حبة</span>
                                 </div>
 
                                 <div className="flex items-center gap-1.5 flex-wrap justify-end">
@@ -1962,7 +1962,7 @@ export default function AdminDashboardPage() {
                                       setEditingProductId(product.id);
                                       setEditingPrice(unitPrice.toString());
                                     }}
-                                    className="inline-flex items-center gap-1 text-[11px] font-bold text-[#8f5a13] bg-[#fbf3e6] border border-[#ebd2b0] px-2.5 py-2 rounded-xl cursor-pointer"
+                                    className="inline-flex items-center gap-1 text-[11px] font-bold text-[#482b52] bg-[#faf6fc] border border-[#c7aad1] px-2.5 py-2 rounded-xl cursor-pointer"
                                   >
                                     <Edit2 className="w-3.5 h-3.5" />
                                     <span>السعر</span>
@@ -1972,7 +1972,7 @@ export default function AdminDashboardPage() {
                                     onClick={() => openEditProductModal(product)}
                                     className="inline-flex items-center gap-1 text-[11px] font-bold text-stone-800 bg-white border border-stone-200 px-2.5 py-2 rounded-xl cursor-pointer"
                                   >
-                                    <Edit2 className="w-3.5 h-3.5 text-[#b47820]" />
+                                    <Edit2 className="w-3.5 h-3.5 text-[#8c649c]" />
                                     <span>البيانات</span>
                                   </button>
                                   <button
@@ -2005,7 +2005,7 @@ export default function AdminDashboardPage() {
                   {/* عرض الديسكتوب: جدول احترافي */}
                   <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-right text-xs">
-                      <thead className="bg-[#fcfbfa] border-b border-[#eddcc8] text-stone-600 font-bold">
+                      <thead className="bg-[#fcfbfa] border-b border-[#eeeeee] text-stone-600 font-bold">
                         <tr>
                           <th className="py-4 px-5">الصورة واسم الصنف</th>
                           <th className="py-4 px-5">القسم</th>
@@ -2036,7 +2036,7 @@ export default function AdminDashboardPage() {
                                     <div className="flex items-center gap-2 mt-0.5">
                                       <span className="font-mono text-[10px] text-stone-500">كود: {product.code}</span>
                                       {product.brand && (
-                                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#fbf3e6] text-[#8f5a13] border border-[#ebd2b0]/70">
+                                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#faf6fc] text-[#482b52] border border-[#c7aad1]/70">
                                           {product.brand}
                                         </span>
                                       )}
@@ -2058,7 +2058,7 @@ export default function AdminDashboardPage() {
                                       step="0.01"
                                       value={editingPrice}
                                       onChange={(e) => setEditingPrice(e.target.value)}
-                                      className="w-24 bg-white border border-[#b47820] rounded-xl p-1.5 text-center font-mono font-bold text-sm shadow-xs"
+                                      className="w-24 bg-white border border-[#8c649c] rounded-xl p-1.5 text-center font-mono font-bold text-sm shadow-xs"
                                       autoFocus
                                     />
                                     <button
@@ -2104,7 +2104,7 @@ export default function AdminDashboardPage() {
                                       setEditingProductId(product.id);
                                       setEditingPrice(unitPrice.toString());
                                     }}
-                                    className="inline-flex items-center gap-1 text-xs font-bold text-[#8f5a13] hover:text-[#7a480d] bg-[#fbf3e6] hover:bg-[#faebd7] border border-[#ebd2b0] px-2.5 py-1.5 rounded-xl transition-colors cursor-pointer"
+                                    className="inline-flex items-center gap-1 text-xs font-bold text-[#482b52] hover:text-[#7a480d] bg-[#faf6fc] hover:bg-[#faebd7] border border-[#c7aad1] px-2.5 py-1.5 rounded-xl transition-colors cursor-pointer"
                                   >
                                     <Edit2 className="w-3.5 h-3.5" />
                                     <span>السعر</span>
@@ -2116,7 +2116,7 @@ export default function AdminDashboardPage() {
                                     className="inline-flex items-center gap-1 text-xs font-bold text-stone-800 hover:text-stone-950 bg-stone-100 hover:bg-stone-200 border border-stone-200 px-2.5 py-1.5 rounded-xl transition-colors cursor-pointer"
                                     title="تعديل الاسم، الكود، القسم، المستودع، الصورة والوصف"
                                   >
-                                    <Edit2 className="w-3.5 h-3.5 text-[#b47820]" />
+                                    <Edit2 className="w-3.5 h-3.5 text-[#8c649c]" />
                                     <span>تعديل البيانات</span>
                                   </button>
 
@@ -2154,11 +2154,11 @@ export default function AdminDashboardPage() {
 
           {/* ================= تبويب 3: الأقسام والتصنيفات ================= */}
           {activeTab === 'categories' && (
-            <div className="bg-white rounded-3xl border border-[#eddcc8] shadow-sm overflow-hidden">
+            <div className="bg-white rounded-3xl border border-[#eeeeee] shadow-sm overflow-hidden">
               <div className="p-4 sm:p-5 border-b border-stone-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <h3 className="text-sm sm:text-base font-bold text-stone-900 flex items-center gap-2">
-                    <FolderTree className="w-5 h-5 text-[#b47820]" />
+                    <FolderTree className="w-5 h-5 text-[#8c649c]" />
                     أقسام وتصنيفات المستودع ({categories.length} قسماً)
                   </h3>
                   <p className="text-[11px] sm:text-xs text-stone-500 mt-0.5">
@@ -2181,7 +2181,7 @@ export default function AdminDashboardPage() {
                 {categories.map((cat, idx) => (
                   <div
                     key={cat.id}
-                    className={`rounded-2xl border p-4 flex items-center justify-between gap-3 ${cat.parent ? 'border-amber-200/80 bg-white mr-3' : 'border-[#eddcc8] bg-[#fdfbf7]'
+                    className={`rounded-2xl border p-4 flex items-center justify-between gap-3 ${cat.parent ? 'border-amber-200/80 bg-white mr-3' : 'border-[#eeeeee] bg-[#f9fafb]'
                       }`}
                   >
                     <div className="min-w-0">
@@ -2193,7 +2193,7 @@ export default function AdminDashboardPage() {
                           {cat.parent ? `↳ ${cat.name}` : cat.name}
                         </h4>
                         {cat.parent && (
-                          <span className="text-[10px] font-bold bg-[#fbf3e6] text-[#8f5a13] border border-[#ebd2b0] px-2 py-0.5 rounded-full">
+                          <span className="text-[10px] font-bold bg-[#faf6fc] text-[#482b52] border border-[#c7aad1] px-2 py-0.5 rounded-full">
                             فرعي تحت: {cat.parent.name}
                           </span>
                         )}
@@ -2201,14 +2201,14 @@ export default function AdminDashboardPage() {
                       <div className="text-[11px] text-stone-500 mt-1 flex items-center gap-2">
                         <span>{cat.branch?.name || 'مستودع البديعة المركزي'}</span>
                         <span>•</span>
-                        <span className="font-mono font-bold text-[#b47820]">{cat.products_count ?? 0} صنف</span>
+                        <span className="font-mono font-bold text-[#8c649c]">{cat.products_count ?? 0} صنف</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
                       <button
                         type="button"
                         onClick={() => openEditCategoryModal(cat)}
-                        className="p-2 text-[#8f5a13] bg-[#fbf3e6] hover:bg-[#faebd7] border border-[#ebd2b0] rounded-xl transition-colors cursor-pointer"
+                        className="p-2 text-[#482b52] bg-[#faf6fc] hover:bg-[#faebd7] border border-[#c7aad1] rounded-xl transition-colors cursor-pointer"
                         title="تعديل القسم"
                       >
                         <Edit2 className="w-4 h-4" />
@@ -2229,7 +2229,7 @@ export default function AdminDashboardPage() {
               {/* عرض الديسكتوب */}
               <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-right text-xs">
-                  <thead className="bg-[#fcfbfa] border-b border-[#eddcc8] text-stone-600 font-bold">
+                  <thead className="bg-[#fcfbfa] border-b border-[#eeeeee] text-stone-600 font-bold">
                     <tr>
                       <th className="py-4 px-5">#</th>
                       <th className="py-4 px-5">اسم القسم</th>
@@ -2243,14 +2243,14 @@ export default function AdminDashboardPage() {
                   </thead>
                   <tbody className="divide-y divide-stone-100 font-medium text-stone-800">
                     {categories.map((cat, idx) => (
-                      <tr key={cat.id} className={`hover:bg-stone-50/70 transition-colors ${cat.parent ? 'bg-[#fdfbf7]/60' : ''}`}>
+                      <tr key={cat.id} className={`hover:bg-stone-50/70 transition-colors ${cat.parent ? 'bg-[#f9fafb]/60' : ''}`}>
                         <td className="py-3.5 px-5 font-mono text-stone-400">{idx + 1}</td>
                         <td className="py-3.5 px-5 font-bold text-stone-900 text-sm">
                           {cat.parent ? <span className="pr-4 text-stone-700">↳ {cat.name}</span> : cat.name}
                         </td>
                         <td className="py-3.5 px-5">
                           {cat.parent ? (
-                            <span className="text-[11px] font-bold bg-[#fbf3e6] text-[#8f5a13] border border-[#ebd2b0] px-2.5 py-0.5 rounded-full">
+                            <span className="text-[11px] font-bold bg-[#faf6fc] text-[#482b52] border border-[#c7aad1] px-2.5 py-0.5 rounded-full">
                               فرعي ← {cat.parent.name}
                             </span>
                           ) : (
@@ -2260,7 +2260,7 @@ export default function AdminDashboardPage() {
                           )}
                         </td>
                         <td className="py-3.5 px-5 text-stone-600 font-medium">{cat.branch?.name || 'مستودع البديعة المركزي'}</td>
-                        <td className="py-3.5 px-5 text-center font-bold font-mono text-[#b47820]">
+                        <td className="py-3.5 px-5 text-center font-bold font-mono text-[#8c649c]">
                           {cat.products_count ?? 0} صنف
                         </td>
                         <td className="py-3.5 px-5 text-center font-mono text-stone-500 font-bold">{cat.sort}</td>
@@ -2274,7 +2274,7 @@ export default function AdminDashboardPage() {
                             <button
                               type="button"
                               onClick={() => openEditCategoryModal(cat)}
-                              className="inline-flex items-center gap-1 text-xs font-bold text-[#8f5a13] bg-[#fbf3e6] hover:bg-[#faebd7] border border-[#ebd2b0] px-2.5 py-1.5 rounded-xl transition-colors cursor-pointer"
+                              className="inline-flex items-center gap-1 text-xs font-bold text-[#482b52] bg-[#faf6fc] hover:bg-[#faebd7] border border-[#c7aad1] px-2.5 py-1.5 rounded-xl transition-colors cursor-pointer"
                             >
                               <Edit2 className="w-3.5 h-3.5" />
                               <span>تعديل</span>
@@ -2300,10 +2300,10 @@ export default function AdminDashboardPage() {
           {/* ================= تبويب 4: المستودعات ومراكز التوريد ================= */}
           {activeTab === 'branches' && (
             <div className="space-y-4 sm:space-y-6">
-              <div className="bg-white rounded-3xl border border-[#eddcc8] p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+              <div className="bg-white rounded-3xl border border-[#eeeeee] p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
                 <div>
                   <h3 className="text-sm sm:text-base font-bold text-stone-900 flex items-center gap-2">
-                    <Warehouse className="w-5 h-5 text-[#b47820]" />
+                    <Warehouse className="w-5 h-5 text-[#8c649c]" />
                     مستودعات ومراكز التوزيع المعتمدة ({branches.length})
                   </h3>
                   <p className="text-[11px] sm:text-xs text-stone-500 mt-0.5">
@@ -2314,7 +2314,7 @@ export default function AdminDashboardPage() {
                 <button
                   type="button"
                   onClick={openAddBranchModal}
-                  className="self-start sm:self-auto inline-flex items-center gap-1.5 bg-[#b47820] hover:bg-[#8f5a13] text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-xs cursor-pointer transition-colors"
+                  className="self-start sm:self-auto inline-flex items-center gap-1.5 bg-[#8c649c] hover:bg-[#482b52] text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-xs cursor-pointer transition-colors"
                 >
                   <Plus className="w-4 h-4" />
                   <span>+ إضافة مستودع جديد</span>
@@ -2325,15 +2325,15 @@ export default function AdminDashboardPage() {
                 {branches.map((b) => (
                   <div
                     key={b.id}
-                    className="relative overflow-hidden rounded-3xl bg-white border border-[#eddcc8] p-5 sm:p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                    className="relative overflow-hidden rounded-3xl bg-white border border-[#eeeeee] p-5 sm:p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
                   >
                     <div>
                       <div className="flex items-center justify-between mb-4">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#fbf3e6] border border-[#ebd2b0] text-[#8f5a13]">
-                          <span className="w-2 h-2 rounded-full bg-[#b47820] animate-pulse" />
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#faf6fc] border border-[#c7aad1] text-[#482b52]">
+                          <span className="w-2 h-2 rounded-full bg-[#8c649c] animate-pulse" />
                           جاهز للتجهيز
                         </span>
-                        <div className="w-12 h-12 rounded-2xl bg-[#b47820] text-white flex items-center justify-center shadow-md shadow-amber-950/15">
+                        <div className="w-12 h-12 rounded-2xl bg-[#8c649c] text-white flex items-center justify-center shadow-md shadow-purple-950/15">
                           <Warehouse className="w-6 h-6" />
                         </div>
                       </div>
@@ -2366,7 +2366,7 @@ export default function AdminDashboardPage() {
                           <button
                             type="button"
                             onClick={() => openEditBranchModal(b)}
-                            className="inline-flex items-center gap-1 text-[11px] font-bold text-[#8f5a13] hover:text-[#7a480d] bg-[#fbf3e6] hover:bg-[#faebd7] border border-[#ebd2b0] px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer"
+                            className="inline-flex items-center gap-1 text-[11px] font-bold text-[#482b52] hover:text-[#7a480d] bg-[#faf6fc] hover:bg-[#faebd7] border border-[#c7aad1] px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer"
                             title="تعديل بيانات المستودع"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
@@ -2402,9 +2402,9 @@ export default function AdminDashboardPage() {
                 <button
                   type="button"
                   onClick={openAddBranchModal}
-                  className="rounded-3xl border-2 border-dashed border-[#ebd2b0] hover:border-[#b47820] bg-[#fbf9f4]/60 hover:bg-[#fbf3e6]/80 p-8 flex flex-col items-center justify-center text-center transition-all cursor-pointer min-h-[200px] group"
+                  className="rounded-3xl border-2 border-dashed border-[#c7aad1] hover:border-[#8c649c] bg-[#fbf9f4]/60 hover:bg-[#faf6fc]/80 p-8 flex flex-col items-center justify-center text-center transition-all cursor-pointer min-h-[200px] group"
                 >
-                  <div className="w-14 h-14 rounded-2xl bg-white border border-[#ebd2b0] text-[#b47820] flex items-center justify-center shadow-xs mb-3 group-hover:scale-105 transition-transform">
+                  <div className="w-14 h-14 rounded-2xl bg-white border border-[#c7aad1] text-[#8c649c] flex items-center justify-center shadow-xs mb-3 group-hover:scale-105 transition-transform">
                     <Plus className="w-7 h-7" />
                   </div>
                   <span className="font-bold text-stone-900 text-sm">
@@ -2421,10 +2421,10 @@ export default function AdminDashboardPage() {
           {/* ================= تبويب 4.5: جدول الإعلانات والبنرات ================= */}
           {activeTab === 'advertisements' && (
             <div className="space-y-4 sm:space-y-6">
-              <div className="bg-white rounded-3xl border border-[#eddcc8] p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+              <div className="bg-white rounded-3xl border border-[#eeeeee] p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
                 <div>
                   <h3 className="text-sm sm:text-base font-bold text-stone-900 flex items-center gap-2">
-                    <Megaphone className="w-5 h-5 text-[#b47820]" />
+                    <Megaphone className="w-5 h-5 text-[#8c649c]" />
                     جدول الإعلانات والبنرات ({adsList.length} إعلان)
                   </h3>
                   <p className="text-[11px] sm:text-xs text-stone-500 mt-0.5">
@@ -2437,7 +2437,7 @@ export default function AdminDashboardPage() {
                     value={adBranchFilter}
                     onChange={(e) => setAdBranchFilter(e.target.value)}
                     aria-label="تصفية الإعلانات حسب المستودع"
-                    className="bg-stone-50 border border-stone-200 rounded-xl py-2 px-3 text-xs font-bold text-stone-800 focus:outline-hidden focus:border-[#b47820] focus:bg-white cursor-pointer"
+                    className="bg-stone-50 border border-stone-200 rounded-xl py-2 px-3 text-xs font-bold text-stone-800 focus:outline-hidden focus:border-[#8c649c] focus:bg-white cursor-pointer"
                   >
                     <option value="all">كل المستودعات ({adsList.length})</option>
                     <option value="global">
@@ -2453,7 +2453,7 @@ export default function AdminDashboardPage() {
                   <button
                     type="button"
                     onClick={openAddAdModal}
-                    className="inline-flex items-center gap-1.5 bg-[#b47820] hover:bg-[#8f5a13] text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-xs cursor-pointer transition-colors"
+                    className="inline-flex items-center gap-1.5 bg-[#8c649c] hover:bg-[#482b52] text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-xs cursor-pointer transition-colors"
                   >
                     <ImagePlus className="w-4 h-4" />
                     <span>+ رفع صورة إعلان جديد</span>
@@ -2482,7 +2482,7 @@ export default function AdminDashboardPage() {
                     return (
                       <div
                         key={ad.id}
-                        className={`rounded-3xl bg-white border overflow-hidden shadow-sm transition-all flex flex-col justify-between ${ad.is_active ? 'border-[#eddcc8]' : 'border-stone-200 opacity-75'
+                        className={`rounded-3xl bg-white border overflow-hidden shadow-sm transition-all flex flex-col justify-between ${ad.is_active ? 'border-[#eeeeee]' : 'border-stone-200 opacity-75'
                           }`}
                       >
                         <div>
@@ -2493,12 +2493,12 @@ export default function AdminDashboardPage() {
                               className="w-full h-full object-cover"
                             />
                             <div className="absolute top-3 right-3 flex flex-wrap items-center gap-1.5 max-w-[70%]">
-                              <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-white/95 text-stone-800 border border-[#eddcc8] shadow-xs">
+                              <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-white/95 text-stone-800 border border-[#eeeeee] shadow-xs">
                                 {placementLabel}
                               </span>
                               <span
                                 className={`text-[10px] font-bold px-2.5 py-1 rounded-full shadow-xs border ${ad.branch_id
-                                  ? 'bg-[#fbf3e6]/95 text-[#8f5a13] border-[#ebd2b0]'
+                                  ? 'bg-[#faf6fc]/95 text-[#482b52] border-[#c7aad1]'
                                   : 'bg-sky-50/95 text-sky-800 border-sky-200'
                                   }`}
                               >
@@ -2537,7 +2537,7 @@ export default function AdminDashboardPage() {
                         <button
                           type="button"
                           onClick={() => openEditAdModal(ad)}
-                          className="inline-flex items-center justify-center gap-1 text-xs font-bold text-[#8f5a13] bg-[#fbf3e6] hover:bg-[#faebd7] border border-[#ebd2b0] py-2 px-3 rounded-xl transition-colors cursor-pointer"
+                          className="inline-flex items-center justify-center gap-1 text-xs font-bold text-[#482b52] bg-[#faf6fc] hover:bg-[#faebd7] border border-[#c7aad1] py-2 px-3 rounded-xl transition-colors cursor-pointer"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                           <span>تعديل</span>
@@ -2572,9 +2572,9 @@ export default function AdminDashboardPage() {
                 <button
                   type="button"
                   onClick={openAddAdModal}
-                  className="rounded-3xl border-2 border-dashed border-[#ebd2b0] hover:border-[#b47820] bg-[#fbf9f4]/60 hover:bg-[#fbf3e6]/80 p-8 flex flex-col items-center justify-center text-center transition-all cursor-pointer min-h-[250px] group"
+                  className="rounded-3xl border-2 border-dashed border-[#c7aad1] hover:border-[#8c649c] bg-[#fbf9f4]/60 hover:bg-[#faf6fc]/80 p-8 flex flex-col items-center justify-center text-center transition-all cursor-pointer min-h-[250px] group"
                 >
-                  <div className="w-14 h-14 rounded-2xl bg-white border border-[#ebd2b0] text-[#b47820] flex items-center justify-center shadow-xs mb-3 group-hover:scale-105 transition-transform">
+                  <div className="w-14 h-14 rounded-2xl bg-white border border-[#c7aad1] text-[#8c649c] flex items-center justify-center shadow-xs mb-3 group-hover:scale-105 transition-transform">
                     <Upload className="w-7 h-7" />
                   </div>
                   <span className="font-bold text-stone-900 text-sm">
@@ -2592,10 +2592,10 @@ export default function AdminDashboardPage() {
           {activeTab === 'orders' && (
             <div className="space-y-4">
               {/* القسم الأول: مراقبة السلات النشطة الآن */}
-              <div className="bg-white rounded-3xl border border-[#eddcc8] shadow-xs overflow-hidden">
-                <div className="px-4 py-3.5 sm:px-5 sm:py-4 border-b border-[#eddcc8]/60 flex items-center justify-between gap-2 bg-gradient-to-l from-[#fdfbf7] to-white">
+              <div className="bg-white rounded-3xl border border-[#eeeeee] shadow-xs overflow-hidden">
+                <div className="px-4 py-3.5 sm:px-5 sm:py-4 border-b border-[#eeeeee]/60 flex items-center justify-between gap-2 bg-gradient-to-l from-[#f9fafb] to-white">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#fbf3e6] to-amber-100/70 border border-[#ebd2b0] text-[#b47820] flex items-center justify-center shrink-0">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#faf6fc] to-amber-100/70 border border-[#c7aad1] text-[#8c649c] flex items-center justify-center shrink-0">
                       <ShoppingCart className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
@@ -2625,7 +2625,7 @@ export default function AdminDashboardPage() {
                   <button
                     type="button"
                     onClick={loadData}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#fbf3e6] hover:bg-[#f5e7cf] border border-[#ebd2b0]/80 text-[#8f5a13] text-[11px] font-bold transition-colors cursor-pointer shrink-0"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#faf6fc] hover:bg-[#f5e7cf] border border-[#c7aad1]/80 text-[#482b52] text-[11px] font-bold transition-colors cursor-pointer shrink-0"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
                     <span>تحديث</span>
@@ -2633,7 +2633,7 @@ export default function AdminDashboardPage() {
                 </div>
 
                 {activeCarts.length === 0 ? (
-                  <div className="px-4 py-3.5 bg-[#fdfbf7]/60 flex items-center justify-center gap-2 text-[11px] text-stone-500 font-medium text-center">
+                  <div className="px-4 py-3.5 bg-[#f9fafb]/60 flex items-center justify-center gap-2 text-[11px] text-stone-500 font-medium text-center">
                     <span className="w-2 h-2 rounded-full bg-emerald-500/80 shrink-0" />
                     <span>لا توجد سلات مفتوحة حالياً — ستظهر إضافات التجار هنا تلقائياً</span>
                   </div>
@@ -2646,7 +2646,7 @@ export default function AdminDashboardPage() {
                       return (
                         <div
                           key={cart.id}
-                          className="rounded-2xl border border-[#ebd2b0] bg-gradient-to-b from-[#fdfbf7] to-white p-3.5 sm:p-4 flex flex-col justify-between gap-3 shadow-2xs"
+                          className="rounded-2xl border border-[#c7aad1] bg-gradient-to-b from-[#f9fafb] to-white p-3.5 sm:p-4 flex flex-col justify-between gap-3 shadow-2xs"
                         >
                           <div className="space-y-2.5">
                             <div className="flex items-start justify-between gap-2">
@@ -2660,7 +2660,7 @@ export default function AdminDashboardPage() {
                                   {cart.user?.phone && (
                                     <a
                                       href={`tel:${cart.user.phone}`}
-                                      className="font-mono text-[#8f5a13] hover:underline"
+                                      className="font-mono text-[#482b52] hover:underline"
                                     >
                                       {cart.user.phone}
                                     </a>
@@ -2670,12 +2670,12 @@ export default function AdminDashboardPage() {
                                   </span>
                                 </div>
                               </div>
-                              <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#fbf3e6] text-[#8f5a13] border border-[#ebd2b0] shrink-0 font-mono">
+                              <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#faf6fc] text-[#482b52] border border-[#c7aad1] shrink-0 font-mono">
                                 {cart.summary.items_count} صنف · {cart.summary.total_quantity} قطعة
                               </span>
                             </div>
 
-                            <div className="bg-white rounded-xl border border-[#eddcc8]/80 divide-y divide-stone-100 max-h-40 overflow-y-auto">
+                            <div className="bg-white rounded-xl border border-[#eeeeee]/80 divide-y divide-stone-100 max-h-40 overflow-y-auto">
                               {cart.items.map((item) => (
                                 <div key={item.id} className="px-3 py-2 flex items-center justify-between gap-2 text-xs">
                                   <div className="min-w-0">
@@ -2692,10 +2692,10 @@ export default function AdminDashboardPage() {
                             </div>
                           </div>
 
-                          <div className="pt-2.5 border-t border-[#eddcc8]/70 flex items-center justify-between gap-2.5">
+                          <div className="pt-2.5 border-t border-[#eeeeee]/70 flex items-center justify-between gap-2.5">
                             <div>
                               <span className="text-[10px] text-stone-400 block">الإجمالي شامل الضريبة</span>
-                              <span className="font-mono font-black text-sm sm:text-base text-[#8f5a13]">
+                              <span className="font-mono font-black text-sm sm:text-base text-[#482b52]">
                                 {Number(cart.summary.total).toFixed(2)} <span className="text-[11px] font-bold">ر.س</span>
                               </span>
                             </div>
@@ -2703,7 +2703,7 @@ export default function AdminDashboardPage() {
                               type="button"
                               onClick={() => handleConvertCartToOrder(cart)}
                               disabled={isConverting}
-                              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#8f5a13] to-[#b47820] hover:opacity-95 text-white text-xs font-bold transition-all cursor-pointer disabled:opacity-60 shadow-xs shrink-0"
+                              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#482b52] to-[#8c649c] hover:opacity-95 text-white text-xs font-bold transition-all cursor-pointer disabled:opacity-60 shadow-xs shrink-0"
                             >
                               <FileCheck2 className="w-3.5 h-3.5" />
                               <span>{isConverting ? 'جاري الإصدار...' : 'اعتماد كطلب وفاتورة'}</span>
@@ -2717,11 +2717,11 @@ export default function AdminDashboardPage() {
               </div>
 
               {/* القسم الثاني: طلبات الجملة والفواتير الضريبية */}
-              <div className="bg-white rounded-3xl border border-[#eddcc8] shadow-xs overflow-hidden">
-                <div className="p-4 sm:p-5 border-b border-[#eddcc8]/60 space-y-3.5">
+              <div className="bg-white rounded-3xl border border-[#eeeeee] shadow-xs overflow-hidden">
+                <div className="p-4 sm:p-5 border-b border-[#eeeeee]/60 space-y-3.5">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-9 h-9 rounded-xl bg-[#fbf3e6] border border-[#ebd2b0] text-[#b47820] flex items-center justify-center shrink-0">
+                      <div className="w-9 h-9 rounded-xl bg-[#faf6fc] border border-[#c7aad1] text-[#8c649c] flex items-center justify-center shrink-0">
                         <FileCheck2 className="w-4 h-4" />
                       </div>
                       <div className="min-w-0">
@@ -2739,13 +2739,13 @@ export default function AdminDashboardPage() {
                       </div>
                     </div>
 
-                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#fbf3e6] text-[#8f5a13] border border-[#ebd2b0]/80 shrink-0">
+                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#faf6fc] text-[#482b52] border border-[#c7aad1]/80 shrink-0">
                       فوترة مباشرة
                     </span>
                   </div>
 
                   {/* شريط فلاتر الحالة الأنيق */}
-                  <div className="bg-[#faf7f2] p-1 rounded-2xl border border-[#eddcc8]/80 flex items-center gap-1 overflow-x-auto no-scrollbar">
+                  <div className="bg-[#faf7f2] p-1 rounded-2xl border border-[#eeeeee]/80 flex items-center gap-1 overflow-x-auto no-scrollbar">
                     {[
                       { key: 'all', label: 'الكل' },
                       { key: 'new', label: 'جديد' },
@@ -2759,7 +2759,7 @@ export default function AdminDashboardPage() {
                         type="button"
                         onClick={() => setOrderStatusFilter(tab.key)}
                         className={`px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 ${orderStatusFilter === tab.key
-                          ? 'bg-gradient-to-r from-[#8f5a13] to-[#b47820] text-white shadow-xs'
+                          ? 'bg-gradient-to-r from-[#482b52] to-[#8c649c] text-white shadow-xs'
                           : 'text-stone-600 hover:text-stone-900 hover:bg-white/80'
                           }`}
                       >
@@ -2771,7 +2771,7 @@ export default function AdminDashboardPage() {
 
                 {orders.length === 0 ? (
                   <div className="py-12 px-4 text-center flex flex-col items-center justify-center gap-2.5">
-                    <div className="w-12 h-12 rounded-2xl bg-[#fbf3e6] border border-[#ebd2b0]/70 text-[#b47820] flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-2xl bg-[#faf6fc] border border-[#c7aad1]/70 text-[#8c649c] flex items-center justify-center">
                       <FileText className="w-5 h-5" />
                     </div>
                     <div className="space-y-1">
@@ -2786,7 +2786,7 @@ export default function AdminDashboardPage() {
                       <button
                         type="button"
                         onClick={() => setOrderStatusFilter('all')}
-                        className="mt-1 px-3.5 py-1.5 rounded-xl bg-[#fbf3e6] hover:bg-[#f5e7cf] border border-[#ebd2b0] text-[#8f5a13] text-xs font-bold transition-colors cursor-pointer"
+                        className="mt-1 px-3.5 py-1.5 rounded-xl bg-[#faf6fc] hover:bg-[#f5e7cf] border border-[#c7aad1] text-[#482b52] text-xs font-bold transition-colors cursor-pointer"
                       >
                         عرض جميع الطلبات
                       </button>
@@ -2795,7 +2795,7 @@ export default function AdminDashboardPage() {
                 ) : (
                   <>
                     {/* عرض الجوال */}
-                    <div className="md:hidden divide-y divide-[#eddcc8]/50">
+                    <div className="md:hidden divide-y divide-[#eeeeee]/50">
                       {orders.map((order) => {
                         const statusInfo = ORDER_STATUS_LABELS[order.status] || {
                           label: order.status_label || order.status,
@@ -2804,7 +2804,7 @@ export default function AdminDashboardPage() {
                         const isExpanded = expandedOrderId === order.id;
 
                         return (
-                          <div key={order.id} className="p-4 space-y-3 hover:bg-[#fdfbf7]/60 transition-colors">
+                          <div key={order.id} className="p-4 space-y-3 hover:bg-[#f9fafb]/60 transition-colors">
                             <div className="flex items-center justify-between gap-2">
                               <div className="flex items-center gap-2">
                                 <span className="font-mono font-extrabold text-stone-900 text-sm">#{order.order_number}</span>
@@ -2817,7 +2817,7 @@ export default function AdminDashboardPage() {
                               </span>
                             </div>
 
-                            <div className="bg-[#fdfbf7] rounded-2xl p-3 border border-[#eddcc8]/70 space-y-2 text-xs">
+                            <div className="bg-[#f9fafb] rounded-2xl p-3 border border-[#eeeeee]/70 space-y-2 text-xs">
                               <div className="flex items-center justify-between gap-2">
                                 <span className="font-extrabold text-stone-900 truncate">
                                   {order.user?.merchant_profile?.company_name || order.user?.name}
@@ -2826,9 +2826,9 @@ export default function AdminDashboardPage() {
                                   {order.branch?.name || 'مستودع رئيسي'}
                                 </span>
                               </div>
-                              <div className="flex items-center justify-between pt-2 border-t border-[#eddcc8]/60">
+                              <div className="flex items-center justify-between pt-2 border-t border-[#eeeeee]/60">
                                 <span className="text-[11px] text-stone-500">الإجمالي شامل الضريبة</span>
-                                <span className="font-mono font-black text-[#8f5a13] text-sm">{order.total} ر.س</span>
+                                <span className="font-mono font-black text-[#482b52] text-sm">{order.total} ر.س</span>
                               </div>
                             </div>
 
@@ -2837,14 +2837,14 @@ export default function AdminDashboardPage() {
                                 <button
                                   type="button"
                                   onClick={() => setExpandedOrderId(isExpanded ? null : order.id)}
-                                  className="inline-flex items-center gap-1 text-[11px] font-bold text-[#8f5a13] hover:underline cursor-pointer"
+                                  className="inline-flex items-center gap-1 text-[11px] font-bold text-[#482b52] hover:underline cursor-pointer"
                                 >
                                   {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                                   <span>تفاصيل الأصناف ({order.items.length})</span>
                                 </button>
 
                                 {isExpanded && (
-                                  <div className="mt-2 bg-[#fdfbf7] rounded-xl border border-[#eddcc8] divide-y divide-stone-100">
+                                  <div className="mt-2 bg-[#f9fafb] rounded-xl border border-[#eeeeee] divide-y divide-stone-100">
                                     {order.items.map((item) => (
                                       <div key={item.id} className="px-3 py-2 flex items-center justify-between text-[11px]">
                                         <span className="font-semibold text-stone-800">
@@ -2862,7 +2862,7 @@ export default function AdminDashboardPage() {
                               <select
                                 value={order.status}
                                 onChange={(e) => handleUpdateOrderStatus(order.id, e.target.value)}
-                                className="flex-1 bg-white border border-[#eddcc8] rounded-xl py-2 px-3 text-xs font-bold text-stone-800 focus:outline-hidden focus:border-[#b47820]"
+                                className="flex-1 bg-white border border-[#eeeeee] rounded-xl py-2 px-3 text-xs font-bold text-stone-800 focus:outline-hidden focus:border-[#8c649c]"
                               >
                                 <option value="new">طلب جديد</option>
                                 <option value="processing">جاري التجهيز</option>
@@ -2876,7 +2876,7 @@ export default function AdminDashboardPage() {
                                   href={order.invoice_pdf_url}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-gradient-to-r from-[#8f5a13] to-[#b47820] px-3.5 py-2 rounded-xl shadow-2xs shrink-0"
+                                  className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-gradient-to-r from-[#482b52] to-[#8c649c] px-3.5 py-2 rounded-xl shadow-2xs shrink-0"
                                 >
                                   <FileCheck2 className="w-3.5 h-3.5" />
                                   <span>الفاتورة</span>
@@ -2891,7 +2891,7 @@ export default function AdminDashboardPage() {
                     {/* عرض الديسكتوب */}
                     <div className="hidden md:block overflow-x-auto">
                       <table className="w-full text-right text-xs">
-                        <thead className="bg-[#faf7f2] border-b border-[#eddcc8] text-stone-600 font-bold">
+                        <thead className="bg-[#faf7f2] border-b border-[#eeeeee] text-stone-600 font-bold">
                           <tr>
                             <th className="py-3.5 px-5">رقم الطلب</th>
                             <th className="py-3.5 px-5">المؤسسة / العميل</th>
@@ -2908,7 +2908,7 @@ export default function AdminDashboardPage() {
 
                             return (
                               <React.Fragment key={order.id}>
-                                <tr className="hover:bg-[#fdfbf7]/80 transition-colors">
+                                <tr className="hover:bg-[#f9fafb]/80 transition-colors">
                                   <td className="py-3.5 px-5 font-mono font-extrabold text-stone-900">#{order.order_number}</td>
                                   <td className="py-3.5 px-5">
                                     <div className="font-bold text-stone-900">{order.user?.merchant_profile?.company_name || order.user?.name}</div>
@@ -2920,14 +2920,14 @@ export default function AdminDashboardPage() {
                                       <button
                                         type="button"
                                         onClick={() => setExpandedOrderId(isExpanded ? null : order.id)}
-                                        className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold text-[#8f5a13] hover:underline cursor-pointer"
+                                        className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold text-[#482b52] hover:underline cursor-pointer"
                                       >
                                         {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                                         <span>{order.items.length} أصناف</span>
                                       </button>
                                     )}
                                   </td>
-                                  <td className="py-3.5 px-5 font-mono font-black text-[#8f5a13]">{order.total} ر.س</td>
+                                  <td className="py-3.5 px-5 font-mono font-black text-[#482b52]">{order.total} ر.س</td>
                                   <td className="py-3.5 px-5 text-stone-500 font-mono text-[11px]">
                                     {new Date(order.created_at).toLocaleDateString('ar-SA')}
                                   </td>
@@ -2935,7 +2935,7 @@ export default function AdminDashboardPage() {
                                     <select
                                       value={order.status}
                                       onChange={(e) => handleUpdateOrderStatus(order.id, e.target.value)}
-                                      className="bg-white border border-[#eddcc8] rounded-xl py-1.5 px-2.5 text-xs font-bold text-stone-800 focus:outline-hidden focus:border-[#b47820] cursor-pointer"
+                                      className="bg-white border border-[#eeeeee] rounded-xl py-1.5 px-2.5 text-xs font-bold text-stone-800 focus:outline-hidden focus:border-[#8c649c] cursor-pointer"
                                     >
                                       <option value="new">طلب جديد</option>
                                       <option value="processing">جاري التجهيز</option>
@@ -2950,7 +2950,7 @@ export default function AdminDashboardPage() {
                                         href={order.invoice_pdf_url}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-1.5 text-xs font-bold text-[#8f5a13] bg-[#fbf3e6] hover:bg-[#f5e7cf] border border-[#ebd2b0] px-3 py-1.5 rounded-xl transition-colors shadow-2xs"
+                                        className="inline-flex items-center gap-1.5 text-xs font-bold text-[#482b52] bg-[#faf6fc] hover:bg-[#f5e7cf] border border-[#c7aad1] px-3 py-1.5 rounded-xl transition-colors shadow-2xs"
                                       >
                                         <FileCheck2 className="w-3.5 h-3.5" />
                                         <span>PDF الفاتورة</span>
@@ -2961,13 +2961,13 @@ export default function AdminDashboardPage() {
                                   </td>
                                 </tr>
                                 {isExpanded && order.items && order.items.length > 0 && (
-                                  <tr className="bg-[#fdfbf7]">
+                                  <tr className="bg-[#f9fafb]">
                                     <td colSpan={7} className="px-6 py-3">
                                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                                         {order.items.map((item) => (
                                           <div
                                             key={item.id}
-                                            className="bg-white rounded-xl border border-[#eddcc8] px-3 py-2 flex items-center justify-between gap-2 text-xs"
+                                            className="bg-white rounded-xl border border-[#eeeeee] px-3 py-2 flex items-center justify-between gap-2 text-xs"
                                           >
                                             <div className="min-w-0">
                                               <div className="font-bold text-stone-800 truncate">{item.product_name}</div>
@@ -2998,10 +2998,10 @@ export default function AdminDashboardPage() {
 
           {/* ================= تبويب 6: المستخدمين والحسابات ================= */}
           {activeTab === 'users' && (
-            <div className="bg-white rounded-3xl border border-[#eddcc8] shadow-sm overflow-hidden">
+            <div className="bg-white rounded-3xl border border-[#eeeeee] shadow-sm overflow-hidden">
               <div className="p-4 sm:p-5 border-b border-stone-100">
                 <h3 className="text-sm sm:text-base font-bold text-stone-900 flex items-center gap-2">
-                  <Users className="w-5 h-5 text-[#b47820]" />
+                  <Users className="w-5 h-5 text-[#8c649c]" />
                   حسابات المستخدمين والمدراء
                 </h3>
               </div>
@@ -3042,7 +3042,7 @@ export default function AdminDashboardPage() {
                             placeholder="كلمة المرور الجديدة"
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
-                            className="flex-1 bg-white border-2 border-[#b47820] rounded-xl p-2 text-center font-mono text-xs"
+                            className="flex-1 bg-white border-2 border-[#8c649c] rounded-xl p-2 text-center font-mono text-xs"
                             autoFocus
                           />
                           <button
@@ -3081,7 +3081,7 @@ export default function AdminDashboardPage() {
               {/* عرض الديسكتوب */}
               <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-right text-xs">
-                  <thead className="bg-[#fcfbfa] border-b border-[#eddcc8] text-stone-600 font-bold">
+                  <thead className="bg-[#fcfbfa] border-b border-[#eeeeee] text-stone-600 font-bold">
                     <tr>
                       <th className="py-4 px-5">#</th>
                       <th className="py-4 px-5">اسم المستخدم</th>
@@ -3122,7 +3122,7 @@ export default function AdminDashboardPage() {
                                   placeholder="كلمة المرور الجديدة"
                                   value={newPassword}
                                   onChange={(e) => setNewPassword(e.target.value)}
-                                  className="w-36 bg-white border border-[#b47820] rounded-xl p-1.5 text-center font-mono text-xs shadow-xs"
+                                  className="w-36 bg-white border border-[#8c649c] rounded-xl p-1.5 text-center font-mono text-xs shadow-xs"
                                   autoFocus
                                 />
                                 <button
@@ -3168,7 +3168,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* شريط التنقل السفلي الاحترافي للجوال (5 أزرار متوازنة بدون زحام) */}
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-xl border-t border-[#eddcc8] shadow-[0_-4px_20px_-4px_rgba(180,120,32,0.12)] safe-pb">
+      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-xl border-t border-[#eeeeee] shadow-[0_-4px_20px_-4px_rgba(72, 43, 82,0.12)] safe-pb">
         <div className="grid grid-cols-5 items-center px-1.5 pt-1.5 pb-1">
           {(['merchants', 'products', 'advertisements', 'orders'] as TabType[]).map((tabId) => {
             const item = navigationItems.find((n) => n.id === tabId)!;
@@ -3183,10 +3183,10 @@ export default function AdminDashboardPage() {
                   setActiveTab(item.id);
                   setIsMobileMoreOpen(false);
                 }}
-                className={`relative flex flex-col items-center justify-center gap-0.5 py-1.5 rounded-2xl transition-all cursor-pointer ${isActive ? 'text-[#8f5a13]' : 'text-stone-400 hover:text-stone-700'
+                className={`relative flex flex-col items-center justify-center gap-0.5 py-1.5 rounded-2xl transition-all cursor-pointer ${isActive ? 'text-[#482b52]' : 'text-stone-400 hover:text-stone-700'
                   }`}
               >
-                <div className={`relative p-1.5 rounded-xl transition-colors ${isActive ? 'bg-[#fbf3e6]' : ''}`}>
+                <div className={`relative p-1.5 rounded-xl transition-colors ${isActive ? 'bg-[#faf6fc]' : ''}`}>
                   <Icon className="w-4.5 h-4.5" />
                   {item.badgeAlert && (
                     <span className="absolute top-0.5 right-0.5 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-white animate-pulse" />
@@ -3203,12 +3203,12 @@ export default function AdminDashboardPage() {
             type="button"
             onClick={() => setIsMobileMoreOpen((prev) => !prev)}
             className={`relative flex flex-col items-center justify-center gap-0.5 py-1.5 rounded-2xl transition-all cursor-pointer ${isMobileMoreOpen || ['categories', 'branches', 'users'].includes(activeTab)
-              ? 'text-[#8f5a13]'
+              ? 'text-[#482b52]'
               : 'text-stone-400 hover:text-stone-700'
               }`}
           >
             <div
-              className={`p-1.5 rounded-xl transition-colors ${isMobileMoreOpen || ['categories', 'branches', 'users'].includes(activeTab) ? 'bg-[#fbf3e6]' : ''
+              className={`p-1.5 rounded-xl transition-colors ${isMobileMoreOpen || ['categories', 'branches', 'users'].includes(activeTab) ? 'bg-[#faf6fc]' : ''
                 }`}
             >
               <MoreHorizontal className="w-4.5 h-4.5" />
@@ -3225,7 +3225,7 @@ export default function AdminDashboardPage() {
           onClick={() => setIsMobileMoreOpen(false)}
         >
           <div
-            className="w-full bg-white rounded-t-3xl border-t border-[#eddcc8] p-5 pb-24 space-y-3 shadow-2xl"
+            className="w-full bg-white rounded-t-3xl border-t border-[#eeeeee] p-5 pb-24 space-y-3 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="w-12 h-1.5 rounded-full bg-stone-200 mx-auto mb-2" />
@@ -3245,7 +3245,7 @@ export default function AdminDashboardPage() {
                       setIsMobileMoreOpen(false);
                     }}
                     className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl border text-center cursor-pointer ${isActive
-                      ? 'bg-[#fbf3e6] border-[#b47820] text-[#8f5a13] font-bold'
+                      ? 'bg-[#faf6fc] border-[#8c649c] text-[#482b52] font-bold'
                       : 'bg-stone-50 border-stone-200 text-stone-700 font-semibold'
                       }`}
                   >
@@ -3267,11 +3267,11 @@ export default function AdminDashboardPage() {
       {/* نافذة إضافة / تعديل صنف أو منتج جديد */}
       {isAddProductOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-t-3xl sm:rounded-3xl p-5 sm:p-7 max-w-lg w-full max-h-[92vh] overflow-y-auto border-t sm:border border-[#eddcc8] shadow-2xl space-y-4">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl p-5 sm:p-7 max-w-lg w-full max-h-[92vh] overflow-y-auto border-t sm:border border-[#eeeeee] shadow-2xl space-y-4">
             <div className="w-12 h-1.5 rounded-full bg-stone-200 mx-auto sm:hidden" />
             <div className="flex items-center justify-between border-b border-stone-100 pb-3">
               <h3 className="text-base font-bold text-stone-900 flex items-center gap-2">
-                <PackagePlus className="w-5 h-5 text-[#b47820]" />
+                <PackagePlus className="w-5 h-5 text-[#8c649c]" />
                 {editingProductDataId ? 'تعديل بيانات الصنف / المنتج' : 'إضافة صنف / منتج جديد بالجملة'}
               </h3>
               <button
@@ -3285,19 +3285,19 @@ export default function AdminDashboardPage() {
 
             <form onSubmit={handleCreateProduct} className="space-y-3.5 text-xs">
               {/* صندوق الاستخراج الذكي من رابط منتج */}
-              <div className="rounded-2xl bg-gradient-to-br from-[#fdfbf7] to-[#faf2e3] border border-[#ebd2b0] p-3.5 space-y-2.5">
+              <div className="rounded-2xl bg-gradient-to-br from-[#f9fafb] to-[#faf2e3] border border-[#c7aad1] p-3.5 space-y-2.5">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-black text-[#8f5a13] flex items-center gap-1.5 text-xs">
-                    <Sparkles className="w-4 h-4 text-[#b47820]" />
+                  <span className="font-black text-[#482b52] flex items-center gap-1.5 text-xs">
+                    <Sparkles className="w-4 h-4 text-[#8c649c]" />
                     استخراج تلقائي من رابط المنتج (بالذكاء الاصطناعي)
                   </span>
-                  <span className="text-[10px] font-bold bg-white/80 text-[#8f5a13] border border-[#ebd2b0] px-2 py-0.5 rounded-full">
+                  <span className="text-[10px] font-bold bg-white/80 text-[#482b52] border border-[#c7aad1] px-2 py-0.5 rounded-full">
                     الاسم + السعر + الوصف + الكود + الصورة
                   </span>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2">
                   <div className="relative flex-1">
-                    <Link2 className="w-4 h-4 text-[#b47820] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <Link2 className="w-4 h-4 text-[#8c649c] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
                       type="text"
                       dir="ltr"
@@ -3310,14 +3310,14 @@ export default function AdminDashboardPage() {
                           handleExtractProductFromUrl();
                         }
                       }}
-                      className="w-full bg-white border border-[#e3cba6] rounded-xl pr-9 pl-3 py-2.5 text-stone-900 placeholder:text-stone-400 focus:outline-hidden focus:border-[#b47820]"
+                      className="w-full bg-white border border-[#e3cba6] rounded-xl pr-9 pl-3 py-2.5 text-stone-900 placeholder:text-stone-400 focus:outline-hidden focus:border-[#8c649c]"
                     />
                   </div>
                   <button
                     type="button"
                     onClick={handleExtractProductFromUrl}
                     disabled={isExtractingProduct}
-                    className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#b47820] hover:bg-[#8f5a13] text-white font-bold shadow-xs cursor-pointer disabled:opacity-60 shrink-0"
+                    className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#8c649c] hover:bg-[#482b52] text-white font-bold shadow-xs cursor-pointer disabled:opacity-60 shrink-0"
                   >
                     <Sparkles className={`w-4 h-4 ${isExtractingProduct ? 'animate-spin' : ''}`} />
                     <span>{isExtractingProduct ? 'جاري الاستخراج...' : 'استخراج البيانات'}</span>
@@ -3342,7 +3342,7 @@ export default function AdminDashboardPage() {
                   placeholder="مثال: مناديل مبللة معقمة 80 منديل"
                   value={newProduct.name}
                   onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
-                  className="w-full bg-stone-50 border border-stone-200 rounded-xl p-3 text-stone-900 focus:outline-hidden focus:border-[#b47820] focus:bg-white"
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl p-3 text-stone-900 focus:outline-hidden focus:border-[#8c649c] focus:bg-white"
                   required
                 />
               </div>
@@ -3355,7 +3355,7 @@ export default function AdminDashboardPage() {
                     placeholder="مثال: Silva / Rasasi / Lux"
                     value={newProduct.brand}
                     onChange={(e) => setNewProduct({ ...newProduct, brand: e.target.value })}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-xl p-3 text-stone-900 focus:outline-hidden focus:border-[#b47820] focus:bg-white"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-xl p-3 text-stone-900 focus:outline-hidden focus:border-[#8c649c] focus:bg-white"
                   />
                 </div>
 
@@ -3365,7 +3365,7 @@ export default function AdminDashboardPage() {
                     <button
                       type="button"
                       onClick={handleGenerateProductCode}
-                      className="text-[10px] font-bold text-[#8f5a13] hover:text-[#b47820] underline cursor-pointer"
+                      className="text-[10px] font-bold text-[#482b52] hover:text-[#8c649c] underline cursor-pointer"
                     >
                       توليد كود تلقائي
                     </button>
@@ -3375,7 +3375,7 @@ export default function AdminDashboardPage() {
                     placeholder="مثال: PRD-105"
                     value={newProduct.code}
                     onChange={(e) => setNewProduct({ ...newProduct, code: e.target.value })}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-xl p-3 font-mono text-stone-900 focus:outline-hidden focus:border-[#b47820] focus:bg-white"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-xl p-3 font-mono text-stone-900 focus:outline-hidden focus:border-[#8c649c] focus:bg-white"
                     required
                   />
                 </div>
@@ -3390,7 +3390,7 @@ export default function AdminDashboardPage() {
                     placeholder="مثال: 4.90"
                     value={newProduct.unit_price}
                     onChange={(e) => setNewProduct({ ...newProduct, unit_price: e.target.value })}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-xl p-3 font-mono font-bold text-stone-900 focus:outline-hidden focus:border-[#b47820] focus:bg-white"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-xl p-3 font-mono font-bold text-stone-900 focus:outline-hidden focus:border-[#8c649c] focus:bg-white"
                     required
                   />
                 </div>
@@ -3403,7 +3403,7 @@ export default function AdminDashboardPage() {
                     placeholder="مثال: 9.00"
                     value={newProduct.old_price}
                     onChange={(e) => setNewProduct({ ...newProduct, old_price: e.target.value })}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-xl p-3 font-mono text-stone-900 focus:outline-hidden focus:border-[#b47820] focus:bg-white"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-xl p-3 font-mono text-stone-900 focus:outline-hidden focus:border-[#8c649c] focus:bg-white"
                   />
                 </div>
               </div>
@@ -3414,7 +3414,7 @@ export default function AdminDashboardPage() {
                   <select
                     value={newProduct.category_id}
                     onChange={(e) => setNewProduct({ ...newProduct, category_id: e.target.value })}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-xl p-3 text-stone-900 focus:outline-hidden focus:border-[#b47820] focus:bg-white"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-xl p-3 text-stone-900 focus:outline-hidden focus:border-[#8c649c] focus:bg-white"
                     required
                   >
                     <option value="">اختر القسم...</option>
@@ -3431,7 +3431,7 @@ export default function AdminDashboardPage() {
                   <select
                     value={newProduct.branch_id}
                     onChange={(e) => setNewProduct({ ...newProduct, branch_id: e.target.value })}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-xl p-3 text-stone-900 focus:outline-hidden focus:border-[#b47820] focus:bg-white"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-xl p-3 text-stone-900 focus:outline-hidden focus:border-[#8c649c] focus:bg-white"
                     required
                   >
                     <option value="">اختر المستودع...</option>
@@ -3446,7 +3446,7 @@ export default function AdminDashboardPage() {
 
               <div>
                 <label className="block font-bold text-stone-700 mb-1">رفع صورة الصنف (اختياري)</label>
-                <label className="block rounded-2xl border-2 border-dashed border-[#ebd2b0] hover:border-[#b47820] bg-[#fdfbf7] p-3 text-center cursor-pointer transition-colors mb-2">
+                <label className="block rounded-2xl border-2 border-dashed border-[#c7aad1] hover:border-[#8c649c] bg-[#f9fafb] p-3 text-center cursor-pointer transition-colors mb-2">
                   <input
                     type="file"
                     accept="image/*"
@@ -3458,15 +3458,15 @@ export default function AdminDashboardPage() {
                       <img
                         src={productImagePreview}
                         alt="معاينة الصنف"
-                        className="w-16 h-16 rounded-xl object-cover border border-[#eddcc8] bg-white"
+                        className="w-16 h-16 rounded-xl object-cover border border-[#eeeeee] bg-white"
                       />
-                      <span className="text-[11px] font-bold text-[#8f5a13] underline">
+                      <span className="text-[11px] font-bold text-[#482b52] underline">
                         تغيير صورة المنتج
                       </span>
                     </div>
                   ) : (
                     <span className="text-[11px] font-bold text-stone-600 inline-flex items-center gap-1.5">
-                      <Upload className="w-4 h-4 text-[#b47820]" />
+                      <Upload className="w-4 h-4 text-[#8c649c]" />
                       اضغط لاختيار صورة من جهازك
                     </span>
                   )}
@@ -3478,7 +3478,7 @@ export default function AdminDashboardPage() {
                   placeholder="https://... أو مسار الصورة"
                   value={newProduct.image}
                   onChange={(e) => setNewProduct({ ...newProduct, image: e.target.value })}
-                  className="w-full bg-stone-50 border border-stone-200 rounded-xl p-3 text-stone-900 focus:outline-hidden focus:border-[#b47820] focus:bg-white"
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl p-3 text-stone-900 focus:outline-hidden focus:border-[#8c649c] focus:bg-white"
                 />
               </div>
 
@@ -3489,7 +3489,7 @@ export default function AdminDashboardPage() {
                   placeholder="وصف مختصر للمنتج وعدد القطع أو الاستخدام..."
                   value={newProduct.description}
                   onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
-                  className="w-full bg-stone-50 border border-stone-200 rounded-xl p-3 text-stone-900 focus:outline-hidden focus:border-[#b47820] focus:bg-white"
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl p-3 text-stone-900 focus:outline-hidden focus:border-[#8c649c] focus:bg-white"
                 />
               </div>
 
@@ -3504,7 +3504,7 @@ export default function AdminDashboardPage() {
                 <button
                   type="submit"
                   disabled={isSavingProduct}
-                  className="flex-1 sm:flex-initial px-6 py-3 sm:py-2.5 rounded-xl bg-[#b47820] hover:bg-[#8f5a13] text-white font-bold shadow-xs cursor-pointer disabled:opacity-50"
+                  className="flex-1 sm:flex-initial px-6 py-3 sm:py-2.5 rounded-xl bg-[#8c649c] hover:bg-[#482b52] text-white font-bold shadow-xs cursor-pointer disabled:opacity-50"
                 >
                   {isSavingProduct
                     ? 'جاري الحفظ...'
@@ -3533,7 +3533,7 @@ export default function AdminDashboardPage() {
       {/* نافذة إضافة / تعديل قسم */}
       {isAddCategoryOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-t-3xl sm:rounded-3xl p-5 sm:p-7 max-w-md w-full max-h-[92vh] overflow-y-auto border-t sm:border border-[#eddcc8] shadow-2xl space-y-4">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl p-5 sm:p-7 max-w-md w-full max-h-[92vh] overflow-y-auto border-t sm:border border-[#eeeeee] shadow-2xl space-y-4">
             <div className="w-12 h-1.5 rounded-full bg-stone-200 mx-auto sm:hidden" />
             <div className="flex items-center justify-between border-b border-stone-100 pb-3">
               <h3 className="text-base font-bold text-stone-900 flex items-center gap-2">
@@ -3631,7 +3631,7 @@ export default function AdminDashboardPage() {
       {/* نافذة إضافة / تعديل مستودع */}
       {isAddBranchOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-t-3xl sm:rounded-3xl p-5 sm:p-7 max-w-md w-full max-h-[92vh] overflow-y-auto border-t sm:border border-[#eddcc8] shadow-2xl space-y-4">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl p-5 sm:p-7 max-w-md w-full max-h-[92vh] overflow-y-auto border-t sm:border border-[#eeeeee] shadow-2xl space-y-4">
             <div className="w-12 h-1.5 rounded-full bg-stone-200 mx-auto sm:hidden" />
             <div className="flex items-center justify-between border-b border-stone-100 pb-3">
               <h3 className="text-base font-bold text-stone-900 flex items-center gap-2">
@@ -3677,7 +3677,7 @@ export default function AdminDashboardPage() {
                   <label className="block font-bold text-stone-700 mb-1">لون هوية المستودع</label>
                   <input
                     type="color"
-                    value={newBranch.color || '#b47820'}
+                    value={newBranch.color || '#8c649c'}
                     onChange={(e) => setNewBranch({ ...newBranch, color: e.target.value })}
                     className="w-full h-[42px] bg-stone-50 border border-stone-200 rounded-xl p-1 cursor-pointer"
                   />
@@ -3718,11 +3718,11 @@ export default function AdminDashboardPage() {
       {/* نافذة رفع صورة وإضافة أو تعديل إعلان / بنر */}
       {isAddAdOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-t-3xl sm:rounded-3xl p-5 sm:p-7 max-w-lg w-full max-h-[92vh] overflow-y-auto border-t sm:border border-[#eddcc8] shadow-2xl space-y-4">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl p-5 sm:p-7 max-w-lg w-full max-h-[92vh] overflow-y-auto border-t sm:border border-[#eeeeee] shadow-2xl space-y-4">
             <div className="w-12 h-1.5 rounded-full bg-stone-200 mx-auto sm:hidden" />
             <div className="flex items-center justify-between border-b border-stone-100 pb-3">
               <h3 className="text-base font-bold text-stone-900 flex items-center gap-2">
-                <ImagePlus className="w-5 h-5 text-[#b47820]" />
+                <ImagePlus className="w-5 h-5 text-[#8c649c]" />
                 {editingAdId ? 'تعديل بيانات وصورة الإعلان' : 'رفع صورة وإضافة إعلان جديد'}
               </h3>
               <button
@@ -3740,7 +3740,7 @@ export default function AdminDashboardPage() {
                 <label className="block font-bold text-stone-700 mb-1.5">
                   صورة الإعلان {editingAdId ? '(اتركها كما هي أو اختر صورة جديدة)' : '*'}
                 </label>
-                <label className="block rounded-2xl border-2 border-dashed border-[#ebd2b0] hover:border-[#b47820] bg-[#fdfbf7] p-4 text-center cursor-pointer transition-colors">
+                <label className="block rounded-2xl border-2 border-dashed border-[#c7aad1] hover:border-[#8c649c] bg-[#f9fafb] p-4 text-center cursor-pointer transition-colors">
                   <input
                     type="file"
                     accept="image/*"
@@ -3752,15 +3752,15 @@ export default function AdminDashboardPage() {
                       <img
                         src={adImagePreview}
                         alt="معاينة الإعلان"
-                        className="max-h-44 mx-auto rounded-xl object-contain border border-[#eddcc8] bg-white"
+                        className="max-h-44 mx-auto rounded-xl object-contain border border-[#eeeeee] bg-white"
                       />
-                      <span className="inline-block text-[11px] font-bold text-[#8f5a13] underline">
+                      <span className="inline-block text-[11px] font-bold text-[#482b52] underline">
                         تغيير الصورة المختارة
                       </span>
                     </div>
                   ) : (
                     <div className="py-4 space-y-1.5">
-                      <Upload className="w-8 h-8 text-[#b47820] mx-auto" />
+                      <Upload className="w-8 h-8 text-[#8c649c] mx-auto" />
                       <p className="font-bold text-stone-800">اضغط هنا لاختيار صورة الإعلان</p>
                       <p className="text-[10px] text-stone-400">JPG, PNG, WEBP, AVIF — ضغط تلقائي ذكي حتى 20 ميجابايت</p>
                     </div>
@@ -3775,7 +3775,7 @@ export default function AdminDashboardPage() {
                   placeholder="https://... (اتركه فارغاً عند رفع ملف)"
                   value={adImageUrl}
                   onChange={(e) => setAdImageUrl(e.target.value)}
-                  className="w-full bg-stone-50 border border-stone-200 rounded-xl p-2.5 text-stone-900 focus:outline-hidden focus:border-[#b47820] focus:bg-white"
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl p-2.5 text-stone-900 focus:outline-hidden focus:border-[#8c649c] focus:bg-white"
                 />
               </div>
 
@@ -3784,7 +3784,7 @@ export default function AdminDashboardPage() {
                 <select
                   value={adBranchId}
                   onChange={(e) => setAdBranchId(e.target.value)}
-                  className="w-full bg-stone-50 border border-stone-200 rounded-xl p-2.5 text-stone-900 focus:outline-hidden focus:border-[#b47820] focus:bg-white font-bold"
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl p-2.5 text-stone-900 focus:outline-hidden focus:border-[#8c649c] focus:bg-white font-bold"
                 >
                   <option value="">كل المستودعات (إعلان عام يظهر للجميع)</option>
                   {branches.map((branch) => (
@@ -3804,7 +3804,7 @@ export default function AdminDashboardPage() {
                   <select
                     value={adPlacement}
                     onChange={(e) => setAdPlacement(e.target.value as 'all' | 'home' | 'catalog')}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-xl p-2.5 text-stone-900 focus:outline-hidden focus:border-[#b47820] focus:bg-white font-bold"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-xl p-2.5 text-stone-900 focus:outline-hidden focus:border-[#8c649c] focus:bg-white font-bold"
                   >
                     <option value="all">الرئيسية + الكتالوج معاً</option>
                     <option value="catalog">صفحة الكتالوج فقط</option>
@@ -3818,7 +3818,7 @@ export default function AdminDashboardPage() {
                     type="number"
                     value={adSort}
                     onChange={(e) => setAdSort(e.target.value)}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-xl p-2.5 font-mono text-stone-900 focus:outline-hidden focus:border-[#b47820] focus:bg-white"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-xl p-2.5 font-mono text-stone-900 focus:outline-hidden focus:border-[#8c649c] focus:bg-white"
                   />
                 </div>
               </div>
@@ -3830,7 +3830,7 @@ export default function AdminDashboardPage() {
                   placeholder="مثال: أقوى عروض الجملة لهذا الأسبوع"
                   value={adTitle}
                   onChange={(e) => setAdTitle(e.target.value)}
-                  className="w-full bg-stone-50 border border-stone-200 rounded-xl p-2.5 text-stone-900 focus:outline-hidden focus:border-[#b47820] focus:bg-white"
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl p-2.5 text-stone-900 focus:outline-hidden focus:border-[#8c649c] focus:bg-white"
                 />
               </div>
 
@@ -3842,7 +3842,7 @@ export default function AdminDashboardPage() {
                     placeholder="مثال: عرض حصري"
                     value={adBadgeText}
                     onChange={(e) => setAdBadgeText(e.target.value)}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-xl p-2.5 text-stone-900 focus:outline-hidden focus:border-[#b47820] focus:bg-white"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-xl p-2.5 text-stone-900 focus:outline-hidden focus:border-[#8c649c] focus:bg-white"
                   />
                 </div>
 
@@ -3853,7 +3853,7 @@ export default function AdminDashboardPage() {
                     placeholder="تفاصيل إضافية تظهر مع البنر..."
                     value={adSubtitle}
                     onChange={(e) => setAdSubtitle(e.target.value)}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-xl p-2.5 text-stone-900 focus:outline-hidden focus:border-[#b47820] focus:bg-white"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-xl p-2.5 text-stone-900 focus:outline-hidden focus:border-[#8c649c] focus:bg-white"
                   />
                 </div>
               </div>
@@ -3869,7 +3869,7 @@ export default function AdminDashboardPage() {
                 <button
                   type="submit"
                   disabled={isUploadingAd}
-                  className="flex-1 sm:flex-initial px-6 py-3 sm:py-2.5 rounded-xl bg-[#b47820] hover:bg-[#8f5a13] text-white font-bold shadow-xs cursor-pointer disabled:opacity-50"
+                  className="flex-1 sm:flex-initial px-6 py-3 sm:py-2.5 rounded-xl bg-[#8c649c] hover:bg-[#482b52] text-white font-bold shadow-xs cursor-pointer disabled:opacity-50"
                 >
                   {isUploadingAd
                     ? 'جاري الحفظ...'

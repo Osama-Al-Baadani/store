@@ -12,7 +12,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   viewportFit: 'cover',
-  themeColor: '#b47820',
+  themeColor: '#c7aad1',
 };
 
 export default function RootLayout({
@@ -25,12 +25,13 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="stylesheet" href="https://cdn.salla.network/fonts/pingarlt.css?v=2.0.5" />
         <link
           href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Tajawal:wght@400;500;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-full bg-[#faf8f5] text-stone-900 antialiased font-sans">
+      <body className="min-h-full bg-white text-[#111827] antialiased font-sans">
         <ThemeProvider>
           {children}
         </ThemeProvider>

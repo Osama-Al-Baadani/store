@@ -29,18 +29,18 @@ export const BrandFilterBar: React.FC<BrandFilterBarProps> = ({
   return (
     <section
       aria-label="تصفية حسب العلامة التجارية"
-      className="bg-white/95 rounded-2xl sm:rounded-3xl border border-[#eddcc8] p-3 sm:p-4 shadow-2xs space-y-2.5"
+      className="bg-white rounded-xl sm:rounded-2xl border border-[#eeeeee] p-3 sm:p-4 shadow-2xs space-y-2.5"
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-xl bg-[#fbf3e6] border border-[#ebd2b0] text-[#b47820] flex items-center justify-center shrink-0">
+          <div className="w-7 h-7 rounded-xl bg-[#faf6fc] border border-[#c7aad1] text-[#482b52] flex items-center justify-center shrink-0">
             <Award className="w-3.5 h-3.5" />
           </div>
           <div>
-            <h3 className="text-xs sm:text-sm font-black text-stone-900 leading-tight">
+            <h3 className="text-xs sm:text-sm font-black text-[#111827] leading-tight">
               العلامات التجارية
             </h3>
-            <p className="text-[10px] sm:text-[11px] text-stone-500 font-medium">
+            <p className="text-[10px] sm:text-[11px] text-[#4b5563] font-medium">
               اختر علامة تجارية لعرض منتجاتها فقط
             </p>
           </div>
@@ -48,20 +48,20 @@ export const BrandFilterBar: React.FC<BrandFilterBarProps> = ({
 
         <div className="flex items-center gap-2">
           {expanded && brands.length > 8 && (
-            <div className="relative flex items-center bg-[#fdfbf7] border border-[#eddcc8] rounded-xl px-2.5 py-1">
-              <Search className="w-3 h-3 text-[#b47820] ml-1.5 shrink-0" />
+            <div className="relative flex items-center bg-[#f9fafb] border border-[#e5e7eb] rounded-xl px-2.5 py-1">
+              <Search className="w-3 h-3 text-[#a184ab] ml-1.5 shrink-0" />
               <input
                 type="text"
                 placeholder="بحث في العلامات..."
                 value={brandSearch}
                 onChange={(e) => setBrandSearch(e.target.value)}
-                className="w-28 sm:w-40 bg-transparent text-[11px] font-semibold text-stone-800 placeholder-stone-400 focus:outline-hidden"
+                className="w-28 sm:w-40 bg-transparent text-[11px] font-semibold text-[#111827] placeholder-gray-400 focus:outline-hidden"
               />
               {brandSearch && (
                 <button
                   type="button"
                   onClick={() => setBrandSearch('')}
-                  className="text-stone-400 hover:text-stone-700 cursor-pointer"
+                  className="text-gray-400 hover:text-[#111827] cursor-pointer"
                   aria-label="مسح بحث العلامات"
                 >
                   <X className="w-3 h-3" />
@@ -85,7 +85,7 @@ export const BrandFilterBar: React.FC<BrandFilterBarProps> = ({
             <button
               type="button"
               onClick={() => setExpanded((prev) => !prev)}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-[#fbf3e6] hover:bg-[#f6e8cf] text-[#8f5a13] border border-[#ebd2b0] text-[11px] font-bold transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-[#faf6fc] hover:bg-[#edd0f7]/45 text-[#482b52] border border-[#c7aad1] text-[11px] font-bold transition-colors cursor-pointer"
             >
               <span>{expanded ? 'طي القائمة' : 'عرض الكل'}</span>
               {expanded ? (
@@ -110,8 +110,8 @@ export const BrandFilterBar: React.FC<BrandFilterBarProps> = ({
           onClick={() => onSelectBrand(null)}
           className={`shrink-0 px-3 py-1.5 rounded-xl text-[11px] font-bold border transition-all cursor-pointer ${
             selectedBrand === null
-              ? 'bg-gradient-to-r from-[#8f5a13] to-[#b47820] text-white border-[#8f5a13] shadow-2xs'
-              : 'bg-[#fdfbf7] hover:bg-[#fbf3e6] text-stone-700 border-[#eddcc8]'
+              ? 'bg-[#482b52] text-white border-[#482b52] shadow-2xs'
+              : 'bg-[#f9fafb] hover:bg-[#faf6fc] text-[#111827] border-[#e5e7eb]'
           }`}
         >
           جميع العلامات
@@ -126,8 +126,8 @@ export const BrandFilterBar: React.FC<BrandFilterBarProps> = ({
               onClick={() => onSelectBrand(isSelected ? null : item.brand)}
               className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold border transition-all cursor-pointer ${
                 isSelected
-                  ? 'bg-gradient-to-r from-[#8f5a13] via-[#b47820] to-[#c28b38] text-white border-[#8f5a13] shadow-xs'
-                  : 'bg-white hover:bg-[#fbf3e6] text-stone-700 hover:text-[#8f5a13] border-stone-200 hover:border-[#ebd2b0]'
+                  ? 'bg-[#482b52] text-white border-[#482b52] shadow-xs'
+                  : 'bg-white hover:bg-[#faf6fc] text-[#111827] hover:text-[#482b52] border-[#e5e7eb] hover:border-[#c7aad1]'
               }`}
             >
               <span>{item.brand}</span>

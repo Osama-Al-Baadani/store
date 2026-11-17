@@ -5,15 +5,21 @@ import { X, Trash2, FileText, Share2, CheckCircle2, Loader2 } from 'lucide-react
 import { Cart } from '@/types';
 import { QuantityInput } from '@/features/catalog/components/QuantityInput';
 
+/**
+ * واجهة المدخلات (Props) التي يستقبلها مكون نافذة السلة من المكون الأب
+ */
 interface CartModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  cart: Cart | null;
-  onUpdateQuantity: (packageId: number, qty: number) => Promise<void>;
-  onClearCart: () => Promise<void>;
-  onCheckout: () => Promise<any>;
+  isOpen: boolean;                                                       // حالة فتح أو إغلاق النافذة
+  onClose: () => void;                                                   // دالة إغلاق النافذة
+  cart: Cart | null;                                                     // كائن بيانات السلة الكامل أو null في حال عدم التحميل
+  onUpdateQuantity: (packageId: number, qty: number) => Promise<void>;   // دالة تحديث كمية صنف معين (أو حذفه بتمرير 0)
+  onClearCart: () => Promise<void>;                                      // دالة تفريغ السلة بالكامل
+  onCheckout: () => Promise<any>;                                        // دالة إرسال واعتماد الطلب وإرجاع تفاصيل الفاتورة
 }
 
+/**
+ * مكون نافذة سلة المشتريات المنبثقة (Cart Modal)
+ */
 export const CartModal: React.FC<CartModalProps> = ({
   isOpen,
   onClose,
@@ -22,13 +28,22 @@ export const CartModal: React.FC<CartModalProps> = ({
   onClearCart,
   onCheckout,
 }) => {
+  // حالة لمراقبة عملية إرسال الطلب ومنع الضغط المتكرر على الزر
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // حالة لتخزين بيانات الطلب المعتمد لعرض شاشة النجاح وروابط الفاتورة
   const [successOrder, setSuccessOrder] = useState<any>(null);
 
+  // إيقاف رسم المكون في المتصفح إذا كانت النافذة مغلقة
   if (!isOpen) return null;
 
+  // استخراج قائمة الأصناف أو مصفوفة فارغة كقيمة افتراضية
   const items = cart?.items || [];
+
+  // شرط عرض شاشة النجاح: وجود بيانات طلب معتمد + التأكد من تفريغ السلة
   const showSuccess = Boolean(successOrder && items.length === 0);
+
+  // استخراج الملخص المالي للسلة أو تعيين قيم صفرية افتراضية لتجنب الأخطاء
   const summary = cart?.summary || {
     items_count: 0,
     total_quantity: 0,
@@ -37,22 +52,33 @@ export const CartModal: React.FC<CartModalProps> = ({
     total: 0,
   };
 
+  /**
+   * دالة إغلاق النافذة مع تصفير حالة الطلب السابق حتى تظهر السلة طبيعية عند الفتح مجدداً
+   */
   const handleClose = () => {
     setSuccessOrder(null);
     onClose();
   };
 
+  /**
+   * دالة تنفيذ وإتمام الطلب ومشاركة الفاتورة عبر واتساب تلقائياً
+   */
   const handleCheckout = async () => {
     setIsSubmitting(true);
     try {
+      // إرسال الطلب للسيرفر وانتظار استلام بيانات الفاتورة المعتمدة
       const order = await onCheckout();
       setSuccessOrder(order);
+
+      // فتح رابط مشاركة واتساب في تبويب جديد إذا كان متوفراً في استجابة السيرفر
       if (order?.whatsapp_share?.url) {
         window.open(order.whatsapp_share.url, '_blank');
       }
     } catch (err: any) {
+      // إظهار رسالة الخطأ القادمة من السيرفر أو رسالة افتراضية
       alert(err.message || 'حدث خطأ أثناء تجهيز الطلب');
     } finally {
+      // إيقاف حالة التحميل وإعادة تفعيل الزر في جميع الأحوال
       setIsSubmitting(false);
     }
   };
@@ -96,8 +122,9 @@ export const CartModal: React.FC<CartModalProps> = ({
         {/* جسم السلة */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/50">
           {showSuccess ? (
+            /* شاشة تأكيد نجاح الطلب وروابط الفاتورة */
             <div className="py-12 px-6 text-center flex flex-col items-center">
-              <CheckCircle2 className="w-16 h-16 text-amber-600 mb-3" />
+              <CheckCircle2 className="w-16 h-16 text-[#8c649c] mb-3" />
               <h3 className="text-lg font-bold text-slate-800">
                 تم اعتماد الطلب بنجاح!
               </h3>
@@ -127,6 +154,7 @@ export const CartModal: React.FC<CartModalProps> = ({
               </div>
             </div>
           ) : items.length === 0 ? (
+            /* شاشة السلة الفارغة */
             <div className="py-16 text-center text-slate-400">
               <span className="text-4xl block mb-2">🛒</span>
               <p className="font-semibold text-sm">سلة التسوق فارغة</p>
@@ -135,6 +163,7 @@ export const CartModal: React.FC<CartModalProps> = ({
               </p>
             </div>
           ) : (
+            /* قائمة المنتجات المضافة للسلة */
             items.map((item) => (
               <div
                 key={item.id}
@@ -146,6 +175,7 @@ export const CartModal: React.FC<CartModalProps> = ({
                       <h4 className="font-bold text-slate-800 text-sm">
                         {item.product_name}
                       </h4>
+                      {/* زر حذف الصنف بتعيين كميته إلى 0 */}
                       <button
                         type="button"
                         onClick={() => onUpdateQuantity(item.package_id, 0)}
@@ -254,4 +284,3 @@ export const CartModal: React.FC<CartModalProps> = ({
     </div>
   );
 };
-

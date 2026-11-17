@@ -1,35 +1,40 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: 'Cairo', 'Tajawal', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-  --font-display: 'Cairo', 'Tajawal', system-ui, sans-serif;
+  --font-sans: 'PingARLT', 'Cairo', 'Tajawal', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-display: 'PingARLT', 'Cairo', 'Tajawal', system-ui, sans-serif;
   --font-mono: 'Plus Jakarta Sans', 'Cairo', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 :root {
-  /* ثيم شركة المخازن الاقتصادية الفاخر الموحد - Royal Gold B2B */
-  --brand-primary: #b47820;
-  --brand-dark: #8f5a13;
-  --brand-light: rgba(180, 120, 32, 0.08);
-  --brand-ring: rgba(180, 120, 32, 0.25);
-  --brand-gradient: linear-gradient(135deg, #8f5a13 0%, #b47820 50%, #d4973b 100%);
-  --brand-gold-gradient: linear-gradient(135deg, #dfb76c 0%, #c28b38 50%, #996515 100%);
-  --brand-mesh: radial-gradient(at 0% 0%, rgba(180, 120, 32, 0.14) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(212, 151, 59, 0.1) 0px, transparent 50%);
+  /* هوية دار الأميرات البصرية - أبيض نقي مع اللافندر الملكي والبرقوقي العميق */
+  --color-primary: #c7aad1;
+  --color-primary-dark: #a184ab;
+  --color-primary-light: #edd0f7;
+  --color-primary-reverse: #482b52;
 
-  /* ألوان فاخرة مكملة */
-  --gold-accent: #b47820;
-  --gold-gradient: linear-gradient(135deg, #fef3c7 0%, #d4973b 50%, #996515 100%);
+  --brand-primary: #8c649c;
+  --brand-dark: #482b52;
+  --brand-light: rgba(199, 170, 209, 0.16);
+  --brand-ring: rgba(161, 132, 171, 0.28);
+  --brand-gradient: linear-gradient(135deg, #482b52 0%, #8c649c 55%, #c7aad1 100%);
+  --brand-gold-gradient: linear-gradient(135deg, #edd0f7 0%, #c7aad1 50%, #a184ab 100%);
+  --brand-mesh: radial-gradient(at 0% 0%, rgba(199, 170, 209, 0.18) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(237, 208, 247, 0.22) 0px, transparent 50%);
+
+  /* ألوان مكملة */
+  --gold-accent: #a184ab;
+  --gold-gradient: linear-gradient(135deg, #edd0f7 0%, #c7aad1 50%, #a184ab 100%);
   --emerald-accent: #059669;
   --emerald-gradient: linear-gradient(135deg, #d1fae5 0%, #10b981 50%, #059669 100%);
 
   /* الخلفيات والأسطح */
-  --bg-app: #faf8f5;
+  --bg-app: #ffffff;
   --bg-surface: #ffffff;
-  --text-main: #1c1917;
-  --text-secondary: #44403c;
-  --text-muted: #78716c;
-  --border-subtle: #eddcc8;
-  --border-glass: rgba(180, 120, 32, 0.22);
+  --text-main: #111827;
+  --text-secondary: #4b5563;
+  --text-muted: #6b7280;
+  --border-subtle: #eeeeee;
+  --border-glass: rgba(199, 170, 209, 0.35);
 }
 
 * {
@@ -78,28 +83,29 @@ button, a, input, select, textarea {
 
 /* فخامة التصميم والعناصر الزجاجية */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(237, 220, 200, 0.85);
+  border: 1px solid #eeeeee;
 }
 
 .glass-header {
-  background: var(--brand-gradient);
-  box-shadow: 0 10px 30px -10px rgba(180, 120, 32, 0.25);
+  background: #ffffff;
+  border-bottom: 1px solid #eeeeee;
+  box-shadow: 0 4px 20px -8px rgba(72, 43, 82, 0.08);
 }
 
 .glass-card {
   background: #ffffff;
-  border: 1px solid rgba(237, 220, 200, 0.85);
-  box-shadow: 0 4px 20px -4px rgba(180, 120, 32, 0.07), 0 2px 6px -1px rgba(28, 25, 23, 0.03);
+  border: 1px solid #eeeeee;
+  box-shadow: 0 4px 20px -6px rgba(72, 43, 82, 0.06), 0 2px 6px -1px rgba(17, 24, 39, 0.03);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glass-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 16px 32px -6px rgba(180, 120, 32, 0.14), 0 4px 12px -2px rgba(28, 25, 23, 0.04);
-  border-color: rgba(180, 120, 32, 0.45);
+  box-shadow: 0 16px 32px -6px rgba(161, 132, 171, 0.18), 0 4px 12px -2px rgba(17, 24, 39, 0.04);
+  border-color: #c7aad1;
 }
 
 /* شريط تمرير عصري فائق النعومة */
@@ -113,12 +119,12 @@ button, a, input, select, textarea {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d6c5ad;
+  background: #d8c6df;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #b47820;
+  background: #a184ab;
 }
 
 /* كلاسات الثيم الموحد لسهولة الاستخدام */
